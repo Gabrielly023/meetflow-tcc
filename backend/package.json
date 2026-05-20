@@ -1,8 +1,22 @@
 {
+  "name": "meetflow-backend",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "src/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "dependencies": {
+    "@prisma/adapter-mariadb": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "mysql2": "^3.22.3",
-    "type" : "module"
+    "mysql2": "^3.22.3"
+  },
+  "devDependencies": {
+    "prisma": "^7.8.0"
   }
 }

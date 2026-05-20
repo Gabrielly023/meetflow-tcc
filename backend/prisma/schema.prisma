@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+//
+// ENUMS
+//
+
+enum StatusParticipante {
+  pendente
+  confirmado
+  recusado
+}
+
+enum PapelParticipante {
+  organizador
+  convidado
+}
+
+enum TipoChat {
+  mensagem
+  imagem
+  sistema
+}
+
+//
+// USUARIO
+//
+
+model Usuario {
+  id_usuario   String   @id @default(uuid()) @db.Char(36)
+  nome         String   @db.VarChar(100)
+  email        String   @unique @db.VarChar(100)
+  senha        String   @db.VarChar(255)
+  foto_perfil  String?  @db.VarChar(500)
+
+  // RELAÇÕES
+  eventos         Evento[]
+  participacoes   Participantes[]
+  galerias        Galeria[]
+  musicas         Musica[]
+  chats           Chat[]
+  leiturasChat    ChatLeitura[]
+}
+
+//
+// EVENTO
+//
+
+model Evento {
+  id_evento      String    @id @default(uuid()) @db.Char(36)
+  titulo         String    @db.VarChar(150)
+  descricao      String?   @db.Text
+  data_hora      DateTime
+  localizacao    String?   @db.VarChar(255)
+  senha_acesso   String    @db.VarChar(255)
+
+  id_usuario     String
+
+  // RELAÇÃO ORGANIZADOR
+  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  // RELAÇÕES
+  participantes Participantes[]
+  galerias      Galeria[]
+  musicas       Musica[]
+  chats         Chat[]
+}
+
+//
+// PARTICIPANTES
+//
+
+model Participantes {
+  id_evento  String
+  id_usuario String
+
+  status StatusParticipante @default(confirmado)
+  papel  PapelParticipante  @default(convidado)
+
+  // RELAÇÕES
+  evento  Evento  @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
+  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@id([id_evento, id_usuario])
+}
+
+//
+// GALERIA
+//
+
+model Galeria {
+  id_foto     String    @id @default(uuid()) @db.Char(36)
+  url_foto    String?   @db.VarChar(500)
+  postado_em  DateTime  @default(now())
+
+  id_evento   String
+  id_usuario  String
+
+  // RELAÇÕES
+  evento  Evento  @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
+  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+}
+
+//
+// MUSICA
+//
+
+model Musica {
+  id_musica     String    @id @default(uuid()) @db.Char(36)
+  titulo        String?   @db.VarChar(150)
+  link_spotify  String    @db.VarChar(500)
+  capa_url      String?   @db.VarChar(500)
+  criado_em     DateTime  @default(now())
+
+  id_evento     String
+  id_usuario    String
+
+  // RELAÇÕES
+  evento  Evento  @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
+  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@index([id_evento], name: "idx_musica_evento")
+}
+
+//
+// CHAT
+//
+
+model Chat {
+  id_chat      String    @id @default(uuid()) @db.Char(36)
+  conteudo     String?   @db.Text
+  tipo         TipoChat  @default(mensagem)
+  criado_em    DateTime  @default(now())
+
+  id_evento    String
+  id_usuario   String
+
+  // RELAÇÕES
+  evento   Evento        @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
+  usuario  Usuario       @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  leituras ChatLeitura[]
+
+  @@index([id_evento, criado_em], name: "idx_chat_evento_data")
+}
+
+//
+// CHAT LEITURA
+//
+
+model ChatLeitura {
+  id_chat      String
+  id_usuario   String
+
+  lido_em      DateTime?
+
+  // RELAÇÕES
+  chat     Chat    @relation(fields: [id_chat], references: [id_chat], onDelete: Cascade)
+  usuario  Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@id([id_chat, id_usuario])
+}
