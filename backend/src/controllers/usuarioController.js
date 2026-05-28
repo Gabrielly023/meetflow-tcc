@@ -1,6 +1,6 @@
-const prisma = require("../config/db");
+import prisma from "../config/db.js";
 
-module.exports = {
+const usuarioController = {
   async listar(req, res) {
     const usuarios = await prisma.usuario.findMany();
 
@@ -12,7 +12,7 @@ module.exports = {
 
     const usuario = await prisma.usuario.findUnique({
       where: {
-        id: Number(id),
+        id_usuario: id,
       },
     });
 
@@ -20,12 +20,14 @@ module.exports = {
   },
 
   async criar(req, res) {
-    const { nome, email } = req.body;
+    const { nome, email, senha, foto_perfil } = req.body;
 
     const usuario = await prisma.usuario.create({
       data: {
         nome,
         email,
+        senha,
+        foto_perfil,
       },
     });
 
@@ -34,15 +36,17 @@ module.exports = {
 
   async atualizar(req, res) {
     const { id } = req.params;
-    const { nome, email } = req.body;
+    const { nome, email, senha, foto_perfil } = req.body;
 
     const usuario = await prisma.usuario.update({
       where: {
-        id: Number(id),
+        id_usuario: id,
       },
       data: {
         nome,
         email,
+        senha,
+        foto_perfil,
       },
     });
 
@@ -54,7 +58,7 @@ module.exports = {
 
     const usuario = await prisma.usuario.update({
       where: {
-        id: Number(id),
+        id_usuario: id,
       },
       data: req.body,
     });
@@ -67,7 +71,7 @@ module.exports = {
 
     await prisma.usuario.delete({
       where: {
-        id: Number(id),
+        id_usuario: id,
       },
     });
 
@@ -76,3 +80,5 @@ module.exports = {
     });
   },
 };
+
+export default usuarioController;
