@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
 
 import { prisma } from "./config/db.js";
 
@@ -9,6 +10,12 @@ import usuarioRouter from "./routes/usuarioRouter.js";
 dotenv.config();
 
 const app = express();
+
+// CONFIGURAR CORS
+app.use(cors({
+  origin: "http://localhost:5173", // URL do frontend (Vite padrão)
+  credentials: true
+}));
 
 app.use(express.json());
 

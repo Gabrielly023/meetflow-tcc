@@ -53,19 +53,6 @@ const usuarioController = {
     res.json(usuario);
   },
 
-  async atualizarParcial(req, res) {
-    const { id } = req.params;
-
-    const usuario = await prisma.usuario.update({
-      where: {
-        id_usuario: id
-      },
-      data: req.body
-    });
-
-    res.json(usuario);
-  },
-
   async deletar(req, res) {
     const { id } = req.params;
 
