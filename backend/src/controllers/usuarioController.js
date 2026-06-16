@@ -12,8 +12,8 @@ const usuarioController = {
 
     const usuario = await prisma.usuario.findUnique({
       where: {
-        id_usuario: id
-      }
+        id_usuario: id,
+      },
     });
 
     res.json(usuario);
@@ -27,8 +27,8 @@ const usuarioController = {
         nome,
         email,
         senha,
-        foto_perfil
-      }
+        foto_perfil,
+      },
     });
 
     res.status(201).json(usuario);
@@ -40,14 +40,14 @@ const usuarioController = {
 
     const usuario = await prisma.usuario.update({
       where: {
-        id_usuario: id
+        id_usuario: id,
       },
       data: {
         nome,
         email,
         senha,
-        foto_perfil
-      }
+        foto_perfil,
+      },
     });
 
     res.json(usuario);
@@ -58,14 +58,14 @@ const usuarioController = {
 
     await prisma.usuario.delete({
       where: {
-        id_usuario: id
-      }
+        id_usuario: id,
+      },
     });
 
     res.json({
-      mensagem: "Usuário deletado com sucesso"
+      mensagem: "Usuário deletado com sucesso",
     });
-  }
+  },
 };
 
 export default usuarioController;
