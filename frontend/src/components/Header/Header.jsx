@@ -4,7 +4,7 @@ const Header = ({ title = 'MeetFlow', links = [{ label: 'Home', href: '/' }, { l
 	const [open, setOpen] = useState(false)
 
 	return (
-	<header className="text-gray-400 bg-red-900 body-font">
+	<header className="text-gray-400 bg-[linear-gradient(to_right,#a855f7_0%,#ec4899_33%,#ea580c_66%,#16a34a_100%)] body-font">
   <div className="container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center">
     <a className="flex title-font font-medium items-center text-white mb-4 md:mb-0">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" className="w-10 h-10 text-white p-2 bg-indigo-500 rounded-full" viewBox="0 0 24 24">
@@ -34,3 +34,4 @@ const Header = ({ title = 'MeetFlow', links = [{ label: 'Home', href: '/' }, { l
 
 export default Header
 
+//roxo rosa laranja verde
