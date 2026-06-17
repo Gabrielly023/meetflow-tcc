@@ -1,19 +1,17 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
-import Header from './components/Header/Header'
+import Header from "./components/Header";
+import Cards from "./components/Cards";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <>
-    <Header />
-      </>
-
-  )
+      <div className="bg-mist-950 w-full h-screen">
+        <Header />
+        <main className="w-full flex items-center justify-center">
+          <Cards />
+        </main>
+      </div>
+    </>
+  );
 }
 
-export default App
+export default App;
