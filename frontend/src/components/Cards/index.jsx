@@ -8,19 +8,18 @@ export default function Cards() {
               <div className="h-full border-2 border-gray-200 border-opacity-60 rounded-lg overflow-hidden">
                 <img
                   className="lg:h-48 md:h-36 w-full object-cover object-center"
-                  src="https://dummyimage.com/720x400"
+                  src="https://static.vecteezy.com/ti/fotos-gratis/t2/51370782-vibrante-celebracao-com-maos-elevado-dentro-excitacao-iluminado-de-colorida-luzes-e-fogos-de-artificio-criando-festivo-atmosfera-foto.JPG"
                   alt="blog"
                 />
                 <div className="p-6">
                   <h2 className="tracking-widest text-xs title-font font-medium text-gray-400 mb-1">
-                    CATEGORY
+                    EVENTOS
                   </h2>
                   <h1 className="title-font text-lg font-medium text-gray-900 mb-3">
-                    The Catalyzer
+                    Meus eventos
                   </h1>
                   <p className="leading-relaxed mb-3">
-                    Photo booth fam kinfolk cold-pressed sriracha leggings
-                    jianbing microdosing tousled waistcoat.
+                    Todos os eventos que você criou ou participou estão listados aqui. Você pode visualizar, editar ou excluir qualquer evento que desejar.
                   </p>
                   <div className="flex items-center flex-wrap ">
                     <a className="text-indigo-500 inline-flex items-center md:mb-2 lg:mb-0">
@@ -75,19 +74,18 @@ export default function Cards() {
               <div className="h-full border-2 border-gray-200 border-opacity-60 rounded-lg overflow-hidden">
                 <img
                   className="lg:h-48 md:h-36 w-full object-cover object-center"
-                  src="https://dummyimage.com/721x401"
+                  src="https://static.vecteezy.com/ti/vetor-gratis/p1/6642202-spotify-icon-spotify-logo-spotify-symbol-logo-set-gratis-vetor.jpg"
                   alt="blog"
                 />
                 <div className="p-6">
                   <h2 className="tracking-widest text-xs title-font font-medium text-gray-400 mb-1">
-                    CATEGORY
+                    PLAYLISTS
                   </h2>
                   <h1 className="title-font text-lg font-medium text-gray-900 mb-3">
-                    The 400 Blows
+                    Spotfy Playlists
                   </h1>
                   <p className="leading-relaxed mb-3">
-                    Photo booth fam kinfolk cold-pressed sriracha leggings
-                    jianbing microdosing tousled waistcoat.
+                    Crie e gerencie suas playlists favoritas do Spotify. Adicione suas músicas preferidas, organize suas playlists e compartilhe com amigos. Mantenha suas músicas favoritas sempre à mão e aproveite a música onde quer que esteja.
                   </p>
                   <div className="flex items-center flex-wrap">
                     <a className="text-indigo-500 inline-flex items-center md:mb-2 lg:mb-0">
@@ -142,19 +140,18 @@ export default function Cards() {
               <div className="h-full border-2 border-gray-200 border-opacity-60 rounded-lg overflow-hidden">
                 <img
                   className="lg:h-48 md:h-36 w-full object-cover object-center"
-                  src="https://dummyimage.com/722x402"
+                  src="https://img.magnific.com/fotos-premium/uma-parede-de-concreto-cinco-telas-brancas-um-piso-de-madeira-antigo-e-iluminacao-ies_410516-3449.jpg"
                   alt="blog"
                 />
                 <div className="p-6">
                   <h2 className="tracking-widest text-xs title-font font-medium text-gray-400 mb-1">
-                    CATEGORY
+                    GALERIA
                   </h2>
                   <h1 className="title-font text-lg font-medium text-gray-900 mb-3">
-                    Shooting Stars
+                    Suas fotos
                   </h1>
                   <p className="leading-relaxed mb-3">
-                    Photo booth fam kinfolk cold-pressed sriracha leggings
-                    jianbing microdosing tousled waistcoat.
+                    Todas as suas fotos estão organizadas em uma galeria personalizada. Você pode visualizar, baixar e compartilhar suas fotos favoritas com facilidade. Mantenha suas memórias sempre acessíveis e compartilhe momentos especiais com amigos e familiares.
                   </p>
                   <div className="flex items-center flex-wrap ">
                     <a className="text-indigo-500 inline-flex items-center md:mb-2 lg:mb-0">
