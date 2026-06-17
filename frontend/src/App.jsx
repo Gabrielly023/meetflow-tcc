@@ -4,9 +4,9 @@ import Cards from "./components/Cards";
 function App() {
   return (
     <>
-      <div className="bg-mist-950 w-full h-screen">
+      <div className="bg-mist-950 w-full min-h-screen">
         <Header />
-        <main className="w-full flex items-center justify-center">
+        <main className="w-full flex flex-col items-center justify-center">
           <Cards />
         </main>
       </div>
