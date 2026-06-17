@@ -17,15 +17,15 @@ const Header = ({
         <a className="flex title-font font-medium items-center text-white mb-4 md:mb-0">
           <svg
             xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 64 64"
+            className="w-10 h-10 text-white p-2 bg-indigo-500 rounded-full"
             fill="none"
             stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            className="w-10 h-10 text-white p-2 bg-indigo-500 rounded-full"
-            viewBox="0 0 24 24"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="4"
           >
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+            <path d="M16 44 V20 L32 34 L48 20 V44" />
           </svg>
           <span className="ml-3 text-xl">{title}</span>
         </a>
