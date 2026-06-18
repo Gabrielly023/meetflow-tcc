@@ -20,14 +20,13 @@ const usuarioController = {
   },
 
   async criar(req, res) {
-    const { nome, email, senha, foto_perfil } = req.body;
+    const { nome, email, senha} = req.body;
 
     const usuario = await prisma.usuario.create({
       data: {
         nome,
         email,
         senha,
-        foto_perfil,
       },
     });
 
@@ -36,7 +35,7 @@ const usuarioController = {
 
   async atualizar(req, res) {
     const { id } = req.params;
-    const { nome, email, senha, foto_perfil } = req.body;
+    const { nome, email, senha} = req.body;
 
     const usuario = await prisma.usuario.update({
       where: {
@@ -46,7 +45,6 @@ const usuarioController = {
         nome,
         email,
         senha,
-        foto_perfil,
       },
     });
 
