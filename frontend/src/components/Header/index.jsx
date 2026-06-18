@@ -1,10 +1,11 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
 const Header = ({
   title = "MeetFlow",
   links = [
     { label: "Home", href: "/" },
-    { label: "Playlist", href: "/playlist" },
+    { label: "Login", href: "/login" },
   ],
   user,
   onLogout,
@@ -14,7 +15,10 @@ const Header = ({
   return (
     <header className="text-gray-400 bg-[linear-gradient(to_right,#fb923c_0%,#ec4899_25%,#f472b6_30%,#a855f7_60%,#60a5fa_70%,#38bdf8_85%,#22c55e_100%)] body-font">
       <div className="w-full flex flex-wrap p-5 flex-col md:flex-row items-center">
-        <a className="flex title-font font-medium items-center text-white mb-4 md:mb-0">
+        <Link
+          to="/"
+          className="flex title-font font-medium items-center text-white mb-4 md:mb-0"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 64 64"
@@ -28,16 +32,16 @@ const Header = ({
             <path d="M16 44 V20 L32 34 L48 20 V44" />
           </svg>
           <span className="ml-3 text-xl">{title}</span>
-        </a>
+        </Link>
         <nav className="md:ml-auto flex flex-wrap items-center text-base justify-center">
           {links.map((link, index) => (
-            <a
+            <Link
               key={index}
-              href={link.href}
+              to={link.href}
               className="mr-5 text-white hover:text-violet-400 transition-colors"
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
         {user && (
