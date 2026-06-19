@@ -3,19 +3,22 @@ import usuarioController from "../controllers/usuarioController.js";
 
 const router = express.Router();
 
-// GET - listar usuários
-router.get("/", usuarioController.listar);
-
-// GET - buscar usuário por ID
-router.get("/:id", usuarioController.buscarPorId);
-
-// POST - criar usuário
+// Cadastro
 router.post("/", usuarioController.criar);
 
-// PUT - atualizar usuário completo
+// Login
+router.post("/login", usuarioController.login);
+
+// Listar usuários
+router.get("/", usuarioController.listar);
+
+// Buscar usuário por ID
+router.get("/:id", usuarioController.buscarPorId);
+
+// Atualizar usuário
 router.put("/:id", usuarioController.atualizar);
 
-// DELETE - deletar usuário
+// Deletar usuário
 router.delete("/:id", usuarioController.deletar);
 
 export default router;
