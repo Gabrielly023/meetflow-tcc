@@ -14,23 +14,8 @@ const Login = () => {
     setLoading(true);
     setError("");
 
-    try {
-      // TODO: Adicionar chamada à API do backend
-      console.log("Login com:", { email, password });
-      // const response = await fetch("/api/login", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ email, password }),
-      // });
-      // if (response.ok) {
-      //   navigate("/");
-      // }
-    } catch (err) {
-      setError("Erro ao fazer login. Tente novamente.");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    console.log("Login com:", { email, password });
+    navigate("/usuarios");
   };
 
   return (
