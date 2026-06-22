@@ -1,16 +1,19 @@
-import Header from "./components/Header";
-import Cards from "./components/Cards";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import UsuariosPage from "./pages/UsuariosPage";
 
 function App() {
   return (
-    <>
-      <div className="bg-mist-950 w-full min-h-screen">
-        <Header />
-        <main className="w-full flex flex-col items-center justify-center">
-          <Cards />
-        </main>
-      </div>
-    </>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/usuarios" element={<UsuariosPage />} />
+      </Routes>
+    </Router>
   );
 }
 
