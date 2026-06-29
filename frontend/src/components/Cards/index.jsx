@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export default function Cards() {
   return (
     <>
@@ -5,7 +7,10 @@ export default function Cards() {
         <div className="w-full px-4 sm:px-6 lg:px-8 py-12 sm:py-24">
           <div className="flex flex-wrap -m-4">
             <div className="p-4 w-full md:w-1/2 lg:w-1/3">
-              <div className="h-full rounded-3xl overflow-hidden p-0.5 bg-gradient-to-r from-orange-400 via-fuchsia-500 to-cyan-400">
+              <Link
+                to="/eventos"
+                className="h-full rounded-3xl overflow-hidden p-0.5 bg-gradient-to-r from-orange-400 via-fuchsia-500 to-cyan-400 block"
+              >
                 <div className="h-full rounded-3xl bg-slate-950/95 border border-slate-800/60 overflow-hidden">
                   <img
                     className="lg:h-44 md:h-36 w-full object-cover object-center"
@@ -25,21 +30,21 @@ export default function Cards() {
                       qualquer evento que desejar.
                     </p>
                     <div className="flex items-center flex-wrap gap-3">
-                      <a className="text-indigo-500 inline-flex items-center md:mb-2 lg:mb-0">
+                      <span className="text-indigo-500 inline-flex items-center md:mb-2 lg:mb-0 cursor-pointer">
                         Learn More
                         <svg
                           className="w-4 h-4 ml-2"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
-                          stroke-width="2"
+                          strokeWidth="2"
                           fill="none"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         >
                           <path d="M5 12h14"></path>
                           <path d="M12 5l7 7-7 7"></path>
                         </svg>
-                      </a>
+                      </span>
                       <span className="text-gray-400 inline-flex items-center leading-none text-sm">
                         <svg
                           className="w-4 h-4 mr-1"
@@ -72,7 +77,7 @@ export default function Cards() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             </div>
             <div className="p-4 w-full md:w-1/2 lg:w-1/3">
               <div className="h-full rounded-3xl overflow-hidden p-0.5 bg-gradient-to-r from-orange-400 via-fuchsia-500 to-cyan-400">
