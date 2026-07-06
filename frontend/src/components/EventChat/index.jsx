@@ -33,7 +33,7 @@ export default function EventChat({ initialParticipants = [], initialMessages = 
           <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-400">Chat do evento</p>
           <h2 className="text-2xl font-semibold text-white">Converse com participantes</h2>
         </div>
-        <div className="rounded-2xl bg-slate-950/90 px-4 py-2 text-sm text-slate-300">
+        <div className="rounded-2xl bg-gradient-to-r from-sky-500 to-violet-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/20">
           {participants.length} participantes
         </div>
       </div>

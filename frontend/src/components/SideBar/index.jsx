@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 const menuItems = [
   {
     title: "Criar Novo Evento",
-    href: "#",
+    to: "/eventos/novo",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -129,7 +129,7 @@ const menuItems = [
     ),
   },
   {
-    title: "Configurações",
+    title: "Configuraï¿½ï¿½es",
     href: "#",
     icon: (
       <svg
@@ -158,9 +158,9 @@ export default function SideBar() {
   return (
     <aside className="sidebar-scrollbar flex flex-col w-64 h-screen px-5 py-8 overflow-y-auto bg-slate-950 border-r border-slate-800">
       <Link to="/" className="inline-flex items-center gap-2">
-        <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 shadow-lg shadow-orange-500/20">
-          <span className="text-white font-bold">M</span>
-        </div>
+        <span className="fonte-flow flex w-10 h-10 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 text-2xl font-bold text-white shadow-lg shadow-orange-500/20">
+          M
+        </span>
         <span className="text-white text-lg font-semibold">MeetFlow</span>
       </Link>
 

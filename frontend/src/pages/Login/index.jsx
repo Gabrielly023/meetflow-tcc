@@ -1,6 +1,20 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Header from "../../components/Header";
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import AuthLayout from "../../components/AuthLayout";
+import AuthField from "../../components/AuthField";
+import GoogleButton from "../../components/GoogleButton";
+
+const iconeEmail = (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.6" stroke="currentColor" className="h-5 w-5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+  </svg>
+);
+
+const iconeSenha = (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.6" stroke="currentColor" className="h-5 w-5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 00-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+  </svg>
+);
 
 const Login = () => {
   const navigate = useNavigate();
@@ -18,99 +32,95 @@ const Login = () => {
     navigate("/usuarios");
   };
 
+  const handleGoogle = () => {
+    console.log("Login com Google");
+    navigate("/usuarios");
+  };
+
   return (
-    <div className="bg-slate-950 w-full min-h-screen">
-      <Header />
-      <main className="w-full flex flex-col items-center justify-center min-h-[calc(100vh-80px)]">
-        <div
-          className="w-full max-w-md p-1 rounded-2xl"
-          style={{
-            background:
-              "linear-gradient(90deg, #fb923c 0%, #ec4899 25%, #f472b6 40%, #a855f7 60%, #60a5fa 75%, #38bdf8 85%, #22c55e 100%)",
-          }}
-        >
-          <div
-            className="bg-slate-900 rounded-xl shadow-lg p-8"
-            style={{ border: "2px solid rgba(255,255,255,0.03)" }}
-          >
-            <h1 className="text-3xl font-bold text-white mb-6 text-center">
-              Login
+    <AuthLayout>
+      <div className="auth-card w-full max-w-md rounded-3xl bg-gradient-to-br from-orange-500/70 via-fuchsia-500/70 to-sky-500/70 p-[2px] shadow-2xl shadow-fuchsia-500/20">
+        <div className="rounded-3xl bg-slate-900/80 p-8 backdrop-blur-xl">
+          {/* Cabeçalho */}
+          <div className="mb-8 text-center">
+            <span className="fonte-flow mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 text-3xl font-bold text-white shadow-lg shadow-fuchsia-500/25">
+              M
+            </span>
+            <h1 className="text-3xl font-semibold text-white">
+              Bem-vindo de volta
             </h1>
+            <p className="mt-2 text-sm text-slate-400">
+              Entre para continuar organizando seus eventos.
+            </p>
+          </div>
 
-            {error && (
-              <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded mb-4">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-white mb-2 font-medium"
-                >
-                  Email
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full px-4 py-2 bg-slate-800 text-white border border-slate-600 rounded focus:outline-none focus:border-violet-500 transition"
-                  placeholder="seu@email.com"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block text-white mb-2 font-medium"
-                >
-                  Senha
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full px-4 py-2 bg-slate-800 text-white border border-slate-600 rounded focus:outline-none focus:border-violet-500 transition"
-                  placeholder="Sua senha"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-orange-400 to-violet-500 text-white font-semibold py-2 rounded hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed mt-6"
-              >
-                {loading ? "Entrando..." : "Entrar"}
-              </button>
-            </form>
-
-            <div className="mt-4 text-center">
-              <p className="text-gray-400">
-                Não tem conta?{" "}
-                <button
-                  onClick={() => navigate("/signup")}
-                  className="text-violet-400 hover:text-violet-300 transition"
-                >
-                  Cadastre-se
-                </button>
-              </p>
+          {error && (
+            <div className="mb-4 rounded-2xl border border-red-500/40 bg-red-900/40 px-4 py-3 text-sm text-red-200">
+              {error}
             </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <AuthField
+              id="email"
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="seu@email.com"
+              icon={iconeEmail}
+              required
+            />
+
+            <AuthField
+              id="password"
+              label="Senha"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Sua senha"
+              icon={iconeSenha}
+              required
+            />
 
             <button
-              onClick={() => navigate("/")}
-              className="w-full mt-4 text-gray-400 hover:text-white transition"
+              type="submit"
+              disabled={loading}
+              className="mt-2 w-full rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/25 transition duration-300 hover:scale-[1.02] hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              ← Voltar para home
+              {loading ? "Entrando..." : "Entrar"}
             </button>
+          </form>
+
+          <div className="my-5 flex items-center gap-3">
+            <span className="h-px flex-1 bg-slate-700/60" />
+            <span className="text-xs uppercase tracking-widest text-slate-500">
+              ou
+            </span>
+            <span className="h-px flex-1 bg-slate-700/60" />
           </div>
+
+          <GoogleButton onClick={handleGoogle} texto="Entrar com o Google" />
+
+          <p className="mt-6 text-center text-sm text-slate-400">
+            Não tem conta?{" "}
+            <Link
+              to="/signup"
+              className="font-semibold text-fuchsia-400 transition hover:text-fuchsia-300"
+            >
+              Cadastre-se
+            </Link>
+          </p>
+
+          <Link
+            to="/"
+            className="mt-4 block text-center text-sm text-slate-500 transition hover:text-slate-300"
+          >
+            ← Voltar para home
+          </Link>
         </div>
-      </main>
-    </div>
+      </div>
+    </AuthLayout>
   );
 };
 

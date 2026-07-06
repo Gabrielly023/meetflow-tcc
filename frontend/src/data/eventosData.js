@@ -5,6 +5,7 @@ export const eventos = [
     data: "12 Jul · 20:00",
     local: "Centro Cultural",
     tipo: "Show",
+    capa: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=1200&q=80",
     participants: [
       { id: 1, name: "Ana" },
       { id: 2, name: "Bruno" },
@@ -31,6 +32,7 @@ export const eventos = [
     data: "18 Jul · 10:30",
     local: "Café Aurora",
     tipo: "Social",
+    capa: "https://images.unsplash.com/photo-1445116572660-236099ec97a0?auto=format&fit=crop&w=1200&q=80",
     participants: [
       { id: 1, name: "Edu" },
       { id: 2, name: "Fabiana" },
@@ -57,6 +59,7 @@ export const eventos = [
     data: "21 Jul · 14:00",
     local: "Campus Tech",
     tipo: "Tecnologia",
+    capa: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=1200&q=80",
     participants: [
       { id: 1, name: "Helena" },
       { id: 2, name: "Ivan" },
@@ -83,6 +86,7 @@ export const eventos = [
     data: "27 Jul · 16:00",
     local: "Parque da Cidade",
     tipo: "Outdoor",
+    capa: "https://images.unsplash.com/photo-1526401485004-46910ecc8e51?auto=format&fit=crop&w=1200&q=80",
     participants: [
       { id: 1, name: "Laura" },
       { id: 2, name: "Marcos" },
@@ -109,6 +113,7 @@ export const eventos = [
     data: "02 Ago · 19:30",
     local: "Sala 3",
     tipo: "Entretenimento",
+    capa: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80",
     participants: [
       { id: 1, name: "Otávio" },
       { id: 2, name: "Patrícia" },
@@ -135,6 +140,7 @@ export const eventos = [
     data: "05 Ago · 09:00",
     local: "Praça Central",
     tipo: "Cultural",
+    capa: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?auto=format&fit=crop&w=1200&q=80",
     participants: [
       { id: 1, name: "Sofia" },
       { id: 2, name: "Tiago" },

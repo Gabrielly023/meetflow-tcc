@@ -1,0 +1,13 @@
+<svg width="120" height="120" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&amp;display=swap');</style>
+    <linearGradient id="mf-grad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fb923c"/>
+      <stop offset="0.5" stop-color="#ec4899"/>
+      <stop offset="1" stop-color="#38bdf8"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="18" fill="url(#mf-grad)"/>
+  <text x="32" y="33" text-anchor="middle" dominant-baseline="central"
+        font-family="'Baloo 2', system-ui, sans-serif" font-weight="700" font-size="42" fill="#ffffff">M</text>
+</svg>

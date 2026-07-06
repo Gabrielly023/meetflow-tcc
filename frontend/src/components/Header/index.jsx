@@ -1,5 +1,8 @@
-import React, { useState } from "react";
 import { Link } from "react-router-dom";
+
+// Degradê original da marca (mesmas cores e ordem de sempre)
+const DEGRADE =
+  "linear-gradient(to right,#fb923c 0%,#ec4899 25%,#f472b6 30%,#a855f7 60%,#60a5fa 70%,#38bdf8 85%,#22c55e 100%)";
 
 const Header = ({
   title = "MeetFlow",
@@ -10,56 +13,66 @@ const Header = ({
   user,
   onLogout,
 }) => {
-  const [open, setOpen] = useState(false);
-
   return (
-    <header className="text-gray-400 bg-[linear-gradient(to_right,#fb923c_0%,#ec4899_25%,#f472b6_30%,#a855f7_60%,#60a5fa_70%,#38bdf8_85%,#22c55e_100%)] body-font">
-      <div className="w-full flex flex-wrap p-5 flex-col md:flex-row items-center">
-        <Link
-          to="/"
-          className="flex title-font font-medium items-center text-white mb-4 md:mb-0"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 64 64"
-            className="w-10 h-10 text-white p-2 bg-indigo-500 rounded-full"
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="4"
-          >
-            <path d="M16 44 V20 L32 34 L48 20 V44" />
-          </svg>
-          <span className="ml-3 text-xl">{title}</span>
-        </Link>
-        <nav className="md:ml-auto flex flex-wrap items-center text-base justify-center">
-          {links.map((link, index) => (
-            <Link
-              key={index}
-              to={link.href}
-              className="mr-5 text-white hover:text-violet-400 transition-colors"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-        {user && (
-          <div className="flex items-center">
-            <span className="text-white mr-4">{user.name}</span>
-            <button
-              onClick={onLogout}
-              className="inline-flex items-center bg-gray-800 border-0 py-1 px-3 focus:outline-none hover:bg-gray-700 rounded text-base mt-4 md:mt-0"
-            >
-              Logout
-            </button>
-          </div>
-        )}
+    <header className="sticky top-0 z-40">
+      {/* Barra translúcida (glass), combinando com o fundo escuro do site */}
+      <div className="border-b border-white/5 bg-slate-950/70 shadow-lg shadow-black/20 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-4 px-6 py-3.5">
+          {/* Logo */}
+          <Link to="/" className="group flex items-center gap-3">
+            <span className="fonte-flow flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 text-2xl font-bold text-white shadow-lg shadow-fuchsia-500/25 transition duration-300 group-hover:scale-105">
+              M
+            </span>
+            <span className="fonte-flow text-xl font-bold text-white">
+              {title}
+            </span>
+          </Link>
+
+          {/* Navegação */}
+          <nav className="ml-auto flex flex-wrap items-center justify-center gap-1">
+            {links.map((link, index) => {
+              const ehAcaoPrincipal = index === links.length - 1;
+              return ehAcaoPrincipal ? (
+                <Link
+                  key={index}
+                  to={link.href}
+                  className="ml-1 inline-flex items-center rounded-full bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/25 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95"
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <Link
+                  key={index}
+                  to={link.href}
+                  className="rounded-full px-4 py-2 text-sm font-medium text-slate-300 transition duration-200 hover:bg-white/5 hover:text-white"
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Usuário logado */}
+          {user && (
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-slate-200">
+                {user.name}
+              </span>
+              <button
+                onClick={onLogout}
+                className="rounded-full border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800"
+              >
+                Sair
+              </button>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Linha de destaque com a degradê da marca */}
+      <div className="h-[3px] w-full" style={{ background: DEGRADE }} />
     </header>
   );
 };
 
 export default Header;
-
-//roxo rosa laranja verde

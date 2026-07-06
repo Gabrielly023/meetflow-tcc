@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MeetFlow — Conceitos de logo</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: #020617;
+        color: #e2e8f0;
+      }
+      h1 { font-weight: 600; }
+      .wrap { max-width: 900px; margin: 0 auto; padding: 48px 24px; }
+      .grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+      .card {
+        border: 1px solid #1e293b;
+        border-radius: 20px;
+        padding: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 160px;
+      }
+      .escuro { background: #0f172a; }
+      .claro { background: #f8fafc; }
+      .legenda { font-size: 13px; color: #94a3b8; margin: 8px 2px 0; }
+      .tamanhos { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>MeetFlow — conceitos de logo</h1>
+
+      <h3>Ícone (favicon / selo)</h3>
+      <div class="grid">
+        <div>
+          <div class="card escuro">
+            <div class="tamanhos">
+              <img src="meetflow-icon.svg" width="96" height="96" alt="ícone" />
+              <img src="meetflow-icon.svg" width="48" height="48" alt="ícone" />
+              <img src="meetflow-icon.svg" width="24" height="24" alt="ícone" />
+            </div>
+          </div>
+          <p class="legenda">Fundo escuro — vários tamanhos</p>
+        </div>
+        <div>
+          <div class="card claro">
+            <img src="meetflow-icon.svg" width="96" height="96" alt="ícone" />
+          </div>
+          <p class="legenda">Fundo claro</p>
+        </div>
+      </div>
+
+      <h3 style="margin-top: 40px">Logo com tipografia</h3>
+      <div class="grid">
+        <div>
+          <div class="card escuro">
+            <img src="meetflow-logo.svg" width="280" alt="logo escuro" />
+          </div>
+          <p class="legenda">Versão para fundos escuros (a do site)</p>
+        </div>
+        <div>
+          <div class="card claro">
+            <img src="meetflow-logo-claro.svg" width="280" alt="logo claro" />
+          </div>
+          <p class="legenda">Versão para fundos claros</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

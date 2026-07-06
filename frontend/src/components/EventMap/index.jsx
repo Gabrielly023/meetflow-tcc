@@ -6,7 +6,7 @@ export default function EventMap({ location = "Local do evento" }) {
           <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-400">Mapa</p>
           <h2 className="text-2xl font-semibold text-white">Localização</h2>
         </div>
-        <span className="rounded-2xl bg-slate-950/90 px-4 py-2 text-sm text-slate-200">{location}</span>
+        <span className="rounded-2xl bg-gradient-to-r from-sky-500 to-violet-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/20">{location}</span>
       </div>
 
       <div className="aspect-[4/3] overflow-hidden rounded-3xl bg-slate-950/90">

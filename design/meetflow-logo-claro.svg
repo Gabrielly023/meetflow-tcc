@@ -1,0 +1,24 @@
+<svg width="300" height="72" viewBox="0 0 300 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&amp;display=swap');</style>
+    <linearGradient id="mf-grad2" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fb923c"/>
+      <stop offset="0.5" stop-color="#ec4899"/>
+      <stop offset="1" stop-color="#38bdf8"/>
+    </linearGradient>
+    <linearGradient id="mf-text2" x1="150" y1="0" x2="300" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#a855f7"/>
+      <stop offset="1" stop-color="#0ea5e9"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(8, 8)">
+    <rect x="0" y="0" width="56" height="56" rx="16" fill="url(#mf-grad2)"/>
+    <path d="M15.5 39.5 V20 C15.5 17.8 18.2 17.8 19 20 L26 30 C26.9 31.4 28.6 31.4 29.5 30 L36.5 20 C37.3 17.8 40 17.8 40 20 V39.5"
+          stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+
+  <text x="80" y="47" font-family="'Baloo 2', 'Segoe UI', system-ui, sans-serif" font-size="28" letter-spacing="-0.5">
+    <tspan fill="#0f172a" font-weight="500">Meet</tspan><tspan fill="url(#mf-text2)" font-weight="700">Flow</tspan>
+  </text>
+</svg>

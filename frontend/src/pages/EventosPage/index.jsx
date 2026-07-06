@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
 import SideBar from "../../components/SideBar";
 import Header from "../../components/Header";
-import { eventos } from "../../data/eventosData";
+import EventCover from "../../components/EventCover";
+import { listarEventos } from "../../services/eventoService";
 
 export default function EventosPage() {
+  const eventos = listarEventos();
+
   return (
     <>
       <Header />
@@ -20,14 +23,24 @@ export default function EventosPage() {
                   Eventos que você já tem
                 </h1>
               </div>
-              <button className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-fuchsia-500/20 transition hover:opacity-90">
+              <Link
+                to="/eventos/novo"
+                className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-fuchsia-500/20 transition hover:opacity-90"
+              >
                 + Novo evento
-              </button>
+              </Link>
             </div>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
               {eventos.map((evento, index) => (
-                <Link key={evento.id} to={`/eventos/${evento.id}`} className="group block rounded-3xl border border-slate-800/70 bg-slate-900/80 shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50">
+                <Link key={evento.id} to={`/eventos/${evento.id}`} className="group block overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-900/80 shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50">
+                  <EventCover
+                    capa={evento.capa}
+                    tipo={evento.tipo}
+                    titulo={evento.titulo}
+                    heightClass="h-40"
+                    imgClass="transition duration-300 group-hover:scale-105"
+                  />
                   <div className="p-6">
                     <div className="mb-5 flex items-center justify-between">
                       <span className="rounded-full bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-3 py-1 text-xs font-medium uppercase tracking-[0.25em] text-white shadow-lg shadow-fuchsia-500/20">

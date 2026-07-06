@@ -59,6 +59,26 @@ body,
   min-height: 100vh;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+.fonte-flow {
+  font-family: "Baloo 2", system-ui, sans-serif;
+}
+
+/* Mantém os campos escuros mesmo quando o navegador preenche automaticamente */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #f1f5f9;
+  caret-color: #f1f5f9;
+  -webkit-box-shadow: 0 0 0 1000px #0b1120 inset;
+  box-shadow: 0 0 0 1000px #0b1120 inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 body {
   margin: 0;
   background: var(--bg);
