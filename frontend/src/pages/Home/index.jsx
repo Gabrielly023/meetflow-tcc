@@ -6,7 +6,6 @@ import "./Home.css";
 
 const LINKS_HEADER = [
   { label: "Recursos", href: "#recursos" },
-  { label: "Eventos", href: "/eventos" },
   { label: "Entrar", href: "/login" },
   { label: "Criar conta", href: "/signup" },
 ];
@@ -167,24 +166,41 @@ export default function Home() {
 
         <main>
           {/* ===================== HERO ===================== */}
-          <section className="mx-auto max-w-6xl px-6 pt-24 pb-24 text-center lg:pt-36">
-            <Reveal>
-              <div className="mb-14 flex flex-col items-center justify-center gap-5 sm:flex-row sm:gap-6">
-                <span className="flutuar fonte-flow flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 text-6xl font-bold text-white shadow-2xl shadow-fuchsia-500/20 sm:h-24 sm:w-24 sm:text-7xl">
-                  M
-                </span>
-                <span className="fonte-flow text-6xl font-bold tracking-tight sm:text-7xl lg:text-8xl">
-                  <span className="text-white">Meet</span>
-                  <span className="texto-gradiente">Flow</span>
-                </span>
-              </div>
-            </Reveal>
+          <section className="mx-auto max-w-6xl px-6 pb-24 text-center">
+            {/* Primeira tela: só a logo + a frase de efeito */}
+            <div className="flex min-h-[calc(100vh-72px)] flex-col items-center justify-center">
+              <Reveal>
+                <div className="flutuar mb-14 flex flex-col items-center justify-center gap-5 sm:flex-row sm:gap-6">
+                  <span className="fonte-flow flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 text-6xl font-bold text-white shadow-2xl shadow-fuchsia-500/20 sm:h-24 sm:w-24 sm:text-7xl">
+                    M
+                  </span>
+                  <span className="fonte-flow text-6xl font-bold tracking-tight sm:text-7xl lg:text-8xl">
+                    <span className="text-white">Meet</span>
+                    <span className="texto-gradiente">Flow</span>
+                  </span>
+                </div>
+              </Reveal>
 
-            <Reveal delay={100}>
-              <span className="pulsar inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/60 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.3em] text-slate-300 backdrop-blur">
-                Eventos que conectam, memórias que ficam
-              </span>
-            </Reveal>
+              <Reveal delay={200}>
+                <span className="pulso-badge inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/60 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.3em] text-slate-300 backdrop-blur">
+                  Eventos que conectam, memórias que ficam
+                </span>
+              </Reveal>
+
+              {/* Dica de rolagem */}
+              <div className="mt-16 animate-bounce text-slate-500">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="h-7 w-7"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+              </div>
+            </div>
 
             <Reveal delay={100}>
               <h1 className="mx-auto mt-8 max-w-4xl text-5xl font-semibold leading-tight text-white sm:text-6xl lg:text-7xl">
@@ -208,15 +224,6 @@ export default function Home() {
                   className="botao-brilho inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/25 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95"
                 >
                   Começar agora
-                </Link>
-                <Link
-                  to="/eventos"
-                  className="botao-brilho group inline-flex items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/50 px-7 py-3.5 text-sm font-semibold text-slate-100 backdrop-blur transition duration-300 hover:scale-105 hover:border-fuchsia-500/60 hover:bg-slate-900 active:scale-95"
-                >
-                  Explorar eventos
-                  <span className="ml-1 inline-block transition-transform duration-300 group-hover:translate-x-1">
-                    →
-                  </span>
                 </Link>
               </div>
             </Reveal>
@@ -434,10 +441,10 @@ export default function Home() {
                       Criar minha conta
                     </Link>
                     <Link
-                      to="/eventos"
+                      to="/login"
                       className="botao-brilho group inline-flex items-center justify-center rounded-2xl border border-slate-700 px-8 py-4 text-sm font-semibold text-slate-100 transition duration-300 hover:scale-105 hover:border-fuchsia-500/60 hover:bg-slate-900 active:scale-95"
                     >
-                      Ver eventos
+                      Login
                       <span className="ml-1 inline-block transition-transform duration-300 group-hover:translate-x-1">
                         →
                       </span>

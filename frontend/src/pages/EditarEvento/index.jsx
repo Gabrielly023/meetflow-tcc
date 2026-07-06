@@ -63,8 +63,11 @@ export default function EditarEvento() {
               </div>
               <Link
                 to={`/eventos/${evento.id}`}
-                className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition hover:opacity-90"
+                className="group inline-flex items-center justify-center gap-1 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95"
               >
+                <span className="inline-block transition-transform duration-300 group-hover:-translate-x-1">
+                  ←
+                </span>
                 Voltar ao evento
               </Link>
             </div>

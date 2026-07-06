@@ -74,39 +74,21 @@
 /* ===== Revelar ao rolar ===== */
 .reveal {
   opacity: 0;
-  transform: translateY(40px);
-  transition:
-    opacity 1s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 1s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: opacity, transform;
 }
 
 .reveal-visivel {
-  opacity: 1;
-  transform: translateY(0);
+  animation: revelar 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* ===== Texto com gradiente animado ===== */
-.texto-gradiente {
-  background: linear-gradient(
-    100deg,
-    #fb923c,
-    #ec4899,
-    #a855f7,
-    #38bdf8,
-    #fb923c
-  );
-  background-size: 250% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-  animation: brilho 6s linear infinite;
-}
-
-@keyframes brilho {
+@keyframes revelar {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
   to {
-    background-position: 250% center;
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -253,6 +235,23 @@
 }
 
 /* ===== Acessibilidade: respeita quem prefere menos movimento ===== */
+/* ===== Pulso suave (respiração) do badge ===== */
+.pulso-badge {
+  animation: pulso-badge 3.5s ease-in-out infinite;
+}
+
+@keyframes pulso-badge {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(236, 72, 153, 0);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 22px 1px rgba(236, 72, 153, 0.35);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .home-blob,
   .texto-gradiente,
@@ -261,12 +260,14 @@
   .flutuar-3,
   .marquee-track,
   .botao-brilho::after,
-  .pulsar {
+  .pulsar,
+  .pulso-badge {
     animation: none !important;
   }
   .reveal {
-    transition: none;
     opacity: 1;
-    transform: none;
+  }
+  .reveal-visivel {
+    animation: none;
   }
 }

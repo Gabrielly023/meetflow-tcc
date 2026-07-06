@@ -67,6 +67,36 @@ html {
   font-family: "Baloo 2", system-ui, sans-serif;
 }
 
+/* Texto com gradiente animado da marca (usado no "Flow") */
+.texto-gradiente {
+  background: linear-gradient(
+    100deg,
+    #fb923c,
+    #ec4899,
+    #a855f7,
+    #38bdf8,
+    #fb923c
+  );
+  background-size: 250% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: brilho 6s linear infinite;
+}
+
+@keyframes brilho {
+  to {
+    background-position: 250% center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .texto-gradiente {
+    animation: none;
+  }
+}
+
 /* Mantém os campos escuros mesmo quando o navegador preenche automaticamente */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,

@@ -25,9 +25,12 @@ export default function EventosPage() {
               </div>
               <Link
                 to="/eventos/novo"
-                className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-fuchsia-500/20 transition hover:opacity-90"
+                className="group inline-flex items-center justify-center gap-1 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-fuchsia-500/20 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95"
               >
-                + Novo evento
+                <span className="inline-block text-base leading-none transition-transform duration-300 group-hover:rotate-90">
+                  +
+                </span>
+                Novo evento
               </Link>
             </div>
 

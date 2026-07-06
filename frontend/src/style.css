@@ -1,5 +1,75 @@
 @import "tailwindcss";
 
+/* ===== Scrollbar moderno com a degradê da marca (site inteiro) ===== */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0b1120;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    #fb923c 0%,
+    #ec4899 35%,
+    #a855f7 70%,
+    #38bdf8 100%
+  );
+  border-radius: 9999px;
+  /* a borda na cor do track deixa o "trilho" fino e arredondado */
+  border: 3px solid #0b1120;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    #fb923c 0%,
+    #ec4899 30%,
+    #38bdf8 100%
+  );
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #a855f7 #0b1120;
+}
+
+/* ===== Borda em degradê (azul -> roxo) da sidebar, espessura uniforme ===== */
+.sidebar-borda {
+  border-style: solid;
+  border-width: 2px 2px 0 0; /* topo e direita */
+  border-color: transparent;
+  border-top-right-radius: 1.5rem;
+  background:
+    linear-gradient(#020617, #020617) padding-box,
+    linear-gradient(160deg, #a855f7, #38bdf8) border-box;
+}
+
+/* ===== Item do menu da sidebar: degradê azul->roxo suave no hover ===== */
+.menu-item {
+  position: relative;
+  isolation: isolate;
+}
+
+.menu-item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(to right, #8b5cf6, #38bdf8);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: -1;
+}
+
+.menu-item:hover::before {
+  opacity: 1;
+}
+
+/* ===== Scrollbar da sidebar (mesma degradê da marca) ===== */
 .sidebar-scrollbar::-webkit-scrollbar {
   width: 10px;
 }
@@ -11,24 +81,25 @@
 .sidebar-scrollbar::-webkit-scrollbar-thumb {
   background: linear-gradient(
     180deg,
-    rgba(168, 85, 247, 0.85) 0%,
-    rgba(236, 72, 153, 0.85) 55%,
-    rgba(192, 132, 252, 0.85) 100%
+    #fb923c 0%,
+    #ec4899 40%,
+    #a855f7 70%,
+    #38bdf8 100%
   );
   border-radius: 9999px;
-  border: 2px solid rgba(15, 23, 42, 0.4);
+  border: 2px solid rgba(2, 6, 23, 0.6);
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(
     180deg,
-    rgba(190, 24, 93, 0.95) 0%,
-    rgba(168, 85, 247, 0.95) 50%,
-    rgba(244, 114, 182, 0.95) 100%
+    #fb923c 0%,
+    #a855f7 50%,
+    #38bdf8 100%
   );
 }
 
 .sidebar-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(168, 85, 247, 0.85) transparent;
+  scrollbar-color: #a855f7 transparent;
 }

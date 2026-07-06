@@ -18,7 +18,9 @@ export default function Reveal({ children, className = "", delay = 0 }) {
           }
         });
       },
-      { threshold: 0.15 },
+      // ignora a faixa de baixo da tela: só dispara quando o elemento
+      // realmente entra na área visível (evita animar na hora do load)
+      { threshold: 0, rootMargin: "0px 0px -12% 0px" },
     );
 
     observador.observe(elemento);
@@ -29,7 +31,7 @@ export default function Reveal({ children, className = "", delay = 0 }) {
     <div
       ref={ref}
       className={`reveal ${visivel ? "reveal-visivel" : ""} ${className}`}
-      style={{ transitionDelay: `${delay}ms` }}
+      style={{ animationDelay: `${delay}ms` }}
     >
       {children}
     </div>
