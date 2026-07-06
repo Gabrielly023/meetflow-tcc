@@ -45,7 +45,7 @@ const menuItems = [
   },
   {
     title: "Galeria/Seus Albuns",
-    href: "#",
+    to: "/galerias",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -179,7 +179,7 @@ export default function SideBar() {
 
             <input
               type="text"
-              className="w-full py-2 pl-10 pr-4 text-slate-100 bg-slate-900 border border-slate-700 rounded-xl placeholder:text-slate-500 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/25"
+              className="hover-degrade w-full py-2 pl-10 pr-4 text-slate-100 bg-slate-900 border-2 border-slate-700 rounded-xl placeholder:text-slate-500 transition duration-300 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/25"
               placeholder="Search"
             />
           </div>
@@ -238,6 +238,27 @@ export default function SideBar() {
               </svg>
             </button>
           </div>
+
+          <Link
+            to="/"
+            className="mt-6 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 to-sky-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/20 transition duration-300 hover:scale-[1.02] hover:opacity-90 active:scale-95"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
+              />
+            </svg>
+            Sign out
+          </Link>
         </div>
       </div>
     </aside>

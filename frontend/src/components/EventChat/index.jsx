@@ -27,7 +27,7 @@ export default function EventChat({ initialParticipants = [], initialMessages = 
   }
 
   return (
-    <section className="rounded-3xl border border-slate-800/70 bg-slate-900/80 p-6 shadow-2xl shadow-black/20">
+    <section className="rounded-3xl border border-slate-800/70 bg-slate-900/80 p-6 shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-fuchsia-500/20">
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
           <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-400">Chat do evento</p>

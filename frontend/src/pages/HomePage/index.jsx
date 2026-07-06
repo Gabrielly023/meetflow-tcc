@@ -1,0 +1,203 @@
+import { Link } from "react-router-dom";
+import SideBar from "../../components/SideBar";
+import Header from "../../components/Header";
+import { listarEventos } from "../../services/eventoService";
+import { listarFotos } from "../../services/galeriaService";
+
+export default function HomePage() {
+  const eventos = listarEventos();
+  const previews = eventos.flatMap((ev) => listarFotos(ev.id)).slice(0, 4);
+  const capas = eventos
+    .map((ev) => ev.capa || ev.images?.[0])
+    .filter(Boolean)
+    .slice(0, 4);
+  const proximo = eventos[0];
+  const capaProximo = proximo?.capa || proximo?.images?.[0];
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      <Header />
+      <div className="flex min-h-[calc(100vh-80px)]">
+        <SideBar />
+        <main className="flex-1 px-6 py-8 lg:px-10">
+          <div className="mx-auto max-w-6xl">
+            <div className="flex flex-col gap-6 text-left lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p
+                  className="text-2xl font-semibold"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(to right,#fb923c 0%,#ec4899 25%,#f472b6 30%,#a855f7 60%,#60a5fa 70%,#38bdf8 85%,#22c55e 100%)",
+                    WebkitBackgroundClip: "text",
+                    backgroundClip: "text",
+                    color: "transparent",
+                    WebkitTextFillColor: "transparent",
+                  }}
+                >
+                  Seja bem-vindo
+                </p>
+                <p className="mt-1 text-5xl font-semibold text-white">
+                  Seu espaço
+                </p>
+                <p className="mt-2 text-slate-400">
+                  Acesse rapidamente o que importa.
+                </p>
+              </div>
+
+              {proximo && (
+                <Link
+                  to={`/eventos/${proximo.id}`}
+                  className="hover-degrade group flex items-center gap-4 rounded-3xl border-2 border-slate-800/70 bg-slate-900/70 p-4 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 lg:w-80"
+                >
+                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl">
+                    {capaProximo ? (
+                      <img
+                        src={capaProximo}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-orange-500/30 via-fuchsia-500/30 to-sky-500/30 text-[9px] uppercase tracking-wide text-white/80">
+                        {proximo.tipo}
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] uppercase tracking-[0.25em] text-fuchsia-400">
+                      Próximo evento
+                    </p>
+                    <h2 className="truncate text-lg font-semibold text-white">
+                      {proximo.titulo}
+                    </h2>
+                    <p className="mt-0.5 truncate text-sm text-slate-400">
+                      {proximo.data}
+                      {proximo.local ? ` · ${proximo.local}` : ""}
+                    </p>
+                  </div>
+                  <span className="text-fuchsia-400 transition group-hover:translate-x-1">
+                    →
+                  </span>
+                </Link>
+              )}
+            </div>
+
+            {/* Bloco menor: Criar evento */}
+            <Link
+              to="/eventos/novo"
+              className="group mt-8 flex items-center justify-between gap-4 rounded-3xl bg-gradient-to-r from-sky-500 to-violet-600 p-5 shadow-lg shadow-violet-500/25 transition duration-300 hover:scale-[1.01] hover:opacity-95 active:scale-100"
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="h-6 w-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-white">
+                    Criar novo evento
+                  </h2>
+                  <p className="text-sm text-white/80">
+                    Comece um evento do zero em poucos cliques.
+                  </p>
+                </div>
+              </div>
+              <span className="text-white transition group-hover:translate-x-1">
+                →
+              </span>
+            </Link>
+
+            <div className="mt-6 grid gap-6 sm:grid-cols-2">
+              {/* Bloco: Meus eventos */}
+              <Link
+                to="/eventos"
+                className="group rounded-3xl border border-slate-800/70 bg-slate-900/70 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 shadow-lg shadow-fuchsia-500/20">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-6 w-6 text-white">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M4.5 4.5h15A1.5 1.5 0 0121 6v13.5A1.5 1.5 0 0119.5 21h-15A1.5 1.5 0 013 19.5V6a1.5 1.5 0 011.5-1.5z" />
+                      </svg>
+                    </div>
+                    <h2 className="text-xl font-semibold text-white">
+                      Meus eventos
+                    </h2>
+                    <p className="mt-2 text-sm text-slate-400">
+                      Crie, veja e gerencie todos os seus eventos.
+                    </p>
+                  </div>
+                  <span className="text-fuchsia-400 transition group-hover:translate-x-1">
+                    →
+                  </span>
+                </div>
+
+                {capas.length > 0 && (
+                  <div className="mt-5 flex gap-2">
+                    {capas.map((url, i) => (
+                      <div
+                        key={i}
+                        className="h-16 w-16 overflow-hidden rounded-xl border border-slate-800/60"
+                      >
+                        <img src={url} alt="" className="h-full w-full object-cover" />
+                      </div>
+                    ))}
+                    <div className="flex h-16 items-center rounded-xl px-3 text-sm text-slate-400">
+                      {eventos.length}{" "}
+                      {eventos.length === 1 ? "evento" : "eventos"}
+                    </div>
+                  </div>
+                )}
+              </Link>
+
+              {/* Bloco: Minhas galerias */}
+              <Link
+                to="/galerias"
+                className="group rounded-3xl border border-slate-800/70 bg-slate-900/70 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 shadow-lg shadow-fuchsia-500/20">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-6 w-6 text-white">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                      </svg>
+                    </div>
+                    <h2 className="text-xl font-semibold text-white">
+                      Minhas galerias
+                    </h2>
+                    <p className="mt-2 text-sm text-slate-400">
+                      Todas as fotos dos seus eventos, lado a lado, num só lugar.
+                    </p>
+                  </div>
+                  <span className="text-fuchsia-400 transition group-hover:translate-x-1">
+                    →
+                  </span>
+                </div>
+
+                {previews.length > 0 && (
+                  <div className="mt-5 flex gap-2">
+                    {previews.map((foto) => (
+                      <div
+                        key={foto.id}
+                        className="h-16 w-16 overflow-hidden rounded-xl border border-slate-800/60"
+                      >
+                        <img
+                          src={foto.url}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    ))}
+                    <div className="flex h-16 items-center rounded-xl px-3 text-sm text-slate-400">
+                      {eventos.length}{" "}
+                      {eventos.length === 1 ? "galeria" : "galerias"}
+                    </div>
+                  </div>
+                )}
+              </Link>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
