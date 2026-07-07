@@ -8,6 +8,7 @@ import EventMap from "../../components/EventMap";
 import EventPlaylist from "../../components/EventPlaylist";
 import EventCover from "../../components/EventCover";
 import ModalConfirmacao from "../../components/ModalConfirmacao";
+import TituloDegrade from "../../components/TituloDegrade";
 import {
   buscarEventoPorId,
   isDono,
@@ -83,8 +84,11 @@ export default function EventoDetalhe() {
               <div className="p-8">
               <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                  <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-400">Detalhes do evento</p>
-                  <h1 className="text-4xl font-semibold text-white">{evento.titulo}</h1>
+                  <p className="text-sm font-semibold uppercase tracking-[0.3em]">
+                    <span className="text-white">Detalhes do </span>
+                    <span className="texto-gradiente-2">evento</span>
+                  </p>
+                  <h1 className="text-4xl font-semibold text-white"><TituloDegrade texto={evento.titulo} /></h1>
                   <p className="mt-2 text-sm text-slate-400">{evento.data} · {evento.local}</p>
                 </div>
                 <div className="flex flex-wrap gap-3">

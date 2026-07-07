@@ -106,6 +106,65 @@ export function removerPlaylist(eventId) {
   }
 }
 
+// Guarda qual foi a última playlist que o usuário ouviu (por evento),
+// para destacá-la no topo da página geral de playlists.
+const KEY_ULTIMA = "meetflow.ultimaPlaylist";
+
+export function getUltimaPlaylist() {
+  try {
+    return localStorage.getItem(KEY_ULTIMA) || null;
+  } catch {
+    return null;
+  }
+}
+
+export function setUltimaPlaylist(eventId) {
+  try {
+    localStorage.setItem(KEY_ULTIMA, String(eventId));
+  } catch {
+    // sem localStorage disponível: apenas ignora
+  }
+}
+
+// Capa (thumbnail) da playlist do evento no Spotify, via oEmbed público.
+// Guarda o resultado em cache no localStorage para não consultar o Spotify toda vez.
+// Retorna a URL da imagem, ou null se o evento não tiver playlist / falhar.
+const KEY_CAPAS = "meetflow.playlistCapas"; // { [embedUrl]: thumbnailUrl }
+
+export async function getCapaPlaylist(eventId) {
+  const embed = getPlaylistEmbed(eventId);
+  if (!embed) return null;
+
+  let cache = {};
+  try {
+    cache = JSON.parse(localStorage.getItem(KEY_CAPAS) || "{}");
+  } catch {
+    // cache corrompido: ignora e segue com objeto vazio
+  }
+  if (cache[embed]) return cache[embed];
+
+  try {
+    const url = embedParaSpotify(embed);
+    const resp = await fetch(
+      `https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`,
+    );
+    if (!resp.ok) return null;
+    const dados = await resp.json();
+    const capa = dados?.thumbnail_url || null;
+    if (capa) {
+      cache[embed] = capa;
+      try {
+        localStorage.setItem(KEY_CAPAS, JSON.stringify(cache));
+      } catch {
+        // sem espaço no localStorage: segue sem cache, sem quebrar
+      }
+    }
+    return capa;
+  } catch {
+    return null;
+  }
+}
+
 //
 // LISTA DE MÚSICAS COLABORATIVA (por evento)
 // Cada participante pode adicionar músicas colando o link do Spotify.

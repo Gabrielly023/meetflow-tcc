@@ -2,6 +2,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import Header from "../../components/Header";
 import SideBar from "../../components/SideBar";
 import EventoForm from "../../components/EventoForm";
+import TituloDegrade from "../../components/TituloDegrade";
 import {
   buscarEventoPorId,
   atualizarEvento,
@@ -54,11 +55,12 @@ export default function EditarEvento() {
           <div className="mx-auto max-w-3xl">
             <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-400">
-                  Editar evento
+                <p className="text-sm font-semibold uppercase tracking-[0.3em]">
+                  <span className="text-white">Editar </span>
+                  <span className="texto-gradiente-2">evento</span>
                 </p>
                 <h1 className="text-3xl font-semibold text-white">
-                  {evento.titulo}
+                  <TituloDegrade texto={evento.titulo} />
                 </h1>
               </div>
               <Link

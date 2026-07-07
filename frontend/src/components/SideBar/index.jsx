@@ -65,7 +65,7 @@ const menuItems = [
   },
   {
     title: "Spotify/Suas Playlists",
-    href: "#",
+    to: "/playlists",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"

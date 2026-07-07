@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import Header from "../../components/Header";
 import SideBar from "../../components/SideBar";
 import Lightbox from "../../components/Lightbox";
+import TituloDegrade from "../../components/TituloDegrade";
 import { buscarEventoPorId } from "../../services/eventoService";
 import {
   listarFotos,
@@ -151,11 +152,11 @@ export default function GaleriaEvento() {
             {/* Cabeçalho */}
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-400">
+                <p className="texto-gradiente-2 text-sm font-semibold uppercase tracking-[0.3em]">
                   {verLixeira ? "Lixeira" : "Galeria"}
                 </p>
                 <h1 className="text-3xl font-semibold text-white">
-                  {evento.titulo}
+                  <TituloDegrade texto={evento.titulo} />
                 </h1>
                 <p className="mt-1 text-sm text-slate-400">
                   {verLixeira

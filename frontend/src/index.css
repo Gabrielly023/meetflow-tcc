@@ -91,6 +91,16 @@ html {
   }
 }
 
+/* Texto com gradiente roxo -> azul (o mesmo par do botão secundário do site).
+   Usado no rótulo de cima (eyebrow) dos cabeçalhos de página. */
+.texto-gradiente-2 {
+  background: linear-gradient(100deg, #a855f7, #38bdf8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .texto-gradiente {
     animation: none;

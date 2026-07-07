@@ -46,20 +46,28 @@ export default function MinhasGalerias() {
           <div className="mx-auto max-w-6xl space-y-8">
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-400">
+                <p className="texto-gradiente-2 text-sm font-semibold uppercase tracking-[0.3em]">
                   Galerias
                 </p>
                 <h1 className="text-3xl font-semibold text-white">
-                  Minhas galerias
+                  Minhas <span className="texto-gradiente">galerias</span>
                 </h1>
                 <p className="mt-2 text-slate-400">
                   Todas as galerias dos seus eventos, lado a lado. Clique em uma
                   para ver e gerenciar as fotos.
                 </p>
               </div>
-              <span className="text-sm text-slate-400">
-                {eventos.length} {eventos.length === 1 ? "galeria" : "galerias"}
-              </span>
+              {/* Bloquinho com a contagem — borda em degradê roxo→azul */}
+              <div className="self-start rounded-2xl bg-gradient-to-br from-violet-500 to-sky-500 p-[1.5px] shadow-lg shadow-violet-500/25">
+                <div className="rounded-2xl bg-slate-900 px-5 py-3 text-center">
+                  <p className="texto-gradiente-2 text-2xl font-semibold">
+                    {eventos.length}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {eventos.length === 1 ? "galeria" : "galerias"}
+                  </p>
+                </div>
+              </div>
             </div>
 
             {eventos.length === 0 ? (
@@ -101,7 +109,7 @@ export default function MinhasGalerias() {
 
                       <div className="flex items-center justify-between gap-3 p-5">
                         <div>
-                          <h2 className="text-lg font-semibold text-white">
+                          <h2 className="texto-gradiente-2 text-lg font-semibold">
                             {evento.titulo}
                           </h2>
                           <p className="mt-1 text-sm text-slate-400">

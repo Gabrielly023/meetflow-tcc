@@ -28,19 +28,50 @@ export default function EventosPage() {
         <SideBar />
         <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-400">
-                  {verLixeira ? "Lixeira" : "Seus eventos"}
+                <p className="text-sm font-semibold uppercase tracking-[0.3em]">
+                  {verLixeira ? (
+                    <span className="texto-gradiente-2">Lixeira</span>
+                  ) : (
+                    <>
+                      <span className="text-white">Seus </span>
+                      <span className="texto-gradiente-2">eventos</span>
+                    </>
+                  )}
                 </p>
                 <h1 className="text-3xl font-semibold text-white">
-                  {verLixeira
-                    ? "Eventos na lixeira"
-                    : "Eventos que você já tem"}
+                  {verLixeira ? (
+                    <>
+                      Eventos na <span className="texto-gradiente">lixeira</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="texto-gradiente">Eventos</span> que você já
+                      tem
+                    </>
+                  )}
                 </h1>
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col items-start gap-3 md:items-end">
+                {/* Bloquinho com a contagem — borda em degradê roxo→azul */}
+                <div className="rounded-2xl bg-gradient-to-br from-violet-500 to-sky-500 p-[1.5px] shadow-lg shadow-violet-500/25">
+                  <div className="rounded-2xl bg-slate-900 px-5 py-2.5 text-center">
+                    <p className="texto-gradiente-2 text-2xl font-semibold">
+                      {verLixeira ? lixeira.length : eventos.length}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {verLixeira
+                        ? "na lixeira"
+                        : eventos.length === 1
+                          ? "evento"
+                          : "eventos"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-3 md:justify-end">
                 {!verLixeira ? (
                   <>
                     <Link
@@ -81,6 +112,7 @@ export default function EventosPage() {
                     Voltar aos eventos
                   </button>
                 )}
+                </div>
               </div>
             </div>
 
@@ -155,7 +187,7 @@ export default function EventosPage() {
                       </div>
 
                       <div className="rounded-2xl bg-gradient-to-br from-orange-500/20 via-fuchsia-500/20 to-sky-500/20 p-4">
-                        <h2 className="text-xl font-semibold text-white">{evento.titulo}</h2>
+                        <h2 className="texto-gradiente-2 text-xl font-semibold">{evento.titulo}</h2>
                         <p className="mt-3 text-sm text-slate-300">{evento.data}</p>
                         <p className="mt-1 text-sm text-slate-400">{evento.local}</p>
                       </div>

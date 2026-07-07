@@ -21,11 +21,12 @@ export default function CriarEvento() {
           <div className="mx-auto max-w-3xl">
             <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-400">
-                  Novo evento
+                <p className="text-sm font-semibold uppercase tracking-[0.3em]">
+                  <span className="text-white">Novo </span>
+                  <span className="texto-gradiente-2">evento</span>
                 </p>
                 <h1 className="text-3xl font-semibold text-white">
-                  Criar um evento
+                  Criar um <span className="texto-gradiente">evento</span>
                 </h1>
               </div>
               <Link

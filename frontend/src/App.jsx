@@ -10,6 +10,7 @@ import EventoDetalhe from "./pages/EventoDetalhe";
 import GaleriaEvento from "./pages/GaleriaEvento";
 import PlaylistEvento from "./pages/PlaylistEvento";
 import MinhasGalerias from "./pages/MinhasGalerias";
+import MinhasPlaylists from "./pages/MinhasPlaylists";
 import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/usuarios" element={<HomePage />} />
         <Route path="/galerias" element={<MinhasGalerias />} />
+        <Route path="/playlists" element={<MinhasPlaylists />} />
         <Route path="/eventos" element={<EventosPage />} />
         <Route path="/eventos/novo" element={<CriarEvento />} />
         <Route path="/eventos/:id" element={<EventoDetalhe />} />

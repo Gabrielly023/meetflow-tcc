@@ -1,8 +1,14 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import SideBar from "../../components/SideBar";
 import Header from "../../components/Header";
 import { listarEventos } from "../../services/eventoService";
 import { listarFotos } from "../../services/galeriaService";
+import {
+  getPlaylistEmbed,
+  listarMusicas,
+  getCapaPlaylist,
+} from "../../services/playlistService";
 
 export default function HomePage() {
   const eventos = listarEventos();
@@ -11,6 +17,35 @@ export default function HomePage() {
     .map((ev) => ev.capa || ev.images?.[0])
     .filter(Boolean)
     .slice(0, 4);
+  // Playlists: total de músicas sugeridas em todos os eventos
+  const totalMusicas = eventos.reduce(
+    (soma, ev) => soma + listarMusicas(ev.id).length,
+    0,
+  );
+  // Miniaturas de playlist para o card: eventos que têm playlist
+  const tilesPlaylist = eventos
+    .filter((ev) => getPlaylistEmbed(ev.id))
+    .slice(0, 4);
+  const chaveCapas = tilesPlaylist.map((ev) => ev.id).join(",");
+  const [capasPlaylist, setCapasPlaylist] = useState({});
+
+  // Busca as capas dos álbuns/playlists no Spotify (oEmbed) para os tiles
+  useEffect(() => {
+    const ids = chaveCapas ? chaveCapas.split(",") : [];
+    if (ids.length === 0) return;
+    let ativo = true;
+    Promise.all(
+      ids.map((id) => getCapaPlaylist(id).then((capa) => [id, capa])),
+    ).then((pares) => {
+      if (ativo) {
+        setCapasPlaylist(Object.fromEntries(pares.filter(([, c]) => c)));
+      }
+    });
+    return () => {
+      ativo = false;
+    };
+  }, [chaveCapas]);
+
   const proximo = eventos[0];
   const capaProximo = proximo?.capa || proximo?.images?.[0];
 
@@ -106,7 +141,7 @@ export default function HomePage() {
               </span>
             </Link>
 
-            <div className="mt-6 grid gap-6 sm:grid-cols-2">
+            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {/* Bloco: Meus eventos */}
               <Link
                 to="/eventos"
@@ -190,6 +225,59 @@ export default function HomePage() {
                     <div className="flex h-16 items-center rounded-xl px-3 text-sm text-slate-400">
                       {eventos.length}{" "}
                       {eventos.length === 1 ? "galeria" : "galerias"}
+                    </div>
+                  </div>
+                )}
+              </Link>
+
+              {/* Bloco: Minhas playlists */}
+              <Link
+                to="/playlists"
+                className="group rounded-3xl border border-slate-800/70 bg-slate-900/70 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 shadow-lg shadow-fuchsia-500/20">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-6 w-6 text-white">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
+                      </svg>
+                    </div>
+                    <h2 className="text-xl font-semibold text-white">
+                      Minhas playlists
+                    </h2>
+                    <p className="mt-2 text-sm text-slate-400">
+                      A trilha sonora de cada evento, com músicas sugeridas por
+                      todo mundo.
+                    </p>
+                  </div>
+                  <span className="text-fuchsia-400 transition group-hover:translate-x-1">
+                    →
+                  </span>
+                </div>
+
+                {tilesPlaylist.length > 0 && (
+                  <div className="mt-5 flex gap-2">
+                    {tilesPlaylist.map((ev) => (
+                      <div
+                        key={ev.id}
+                        className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-slate-800/60 bg-gradient-to-br from-orange-500/25 via-fuchsia-500/25 to-sky-500/25"
+                      >
+                        {capasPlaylist[ev.id] ? (
+                          <img
+                            src={capasPlaylist[ev.id]}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-7 w-7 text-white/80">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
+                          </svg>
+                        )}
+                      </div>
+                    ))}
+                    <div className="flex h-16 items-center rounded-xl px-3 text-sm text-slate-400">
+                      {totalMusicas}{" "}
+                      {totalMusicas === 1 ? "música" : "músicas"}
                     </div>
                   </div>
                 )}

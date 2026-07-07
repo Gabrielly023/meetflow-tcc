@@ -86,7 +86,7 @@ export const eventos = [
     data: "27 Jul · 16:00",
     local: "Parque da Cidade",
     tipo: "Outdoor",
-    capa: "https://images.unsplash.com/photo-1526401485004-46910ecc8e51?auto=format&fit=crop&w=1200&q=80",
+    capa: "https://images.unsplash.com/photo-1630276740239-5d9c23d49531?auto=format&fit=crop&w=1200&q=80",
     participants: [
       { id: 1, name: "Laura" },
       { id: 2, name: "Marcos" },
