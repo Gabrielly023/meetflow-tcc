@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import SideBar from "../../components/SideBar";
-import Header from "../../components/Header";
 import { listarEventos } from "../../services/eventoService";
 import { listarFotos } from "../../services/galeriaService";
 import {
@@ -50,11 +48,7 @@ export default function HomePage() {
   const capaProximo = proximo?.capa || proximo?.images?.[0];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <Header />
-      <div className="flex min-h-[calc(100vh-80px)]">
-        <SideBar />
-        <main className="flex-1 px-6 py-8 lg:px-10">
+    <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="mx-auto max-w-6xl">
             <div className="flex flex-col gap-6 text-left lg:flex-row lg:items-center lg:justify-between">
               <div>
@@ -284,8 +278,6 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+    </main>
   );
 }

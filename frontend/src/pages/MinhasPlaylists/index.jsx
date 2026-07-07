@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import Header from "../../components/Header";
-import SideBar from "../../components/SideBar";
 import { listarEventos } from "../../services/eventoService";
 import {
   getPlaylistEmbed,
   listarMusicas,
   getUltimaPlaylist,
   setUltimaPlaylist,
+  embedParaUri,
 } from "../../services/playlistService";
+import { usePlayer } from "../../context/PlayerContext";
 
 export default function MinhasPlaylists() {
   const eventos = listarEventos();
@@ -21,6 +21,8 @@ export default function MinhasPlaylists() {
   }));
 
   const comPlaylist = playlists.filter((p) => p.embed).length;
+
+  const { tocar } = usePlayer();
 
   // Última playlist ouvida: vem primeiro (destaque no topo).
   // Fixamos o valor no carregamento da página de propósito — reordenar enquanto
@@ -49,12 +51,7 @@ export default function MinhasPlaylists() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <Header />
-
-      <div className="flex min-h-[calc(100vh-80px)]">
-        <SideBar />
-        <main className="flex-1 px-6 py-8 lg:px-10">
+    <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="mx-auto max-w-6xl space-y-8">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
@@ -110,7 +107,7 @@ export default function MinhasPlaylists() {
 
                     {/* Player real do Spotify (ou convite para adicionar) */}
                     {embed ? (
-                      <div className="bg-black">
+                      <div className="relative">
                         <iframe
                           title={`Playlist de ${evento.titulo}`}
                           src={embed}
@@ -121,7 +118,18 @@ export default function MinhasPlaylists() {
                           loading="lazy"
                           allowFullScreen
                           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                          style={{ display: "block" }}
+                          style={{ display: "block", borderRadius: "12px" }}
+                        />
+                        {/* Película redonda e invisível, só sobre o botão de play do Spotify */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUltimaPlaylist(evento.id);
+                            tocar(embedParaUri(embed), evento.titulo);
+                          }}
+                          title="Tocar na barra do site"
+                          aria-label="Tocar na barra do site"
+                          className="absolute right-5 top-16 h-14 w-14 cursor-pointer rounded-full"
                         />
                       </div>
                     ) : (
@@ -149,13 +157,32 @@ export default function MinhasPlaylists() {
                       </Link>
                     )}
 
+                    {/* Botão que manda a playlist para o player fixo (continua ao navegar) */}
+                    {embed && (
+                      <button
+                        type="button"
+                        onClick={() => tocar(embedParaUri(embed), evento.titulo)}
+                        className="mx-3 mt-3 flex items-center justify-center gap-2 rounded-2xl border border-violet-500/40 px-5 py-2.5 text-sm font-semibold text-slate-200 transition duration-300 hover:scale-[1.03] hover:border-transparent hover:bg-gradient-to-r hover:from-violet-500 hover:to-sky-500 hover:text-white hover:shadow-lg hover:shadow-violet-500/25 active:scale-95"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          className="h-4 w-4"
+                        >
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                        Tocar aqui
+                      </button>
+                    )}
+
                     {/* Rodapé: leva para a página completa da playlist do evento */}
                     <Link
                       to={`/eventos/${evento.id}/playlist`}
                       className="flex items-center justify-between gap-3 p-5 transition hover:bg-slate-900/60"
                     >
                       <div className="min-w-0">
-                        <h2 className="truncate text-lg font-semibold text-white">
+                        <h2 className="truncate texto-gradiente-2 text-lg font-semibold">
                           {evento.titulo}
                         </h2>
                         <p className="mt-1 text-sm text-slate-400">
@@ -175,8 +202,6 @@ export default function MinhasPlaylists() {
               </div>
             )}
           </div>
-        </main>
-      </div>
-    </div>
+    </main>
   );
 }

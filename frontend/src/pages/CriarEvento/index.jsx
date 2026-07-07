@@ -1,6 +1,4 @@
 import { useNavigate, Link } from "react-router-dom";
-import Header from "../../components/Header";
-import SideBar from "../../components/SideBar";
 import EventoForm from "../../components/EventoForm";
 import { criarEvento } from "../../services/eventoService";
 
@@ -13,11 +11,7 @@ export default function CriarEvento() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <Header />
-      <div className="flex min-h-[calc(100vh-80px)]">
-        <SideBar />
-        <main className="flex-1 px-6 py-8 lg:px-10">
+    <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="mx-auto max-w-3xl">
             <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
@@ -46,8 +40,6 @@ export default function CriarEvento() {
               cancelarHref="/eventos"
             />
           </div>
-        </main>
-      </div>
-    </div>
+    </main>
   );
 }

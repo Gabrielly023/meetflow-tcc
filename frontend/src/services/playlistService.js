@@ -72,6 +72,16 @@ export function embedParaSpotify(embed) {
   return embed.replace("/embed/", "/");
 }
 
+// Converte a URL de embed em uma URI do Spotify (usada pela iFrame API do player).
+// Ex.: open.spotify.com/embed/playlist/ID -> spotify:playlist:ID
+export function embedParaUri(embed) {
+  if (!embed) return null;
+  const m = String(embed).match(
+    /open\.spotify\.com\/embed\/([a-z]+)\/([A-Za-z0-9]+)/i,
+  );
+  return m ? `spotify:${m[1].toLowerCase()}:${m[2]}` : null;
+}
+
 // URL do Spotify da playlist do evento (para abrir no app), ou null se não houver.
 export function getSpotifyUrl(eventId) {
   return embedParaSpotify(getPlaylistEmbed(eventId));

@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import SideBar from "../../components/SideBar";
-import Header from "../../components/Header";
 import EventCover from "../../components/EventCover";
 import {
   listarEventos,
@@ -22,11 +20,7 @@ export default function EventosPage() {
   }
 
   return (
-    <>
-      <Header />
-      <div className="flex min-h-[calc(100vh-80px)] bg-slate-950 text-slate-100">
-        <SideBar />
-        <main className="flex-1 px-6 py-8 lg:px-10">
+    <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="max-w-7xl mx-auto">
             <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
               <div>
@@ -204,8 +198,6 @@ export default function EventosPage() {
               </div>
             )}
           </div>
-        </main>
-      </div>
-    </>
+    </main>
   );
 }

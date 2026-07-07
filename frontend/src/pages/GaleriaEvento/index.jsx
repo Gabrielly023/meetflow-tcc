@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import Header from "../../components/Header";
-import SideBar from "../../components/SideBar";
 import Lightbox from "../../components/Lightbox";
 import TituloDegrade from "../../components/TituloDegrade";
 import { buscarEventoPorId } from "../../services/eventoService";
@@ -47,9 +45,7 @@ export default function GaleriaEvento() {
 
   if (!evento) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white">
-        <Header />
-        <main className="flex min-h-[calc(100vh-80px)] items-center justify-center px-6 py-10">
+      <main className="flex flex-1 items-center justify-center px-6 py-10">
           <div className="rounded-3xl border border-red-500/40 bg-slate-900/90 p-10 text-center shadow-2xl shadow-black/30">
             <h1 className="text-3xl font-semibold">Evento não encontrado</h1>
             <Link
@@ -59,8 +55,7 @@ export default function GaleriaEvento() {
               Voltar para eventos
             </Link>
           </div>
-        </main>
-      </div>
+      </main>
     );
   }
 
@@ -134,9 +129,7 @@ export default function GaleriaEvento() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <Header />
-
+    <>
       {lightbox !== null && (
         <Lightbox
           fotos={fotos}
@@ -145,9 +138,7 @@ export default function GaleriaEvento() {
         />
       )}
 
-      <div className="flex min-h-[calc(100vh-80px)]">
-        <SideBar />
-        <main className="flex-1 px-6 py-8 lg:px-10">
+      <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="mx-auto max-w-6xl space-y-8">
             {/* Cabeçalho */}
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -436,8 +427,7 @@ export default function GaleriaEvento() {
               </div>
             )}
           </div>
-        </main>
-      </div>
-    </div>
+      </main>
+    </>
   );
 }

@@ -12,25 +12,33 @@ import PlaylistEvento from "./pages/PlaylistEvento";
 import MinhasGalerias from "./pages/MinhasGalerias";
 import MinhasPlaylists from "./pages/MinhasPlaylists";
 import ScrollToTop from "./components/ScrollToTop";
+import AppLayout from "./components/AppLayout";
+import { PlayerProvider } from "./context/PlayerContext";
 
 function App() {
   return (
     <Router>
       <ScrollToTop />
-      <Routes>
+      <PlayerProvider>
+        <Routes>
         <Route path="/" element={<InicialPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/usuarios" element={<HomePage />} />
-        <Route path="/galerias" element={<MinhasGalerias />} />
-        <Route path="/playlists" element={<MinhasPlaylists />} />
-        <Route path="/eventos" element={<EventosPage />} />
-        <Route path="/eventos/novo" element={<CriarEvento />} />
-        <Route path="/eventos/:id" element={<EventoDetalhe />} />
-        <Route path="/eventos/:id/editar" element={<EditarEvento />} />
-        <Route path="/eventos/:id/galeria" element={<GaleriaEvento />} />
-        <Route path="/eventos/:id/playlist" element={<PlaylistEvento />} />
-      </Routes>
+
+        {/* Páginas internas: casca (Header + SideBar) única e persistente */}
+        <Route element={<AppLayout />}>
+          <Route path="/usuarios" element={<HomePage />} />
+          <Route path="/galerias" element={<MinhasGalerias />} />
+          <Route path="/playlists" element={<MinhasPlaylists />} />
+          <Route path="/eventos" element={<EventosPage />} />
+          <Route path="/eventos/novo" element={<CriarEvento />} />
+          <Route path="/eventos/:id" element={<EventoDetalhe />} />
+          <Route path="/eventos/:id/editar" element={<EditarEvento />} />
+          <Route path="/eventos/:id/galeria" element={<GaleriaEvento />} />
+          <Route path="/eventos/:id/playlist" element={<PlaylistEvento />} />
+        </Route>
+        </Routes>
+      </PlayerProvider>
     </Router>
   );
 }

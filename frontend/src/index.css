@@ -162,6 +162,22 @@ html {
   box-shadow: 0 14px 34px -14px rgba(139, 92, 246, 0.5);
 }
 
+/* Mesma borda em degradê azul->roxo, porém SEMPRE visível (sem depender de hover) */
+.borda-degrade-fixa {
+  border: 2px solid transparent;
+  background-image:
+    linear-gradient(rgb(15 23 42 / 0.7), rgb(15 23 42 / 0.7)),
+    linear-gradient(160deg, #38bdf8, #a855f7);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+/* Arredonda o próprio iframe do Spotify (o scale atrapalha o clip do container),
+   removendo as "quininhas" pretas dos cantos do player. */
+.spotify-host iframe {
+  border-radius: 14px;
+}
+
 /* Mantém os campos escuros mesmo quando o navegador preenche automaticamente */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { usePlayer } from "../../context/PlayerContext";
 
 const menuItems = [
   {
@@ -150,6 +151,8 @@ const menuItemClass =
   "menu-item flex items-center justify-start gap-3 px-4 py-3 text-slate-200 rounded-2xl transition duration-300 hover:text-white hover:shadow-lg hover:shadow-violet-500/20";
 
 export default function SideBar() {
+  const { registrarHost, aberto, fechar, origem } = usePlayer();
+
   return (
     <aside className="sidebar-borda sidebar-scrollbar mt-6 flex w-64 shrink-0 flex-col self-stretch px-5 py-8">
       <Link to="/usuarios" className="inline-flex items-center gap-2">
@@ -200,16 +203,59 @@ export default function SideBar() {
         </nav>
 
         <div className="mt-6">
-          <div className="p-3 bg-gray-100 rounded-lg dark:bg-gray-800">
-            <h2 className="text-sm font-medium text-gray-800 dark:text-white">New feature available!</h2>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Natus harum officia eligendi velit.
-            </p>
-            <img
-              className="object-cover w-full h-32 mt-2 rounded-lg"
-              src="https://images.unsplash.com/photo-1658953229664-e8d5ebd039ba?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1374&h=1374&q=80"
-              alt="feature preview"
-            />
+          {/* Player fixo do site: vive aqui na sidebar (que é um layout único),
+              por isso continua tocando quando o usuário troca de página. */}
+          {/* Borda em degradê azul→roxo: wrapper com o degradê + padding, e um
+              interno arredondado por dentro (encaixa sem "quininhas" nos cantos) */}
+          <div className="-mx-3 rounded-xl bg-gradient-to-br from-sky-400 to-violet-500 p-[2px] shadow-lg shadow-violet-500/20">
+            <div className="overflow-hidden rounded-[10px] bg-slate-900">
+            {/* Moldura fina: rótulo + de qual evento veio */}
+            <div className="flex items-center justify-between gap-2 px-2 py-1.5">
+              <div className="min-w-0">
+                <span className="block text-xs font-semibold uppercase tracking-[0.2em] text-fuchsia-400">
+                  Tocando agora
+                </span>
+                {origem && (
+                  <span className="block truncate text-[11px] text-slate-400">
+                    {origem}
+                  </span>
+                )}
+              </div>
+              {aberto && (
+                <button
+                  type="button"
+                  onClick={fechar}
+                  title="Fechar player"
+                  className="rounded-full bg-slate-800 px-2 py-0.5 text-xs text-slate-300 transition hover:bg-slate-700 hover:text-white"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            {/* Container do tamanho JÁ reduzido (200x253). O iframe é renderizado
+                a 300px de largura (para o Spotify usar o layout vertical) e
+                encolhido com scale — sem recarregar o player. */}
+            <div
+              className="relative mx-auto overflow-hidden bg-slate-950/60"
+              style={{ width: 236, height: 346 }}
+            >
+              {/* O React só gerencia esta div; o iframe do Spotify vive num filho solto */}
+              <div
+                ref={registrarHost}
+                className="spotify-host"
+                style={{
+                  width: 300,
+                  transform: "scale(0.787)",
+                  transformOrigin: "top left",
+                }}
+              />
+              {!aberto && (
+                <div className="absolute inset-0 flex items-center justify-center p-3 text-center text-sm text-slate-500">
+                  Toque uma playlist ou música para ouvir aqui.
+                </div>
+              )}
+            </div>
+            </div>
           </div>
 
           <div className="flex items-center justify-between mt-6">

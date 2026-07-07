@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import Header from "../../components/Header";
-import SideBar from "../../components/SideBar";
 import Lightbox from "../../components/Lightbox";
 import { listarEventos } from "../../services/eventoService";
 import {
@@ -29,9 +27,7 @@ export default function MinhasGalerias() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <Header />
-
+    <>
       {lightbox !== null && (
         <Lightbox
           fotos={todasFotos}
@@ -40,9 +36,7 @@ export default function MinhasGalerias() {
         />
       )}
 
-      <div className="flex min-h-[calc(100vh-80px)]">
-        <SideBar />
-        <main className="flex-1 px-6 py-8 lg:px-10">
+      <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="mx-auto max-w-6xl space-y-8">
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
@@ -194,8 +188,7 @@ export default function MinhasGalerias() {
               </div>
             )}
           </div>
-        </main>
-      </div>
-    </div>
+      </main>
+    </>
   );
 }

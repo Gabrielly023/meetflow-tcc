@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import Header from "../../components/Header";
-import SideBar from "../../components/SideBar";
 import { buscarEventoPorId } from "../../services/eventoService";
 import {
   getPlaylistEmbed,
   embedParaSpotify,
+  embedParaUri,
   definirPlaylist,
   removerPlaylist,
   listarMusicas,
@@ -15,10 +14,13 @@ import {
   curtirMusica,
   usuarioVotou,
 } from "../../services/playlistService";
+import { usePlayer } from "../../context/PlayerContext";
+import TituloDegrade from "../../components/TituloDegrade";
 
 export default function PlaylistEvento() {
   const { id } = useParams();
   const evento = buscarEventoPorId(id);
+  const { tocar } = usePlayer();
 
   const [embed, setEmbed] = useState(() => getPlaylistEmbed(id));
   const [editando, setEditando] = useState(false);
@@ -34,9 +36,7 @@ export default function PlaylistEvento() {
 
   if (!evento) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white">
-        <Header />
-        <main className="flex min-h-[calc(100vh-80px)] items-center justify-center px-6 py-10">
+      <main className="flex flex-1 items-center justify-center px-6 py-10">
           <div className="rounded-3xl border border-red-500/40 bg-slate-900/90 p-10 text-center shadow-2xl shadow-black/30">
             <h1 className="text-3xl font-semibold">Evento não encontrado</h1>
             <p className="mt-4 text-slate-300">Verifique se o link está correto ou volte para a página de eventos.</p>
@@ -44,8 +44,7 @@ export default function PlaylistEvento() {
               Voltar para eventos
             </Link>
           </div>
-        </main>
-      </div>
+      </main>
     );
   }
 
@@ -114,18 +113,16 @@ export default function PlaylistEvento() {
   const totalSugestores = new Set(musicas.map((m) => m.ownerId)).size;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <Header />
-
-      <div className="flex min-h-[calc(100vh-80px)]">
-        <SideBar />
-        <main className="flex-1 px-6 py-8 lg:px-10">
+    <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="mx-auto max-w-5xl space-y-8">
             {/* Cabeçalho da página */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-400">Playlist do evento</p>
-                <h1 className="text-4xl font-semibold text-white">{evento.titulo}</h1>
+                <p className="text-sm font-semibold uppercase tracking-[0.3em]">
+                  <span className="texto-gradiente-2">Playlist</span>
+                  <span className="text-white"> do evento</span>
+                </p>
+                <h1 className="text-4xl font-semibold text-white"><TituloDegrade texto={evento.titulo} /></h1>
                 <p className="mt-2 text-sm text-slate-400">{evento.data} · {evento.local}</p>
               </div>
               <Link
@@ -217,7 +214,7 @@ export default function PlaylistEvento() {
 
               {embed ? (
                 <>
-                  <div className="overflow-hidden rounded-3xl bg-slate-950/90">
+                  <div className="relative overflow-hidden rounded-3xl bg-slate-950/90">
                     <iframe
                       title={playlist.name || "Playlist do evento"}
                       src={embed}
@@ -229,9 +226,27 @@ export default function PlaylistEvento() {
                       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                       style={{ borderRadius: "12px", display: "block" }}
                     />
+                    {/* Película redonda e invisível, só sobre o botão de play do Spotify */}
+                    <button
+                      type="button"
+                      onClick={() => tocar(embedParaUri(embed), evento.titulo)}
+                      title="Tocar na barra do site"
+                      aria-label="Tocar na barra do site"
+                      className="absolute right-5 top-16 h-14 w-14 cursor-pointer rounded-full"
+                    />
                   </div>
                   {!editando && (
                     <div className="mt-5 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() => tocar(embedParaUri(embed), evento.titulo)}
+                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                        Tocar aqui
+                      </button>
                       <button
                         type="button"
                         onClick={abrirFormulario}
@@ -331,7 +346,7 @@ export default function PlaylistEvento() {
                 <div className="space-y-4">
                   {musicas.map((musica) => (
                     <div key={musica.id} className="rounded-2xl bg-slate-950/90 p-3">
-                      <div className="overflow-hidden rounded-xl">
+                      <div className="relative overflow-hidden rounded-xl">
                         <iframe
                           title={`Música ${musica.id}`}
                           src={musica.embed}
@@ -343,9 +358,18 @@ export default function PlaylistEvento() {
                           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                           style={{ borderRadius: "12px", display: "block" }}
                         />
+                        {/* Película redonda e invisível, só sobre o botão de play do Spotify */}
+                        <button
+                          type="button"
+                          onClick={() => tocar(embedParaUri(musica.embed), evento.titulo)}
+                          title="Tocar na barra do site"
+                          aria-label="Tocar na barra do site"
+                          className="absolute right-4 top-1/2 h-11 w-11 -translate-y-1/2 cursor-pointer rounded-full"
+                        />
                       </div>
 
                       <div className="mt-3 flex items-center justify-between gap-3 px-1">
+                        <div className="flex items-center gap-2">
                         {/* Botão de curtir + contagem de votos */}
                         <button
                           type="button"
@@ -369,6 +393,20 @@ export default function PlaylistEvento() {
                           </svg>
                           {musica.votos.length}
                         </button>
+
+                        {/* Tocar esta música no player fixo */}
+                        <button
+                          type="button"
+                          onClick={() => tocar(embedParaUri(musica.embed), evento.titulo)}
+                          title="Tocar no player"
+                          className="inline-flex items-center gap-1.5 rounded-full bg-slate-800 px-3 py-1.5 text-sm font-medium text-fuchsia-300 ring-1 ring-slate-700 transition duration-300 hover:scale-105 hover:bg-fuchsia-500/10 active:scale-95"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                          Tocar
+                        </button>
+                        </div>
 
                         <div className="flex items-center gap-3">
                           <span className="text-xs text-slate-500">
@@ -399,8 +437,6 @@ export default function PlaylistEvento() {
               )}
             </section>
           </div>
-        </main>
-      </div>
-    </div>
+    </main>
   );
 }

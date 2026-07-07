@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import Header from "../../components/Header";
-import SideBar from "../../components/SideBar";
 import EventChat from "../../components/EventChat";
 import EventGallery from "../../components/EventGallery";
 import EventMap from "../../components/EventMap";
@@ -24,9 +22,7 @@ export default function EventoDetalhe() {
 
   if (!evento) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white">
-        <Header />
-        <main className="flex min-h-[calc(100vh-80px)] items-center justify-center px-6 py-10">
+      <main className="flex flex-1 items-center justify-center px-6 py-10">
           <div className="rounded-3xl border border-red-500/40 bg-slate-900/90 p-10 text-center shadow-2xl shadow-black/30">
             <h1 className="text-3xl font-semibold">Evento não encontrado</h1>
             <p className="mt-4 text-slate-300">Verifique se o link está correto ou volte para a página de eventos.</p>
@@ -34,8 +30,7 @@ export default function EventoDetalhe() {
               Voltar para eventos
             </Link>
           </div>
-        </main>
-      </div>
+      </main>
     );
   }
 
@@ -53,9 +48,7 @@ export default function EventoDetalhe() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <Header />
-
+    <>
       <ModalConfirmacao
         aberto={modal !== null}
         titulo={modal === "excluir" ? "Excluir evento" : "Sair do evento"}
@@ -70,9 +63,7 @@ export default function EventoDetalhe() {
         onCancelar={() => setModal(null)}
       />
 
-      <div className="flex min-h-[calc(100vh-80px)]">
-        <SideBar />
-        <main className="flex-1 px-6 py-8 lg:px-10">
+      <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="max-w-7xl mx-auto space-y-8">
             <div className="overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-900/80 shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-fuchsia-500/20">
               <EventCover
@@ -216,8 +207,7 @@ export default function EventoDetalhe() {
               </div>
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+      </main>
+    </>
   );
 }
