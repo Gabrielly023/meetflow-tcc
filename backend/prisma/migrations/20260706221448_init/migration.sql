@@ -1,12 +1,15 @@
 -- CreateTable
-CREATE TABLE `Usuario` (
+CREATE TABLE `usuario` (
     `id_usuario` CHAR(36) NOT NULL,
     `nome` VARCHAR(100) NOT NULL,
+    `username` VARCHAR(30) NOT NULL,
     `email` VARCHAR(100) NOT NULL,
+    `telefone` VARCHAR(20) NOT NULL,
     `senha` VARCHAR(255) NOT NULL,
     `foto_perfil` VARCHAR(500) NULL,
 
-    UNIQUE INDEX `Usuario_email_key`(`email`),
+    UNIQUE INDEX `usuario_username_key`(`username`),
+    UNIQUE INDEX `usuario_email_key`(`email`),
     PRIMARY KEY (`id_usuario`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -81,34 +84,34 @@ CREATE TABLE `ChatLeitura` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
-ALTER TABLE `Evento` ADD CONSTRAINT `Evento_id_usuario_fkey` FOREIGN KEY (`id_usuario`) REFERENCES `Usuario`(`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Evento` ADD CONSTRAINT `Evento_id_usuario_fkey` FOREIGN KEY (`id_usuario`) REFERENCES `usuario`(`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Participantes` ADD CONSTRAINT `Participantes_id_evento_fkey` FOREIGN KEY (`id_evento`) REFERENCES `Evento`(`id_evento`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Participantes` ADD CONSTRAINT `Participantes_id_usuario_fkey` FOREIGN KEY (`id_usuario`) REFERENCES `Usuario`(`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Participantes` ADD CONSTRAINT `Participantes_id_usuario_fkey` FOREIGN KEY (`id_usuario`) REFERENCES `usuario`(`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Galeria` ADD CONSTRAINT `Galeria_id_evento_fkey` FOREIGN KEY (`id_evento`) REFERENCES `Evento`(`id_evento`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Galeria` ADD CONSTRAINT `Galeria_id_usuario_fkey` FOREIGN KEY (`id_usuario`) REFERENCES `Usuario`(`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Galeria` ADD CONSTRAINT `Galeria_id_usuario_fkey` FOREIGN KEY (`id_usuario`) REFERENCES `usuario`(`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Musica` ADD CONSTRAINT `Musica_id_evento_fkey` FOREIGN KEY (`id_evento`) REFERENCES `Evento`(`id_evento`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Musica` ADD CONSTRAINT `Musica_id_usuario_fkey` FOREIGN KEY (`id_usuario`) REFERENCES `Usuario`(`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Musica` ADD CONSTRAINT `Musica_id_usuario_fkey` FOREIGN KEY (`id_usuario`) REFERENCES `usuario`(`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Chat` ADD CONSTRAINT `Chat_id_evento_fkey` FOREIGN KEY (`id_evento`) REFERENCES `Evento`(`id_evento`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Chat` ADD CONSTRAINT `Chat_id_usuario_fkey` FOREIGN KEY (`id_usuario`) REFERENCES `Usuario`(`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Chat` ADD CONSTRAINT `Chat_id_usuario_fkey` FOREIGN KEY (`id_usuario`) REFERENCES `usuario`(`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `ChatLeitura` ADD CONSTRAINT `ChatLeitura_id_chat_fkey` FOREIGN KEY (`id_chat`) REFERENCES `Chat`(`id_chat`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `ChatLeitura` ADD CONSTRAINT `ChatLeitura_id_usuario_fkey` FOREIGN KEY (`id_usuario`) REFERENCES `Usuario`(`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `ChatLeitura` ADD CONSTRAINT `ChatLeitura_id_usuario_fkey` FOREIGN KEY (`id_usuario`) REFERENCES `usuario`(`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
