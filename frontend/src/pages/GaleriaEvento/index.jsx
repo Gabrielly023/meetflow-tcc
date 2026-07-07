@@ -13,6 +13,9 @@ import {
   reordenar,
   listarLixeira,
   restaurar,
+  curtirFoto,
+  getVotosFoto,
+  usuarioCurtiuFoto,
 } from "../../services/galeriaService";
 
 export default function GaleriaEvento() {
@@ -93,6 +96,14 @@ export default function GaleriaEvento() {
     recarregar();
   }
 
+  function handleCurtir(fotoId) {
+    curtirFoto(fotoId);
+    recarregar();
+  }
+
+  // Quantas pessoas diferentes enviaram fotos
+  const totalPessoas = new Set(fotos.map((f) => f.ownerId)).size;
+
   function handleDragStart(event, indice) {
     setArrastandoIndice(indice);
     event.dataTransfer.effectAllowed = "move";
@@ -149,7 +160,11 @@ export default function GaleriaEvento() {
                 <p className="mt-1 text-sm text-slate-400">
                   {verLixeira
                     ? `${lixeira.length} na lixeira`
-                    : `${fotos.length} ${fotos.length === 1 ? "foto" : "fotos"}`}
+                    : `${fotos.length} ${fotos.length === 1 ? "foto" : "fotos"}${
+                        fotos.length
+                          ? ` · de ${totalPessoas} ${totalPessoas === 1 ? "pessoa" : "pessoas"}`
+                          : ""
+                      }`}
                 </p>
               </div>
 
@@ -312,6 +327,35 @@ export default function GaleriaEvento() {
                         <span className="absolute left-2 top-2 rounded-full bg-slate-950/70 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-fuchsia-300 backdrop-blur">
                           Sua
                         </span>
+                      )}
+
+                      {/* Curtir foto (não aparece no modo reordenar) */}
+                      {!reordenando && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCurtir(foto.id);
+                          }}
+                          title={usuarioCurtiuFoto(foto.id) ? "Remover meu like" : "Curtir foto"}
+                          className={`absolute bottom-2 left-2 z-10 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium backdrop-blur transition duration-300 hover:scale-105 active:scale-95 ${
+                            usuarioCurtiuFoto(foto.id)
+                              ? "bg-fuchsia-500/30 text-fuchsia-200 ring-1 ring-fuchsia-400/50"
+                              : "bg-slate-950/70 text-slate-200 ring-1 ring-slate-700"
+                          }`}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill={usuarioCurtiuFoto(foto.id) ? "currentColor" : "none"}
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            className="h-3.5 w-3.5"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                          </svg>
+                          {getVotosFoto(foto.id)}
+                        </button>
                       )}
 
                       {!reordenando && (

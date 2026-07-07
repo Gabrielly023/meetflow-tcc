@@ -1,8 +1,19 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { listarFotos } from "../../services/galeriaService";
+import {
+  listarFotos,
+  curtirFoto,
+  getVotosFoto,
+  usuarioCurtiuFoto,
+} from "../../services/galeriaService";
 
 export default function EventGallery({ eventoId }) {
-  const fotos = listarFotos(eventoId).slice(0, 4);
+  const [fotos, setFotos] = useState(() => listarFotos(eventoId).slice(0, 4));
+
+  function handleCurtir(fotoId) {
+    curtirFoto(fotoId);
+    setFotos(listarFotos(eventoId).slice(0, 4));
+  }
 
   return (
     <section className="rounded-3xl border border-slate-800/70 bg-slate-900/80 p-6 shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-fuchsia-500/20">
@@ -29,17 +40,41 @@ export default function EventGallery({ eventoId }) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {fotos.map((foto) => (
-            <Link
+            <div
               key={foto.id}
-              to={`/eventos/${eventoId}/galeria`}
-              className="group overflow-hidden rounded-3xl bg-slate-950/80 shadow-inner shadow-black/20"
+              className="group relative overflow-hidden rounded-3xl bg-slate-950/80 shadow-inner shadow-black/20"
             >
-              <img
-                src={foto.url}
-                alt="Foto do evento"
-                className="h-44 w-full object-cover transition duration-300 group-hover:scale-105"
-              />
-            </Link>
+              <Link to={`/eventos/${eventoId}/galeria`} className="block">
+                <img
+                  src={foto.url}
+                  alt="Foto do evento"
+                  className="h-44 w-full object-cover transition duration-300 group-hover:scale-105"
+                />
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => handleCurtir(foto.id)}
+                title={usuarioCurtiuFoto(foto.id) ? "Remover meu like" : "Curtir foto"}
+                className={`absolute bottom-2 left-2 z-10 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium backdrop-blur transition duration-300 hover:scale-105 active:scale-95 ${
+                  usuarioCurtiuFoto(foto.id)
+                    ? "bg-fuchsia-500/30 text-fuchsia-200 ring-1 ring-fuchsia-400/50"
+                    : "bg-slate-950/70 text-slate-200 ring-1 ring-slate-700"
+                }`}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill={usuarioCurtiuFoto(foto.id) ? "currentColor" : "none"}
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  className="h-3.5 w-3.5"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                </svg>
+                {getVotosFoto(foto.id)}
+              </button>
+            </div>
           ))}
         </div>
       )}

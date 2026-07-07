@@ -8,11 +8,14 @@ import CriarEvento from "./pages/CriarEvento";
 import EditarEvento from "./pages/EditarEvento";
 import EventoDetalhe from "./pages/EventoDetalhe";
 import GaleriaEvento from "./pages/GaleriaEvento";
+import PlaylistEvento from "./pages/PlaylistEvento";
 import MinhasGalerias from "./pages/MinhasGalerias";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<InicialPage />} />
         <Route path="/login" element={<Login />} />
@@ -24,6 +27,7 @@ function App() {
         <Route path="/eventos/:id" element={<EventoDetalhe />} />
         <Route path="/eventos/:id/editar" element={<EditarEvento />} />
         <Route path="/eventos/:id/galeria" element={<GaleriaEvento />} />
+        <Route path="/eventos/:id/playlist" element={<PlaylistEvento />} />
       </Routes>
     </Router>
   );

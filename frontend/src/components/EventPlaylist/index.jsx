@@ -1,4 +1,10 @@
-export default function EventPlaylist({ playlist = {} }) {
+import { Link } from "react-router-dom";
+import { getPlaylistEmbed } from "../../services/playlistService";
+
+export default function EventPlaylist({ playlist = {}, eventoId }) {
+  // Usa a playlist salva pelo usuário (localStorage) ou o padrão do evento.
+  const embed = eventoId ? getPlaylistEmbed(eventoId) : playlist.embedUrl;
+
   return (
     <section className="rounded-3xl border border-slate-800/70 bg-slate-900/80 p-6 shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-fuchsia-500/20">
       <div className="mb-5 flex items-center justify-between gap-4">
@@ -6,16 +12,53 @@ export default function EventPlaylist({ playlist = {} }) {
           <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-400">Playlist</p>
           <h2 className="text-2xl font-semibold text-white">Trilha exclusiva do evento</h2>
         </div>
-        <span className="rounded-2xl bg-gradient-to-r from-sky-500 to-violet-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/20">Spotify</span>
+        {eventoId ? (
+          <Link
+            to={`/eventos/${eventoId}/playlist`}
+            title="Abrir playlist em tela cheia"
+            className="rounded-2xl bg-gradient-to-r from-sky-500 to-violet-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/20 transition hover:opacity-90 hover:scale-105"
+          >
+            Spotify
+          </Link>
+        ) : (
+          <span className="rounded-2xl bg-gradient-to-r from-sky-500 to-violet-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-violet-500/20">Spotify</span>
+        )}
       </div>
 
-      <div className="rounded-3xl bg-slate-950/90 p-5 text-slate-300">
-        <p className="text-base font-medium text-white">{playlist.name || "Playlist do evento"}</p>
-        <p className="mt-2 text-sm text-slate-400">{playlist.description || "Em breve vamos conectar ao Spotify para um player exclusivo deste evento."}</p>
-        <button className="mt-6 inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90">
-          Conectar Spotify
-        </button>
-      </div>
+      {embed ? (
+        // Player do Spotify embutido (playlist individual deste evento)
+        <div className="overflow-hidden rounded-3xl bg-slate-950/90">
+          <iframe
+            title={playlist.name || "Playlist do evento"}
+            src={embed}
+            width="100%"
+            height="352"
+            frameBorder="0"
+            loading="lazy"
+            allowFullScreen
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            style={{ borderRadius: "12px", display: "block" }}
+          />
+        </div>
+      ) : (
+        // Placeholder para eventos que ainda não têm playlist conectada
+        <div className="rounded-3xl bg-slate-950/90 p-5 text-slate-300">
+          <p className="text-base font-medium text-white">{playlist.name || "Playlist do evento"}</p>
+          <p className="mt-2 text-sm text-slate-400">{playlist.description || "Em breve vamos conectar ao Spotify para um player exclusivo deste evento."}</p>
+          {eventoId ? (
+            <Link
+              to={`/eventos/${eventoId}/playlist`}
+              className="mt-6 inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+            >
+              Conectar Spotify
+            </Link>
+          ) : (
+            <button className="mt-6 inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90">
+              Conectar Spotify
+            </button>
+          )}
+        </div>
+      )}
     </section>
   );
 }

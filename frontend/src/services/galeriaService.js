@@ -9,6 +9,7 @@ const KEY_ADD = "meetflow.galeria.adicionadas"; // { [eventId]: [ {id,url,ownerI
 const KEY_OCULTAS = "meetflow.galeria.ocultas"; // [fotoId] escondidas p/ o usuário atual
 const KEY_EXCLUIDAS = "meetflow.galeria.excluidas"; // [fotoId] excluídas para todos (seed)
 const KEY_ORDEM = "meetflow.galeria.ordem"; // { [eventId]: [fotoId] }
+const KEY_VOTOS = "meetflow.galeria.votos"; // { [fotoId]: [userId] } curtidas por foto
 
 function ler(chave, padrao) {
   try {
@@ -180,4 +181,31 @@ export function reordenar(eventId, idsNaOrdem) {
   const ordem = ler(KEY_ORDEM, {});
   ordem[eventId] = idsNaOrdem;
   salvar(KEY_ORDEM, ordem);
+}
+
+//
+// CURTIDAS (likes) das fotos — cada usuário pode curtir/descurtir cada foto.
+//
+
+// Quantidade de curtidas de uma foto.
+export function getVotosFoto(fotoId) {
+  const votos = ler(KEY_VOTOS, {});
+  return (votos[fotoId] || []).length;
+}
+
+// Diz se o usuário atual já curtiu essa foto.
+export function usuarioCurtiuFoto(fotoId) {
+  const votos = ler(KEY_VOTOS, {});
+  return (votos[fotoId] || []).includes(getUsuarioAtualId());
+}
+
+// Alterna a curtida do usuário atual em uma foto (curtir / descurtir).
+export function curtirFoto(fotoId) {
+  const uid = getUsuarioAtualId();
+  const votos = ler(KEY_VOTOS, {});
+  const lista = votos[fotoId] || [];
+  votos[fotoId] = lista.includes(uid)
+    ? lista.filter((v) => v !== uid)
+    : [...lista, uid];
+  salvar(KEY_VOTOS, votos);
 }

@@ -4,7 +4,12 @@ import Header from "../../components/Header";
 import SideBar from "../../components/SideBar";
 import Lightbox from "../../components/Lightbox";
 import { listarEventos } from "../../services/eventoService";
-import { listarFotos } from "../../services/galeriaService";
+import {
+  listarFotos,
+  curtirFoto,
+  getVotosFoto,
+  usuarioCurtiuFoto,
+} from "../../services/galeriaService";
 
 export default function MinhasGalerias() {
   const eventos = listarEventos();
@@ -16,6 +21,12 @@ export default function MinhasGalerias() {
     })),
   );
   const [lightbox, setLightbox] = useState(null);
+  const [, forcarAtualizacao] = useState(0);
+
+  function handleCurtir(fotoId) {
+    curtirFoto(fotoId);
+    forcarAtualizacao((n) => n + 1);
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -128,21 +139,48 @@ export default function MinhasGalerias() {
 
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                   {todasFotos.map((foto, i) => (
-                    <button
+                    <div
                       key={foto.id}
-                      type="button"
                       onClick={() => setLightbox(i)}
-                      className="hover-degrade group relative aspect-square overflow-hidden rounded-2xl border-2 border-slate-800/60 shadow-lg shadow-black/30 transition duration-300"
+                      className="hover-degrade group relative aspect-square cursor-pointer overflow-hidden rounded-2xl border-2 border-slate-800/60 shadow-lg shadow-black/30 transition duration-300"
                     >
                       <img
                         src={foto.url}
                         alt=""
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                       />
+
+                      {/* Curtir foto */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCurtir(foto.id);
+                        }}
+                        title={usuarioCurtiuFoto(foto.id) ? "Remover meu like" : "Curtir foto"}
+                        className={`absolute left-2 top-2 z-10 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium backdrop-blur transition duration-300 hover:scale-105 active:scale-95 ${
+                          usuarioCurtiuFoto(foto.id)
+                            ? "bg-fuchsia-500/30 text-fuchsia-200 ring-1 ring-fuchsia-400/50"
+                            : "bg-slate-950/70 text-slate-200 ring-1 ring-slate-700"
+                        }`}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill={usuarioCurtiuFoto(foto.id) ? "currentColor" : "none"}
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          className="h-3.5 w-3.5"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                        </svg>
+                        {getVotosFoto(foto.id)}
+                      </button>
+
                       <div className="absolute inset-x-0 bottom-0 translate-y-full bg-slate-950/80 px-3 py-2 text-xs font-medium text-white backdrop-blur transition duration-300 group-hover:translate-y-0">
                         {foto.eventoTitulo}
                       </div>
-                    </button>
+                    </div>
                   ))}
                 </div>
               </div>

@@ -146,7 +146,7 @@ export default function EventoDetalhe() {
               </div>
               <div className="space-y-6">
                 <EventMap location={evento.local} />
-                <EventPlaylist playlist={evento.playlist} />
+                <EventPlaylist playlist={evento.playlist} eventoId={evento.id} />
               </div>
             </div>
 

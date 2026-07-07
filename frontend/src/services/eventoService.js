@@ -8,6 +8,7 @@ import { eventos as eventosSeed } from "../data/eventosData";
 const STORAGE_KEY = "meetflow.eventos.custom";
 const USER_KEY = "meetflow.usuarioId";
 const LEFT_KEY = "meetflow.eventos.saidos";
+const TRASH_KEY = "meetflow.eventos.excluidos";
 
 const MESES = [
   "Jan",
@@ -88,11 +89,38 @@ function salvarEventosSaidos(lista) {
   }
 }
 
-// Lista todos os eventos (mock + criados), escondendo os que o usuário saiu
+// Ids de eventos excluídos (vão para a lixeira e podem ser restaurados)
+function lerEventosExcluidos() {
+  try {
+    const bruto = localStorage.getItem(TRASH_KEY);
+    return bruto ? JSON.parse(bruto) : [];
+  } catch (erro) {
+    console.error("Erro ao ler eventos excluídos:", erro);
+    return [];
+  }
+}
+
+function salvarEventosExcluidos(lista) {
+  try {
+    localStorage.setItem(TRASH_KEY, JSON.stringify(lista));
+  } catch (erro) {
+    console.error("Não foi possível salvar a exclusão do evento:", erro);
+  }
+}
+
+// Todos os eventos existentes (mock + criados), sem filtrar
+function todosEventos() {
+  return [...eventosSeed, ...lerEventosCriados()];
+}
+
+// Lista os eventos visíveis (esconde os que o usuário saiu e os excluídos)
 export function listarEventos() {
   const saidos = lerEventosSaidos();
-  return [...eventosSeed, ...lerEventosCriados()].filter(
-    (evento) => !saidos.includes(String(evento.id)),
+  const excluidos = lerEventosExcluidos();
+  return todosEventos().filter(
+    (evento) =>
+      !saidos.includes(String(evento.id)) &&
+      !excluidos.includes(String(evento.id)),
   );
 }
 
@@ -161,17 +189,16 @@ export function atualizarEvento(id, dados) {
   return atualizado;
 }
 
-// Exclui de vez um evento criado pelo usuário (só o dono/organizador pode).
-// Retorna true se excluiu.
+// Exclui um evento (só o dono/organizador pode). Não apaga de vez:
+// vai para a lixeira e pode ser restaurado.
 export function excluirEvento(id) {
-  const criados = lerEventosCriados();
-  const alvo = criados.find((evento) => String(evento.id) === String(id));
-
+  const alvo = buscarEventoPorId(id);
   if (!alvo || !isDono(alvo)) return false;
 
-  salvarEventosCriados(
-    criados.filter((evento) => String(evento.id) !== String(id)),
-  );
+  const excluidos = lerEventosExcluidos();
+  if (!excluidos.includes(String(id))) {
+    salvarEventosExcluidos([...excluidos, String(id)]);
+  }
   return true;
 }
 
@@ -183,4 +210,35 @@ export function sairDoEvento(id) {
     salvarEventosSaidos([...saidos, String(id)]);
   }
   return true;
+}
+
+// Lixeira de eventos do usuário atual:
+// - eventos que ELE saiu (motivo "saiu");
+// - eventos que ELE (dono) excluiu (motivo "excluido").
+export function listarLixeiraEventos() {
+  const saidos = lerEventosSaidos();
+  const excluidos = lerEventosExcluidos();
+  return todosEventos()
+    .map((evento) => {
+      if (excluidos.includes(String(evento.id)) && isDono(evento)) {
+        return { ...evento, motivo: "excluido" };
+      }
+      if (saidos.includes(String(evento.id))) {
+        return { ...evento, motivo: "saiu" };
+      }
+      return null;
+    })
+    .filter(Boolean);
+}
+
+// Restaura um evento da lixeira (volta a aparecer)
+export function restaurarEvento(id) {
+  const saidos = lerEventosSaidos();
+  if (saidos.includes(String(id))) {
+    salvarEventosSaidos(saidos.filter((x) => x !== String(id)));
+  }
+  const excluidos = lerEventosExcluidos();
+  if (excluidos.includes(String(id))) {
+    salvarEventosExcluidos(excluidos.filter((x) => x !== String(id)));
+  }
 }
