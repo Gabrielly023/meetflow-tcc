@@ -5,9 +5,8 @@ const DEGRADE =
   "linear-gradient(to right,#fb923c 0%,#ec4899 25%,#f472b6 30%,#a855f7 60%,#60a5fa 70%,#38bdf8 85%,#22c55e 100%)";
 
 const Header = ({
-  title = "MeetFlow",
   links = [
-    { label: "Home", href: "/" },
+    { label: "Home", href: "/usuarios" },
     { label: "Login", href: "/login" },
   ],
   user,
@@ -23,8 +22,9 @@ const Header = ({
             <span className="fonte-flow flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 text-2xl font-bold text-white shadow-lg shadow-fuchsia-500/25 transition duration-300 group-hover:scale-105">
               M
             </span>
-            <span className="fonte-flow text-xl font-bold text-white">
-              {title}
+            <span className="fonte-flow text-xl font-bold">
+              <span className="text-white">Meet</span>
+              <span className="texto-gradiente">Flow</span>
             </span>
           </Link>
 

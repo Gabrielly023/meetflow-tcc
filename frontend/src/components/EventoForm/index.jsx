@@ -97,7 +97,7 @@ export default function EventoForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-6 rounded-3xl border border-slate-800/70 bg-slate-900/80 p-8 shadow-2xl shadow-black/20"
+      className="space-y-6 rounded-3xl border border-slate-800/70 bg-slate-900/80 p-8 shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-fuchsia-500/20"
     >
       {erro && (
         <div className="rounded-2xl border border-red-500/40 bg-red-900/40 px-4 py-3 text-sm text-red-200">

@@ -13,12 +13,12 @@ const menuItems = [
         stroke="currentColor"
         className="w-5 h-5"
       >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
-          d="M7.5 21.75h9a3 3 0 003-3V7.5a3 3 0 00-3-3h-9a3 3 0 00-3 3v11.25a3 3 0 003 3z"
+          d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M4.5 4.5h15A1.5 1.5 0 0121 6v13.5A1.5 1.5 0 0119.5 21h-15A1.5 1.5 0 013 19.5V6a1.5 1.5 0 011.5-1.5z"
         />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 12.75v4.5M9.75 15h4.5" />
       </svg>
     ),
   },
@@ -34,22 +34,18 @@ const menuItems = [
         stroke="currentColor"
         className="w-5 h-5"
       >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 7.5h7.5M8.25 12h7.5M8.25 16.5h7.5" />
-        <rect
-          x="3.75"
-          y="3.75"
-          width="16.5"
-          height="16.5"
-          rx="3"
+        <path
           strokeLinecap="round"
           strokeLinejoin="round"
+          d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M4.5 4.5h15A1.5 1.5 0 0121 6v13.5A1.5 1.5 0 0119.5 21h-15A1.5 1.5 0 013 19.5V6a1.5 1.5 0 011.5-1.5z"
         />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 12h.01M12 12h.01M16.5 12h.01M7.5 15.75h.01M12 15.75h.01" />
       </svg>
     ),
   },
   {
     title: "Galeria/Seus Albuns",
-    href: "#",
+    to: "/galerias",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -59,17 +55,11 @@ const menuItems = [
         stroke="currentColor"
         className="w-5 h-5"
       >
-        <rect
-          x="3.75"
-          y="5.25"
-          width="16.5"
-          height="13.5"
-          rx="2.25"
+        <path
           strokeLinecap="round"
           strokeLinejoin="round"
+          d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
         />
-        <path d="M3.75 8.25h16.5" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M7.5 12.75l2.25 2.25 3-3" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
   },
@@ -85,8 +75,11 @@ const menuItems = [
         stroke="currentColor"
         className="w-5 h-5"
       >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 19.5l6-6-6-6" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 19.5v-15" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z"
+        />
       </svg>
     ),
   },
@@ -102,11 +95,10 @@ const menuItems = [
         stroke="currentColor"
         className="w-5 h-5"
       >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 5.25h10.5M7.5 8.25h9M8.25 11.25h7.5M10.5 14.25h3" />
         <path
-          d="M18.375 21.75H5.625a2.25 2.25 0 01-2.25-2.25V6.75a2.25 2.25 0 012.25-2.25h12.75a2.25 2.25 0 012.25 2.25v12.75a2.25 2.25 0 01-2.25 2.25z"
           strokeLinecap="round"
           strokeLinejoin="round"
+          d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.159.69.159 1.006 0z"
         />
       </svg>
     ),
@@ -123,13 +115,16 @@ const menuItems = [
         stroke="currentColor"
         className="w-5 h-5"
       >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 9.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5a7.5 7.5 0 0115 0" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
+        />
       </svg>
     ),
   },
   {
-    title: "Configura��es",
+    title: "Configurações",
     href: "#",
     icon: (
       <svg
@@ -143,25 +138,28 @@ const menuItems = [
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
-          d="M11.25 3.75h1.5M12 6.75v1.5M16.5 12h1.5M6 12H7.5M16.5 17.25l1.06 1.06M6.94 6.94L8 8M7.5 17.25l-1.06 1.06M15.06 6.94L14 8"
+          d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"
         />
-        <circle cx="12" cy="12" r="3" strokeLinecap="round" strokeLinejoin="round" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
     ),
   },
 ];
 
 const menuItemClass =
-  "flex items-center justify-start gap-3 px-4 py-3 text-slate-200 transition duration-300 transform rounded-2xl hover:bg-slate-800 hover:text-white";
+  "menu-item flex items-center justify-start gap-3 px-4 py-3 text-slate-200 rounded-2xl transition duration-300 hover:text-white hover:shadow-lg hover:shadow-violet-500/20";
 
 export default function SideBar() {
   return (
-    <aside className="sidebar-scrollbar flex flex-col w-64 h-screen px-5 py-8 overflow-y-auto bg-slate-950 border-r border-slate-800">
-      <Link to="/" className="inline-flex items-center gap-2">
-        <span className="fonte-flow flex w-10 h-10 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 text-2xl font-bold text-white shadow-lg shadow-orange-500/20">
+    <aside className="sidebar-borda sidebar-scrollbar mt-6 flex w-64 shrink-0 flex-col self-stretch px-5 py-8">
+      <Link to="/usuarios" className="inline-flex items-center gap-2">
+        <span className="fonte-flow flex w-10 h-10 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 text-2xl font-bold text-white shadow-lg shadow-orange-500/20">
           M
         </span>
-        <span className="text-white text-lg font-semibold">MeetFlow</span>
+        <span className="fonte-flow text-lg font-bold">
+          <span className="text-white">Meet</span>
+          <span className="texto-gradiente">Flow</span>
+        </span>
       </Link>
 
       <div className="flex flex-col justify-between flex-1 mt-6">
@@ -181,7 +179,7 @@ export default function SideBar() {
 
             <input
               type="text"
-              className="w-full py-2 pl-10 pr-4 text-slate-100 bg-slate-900 border border-slate-700 rounded-xl placeholder:text-slate-500 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/25"
+              className="hover-degrade w-full py-2 pl-10 pr-4 text-slate-100 bg-slate-900 border-2 border-slate-700 rounded-xl placeholder:text-slate-500 transition duration-300 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/25"
               placeholder="Search"
             />
           </div>
@@ -240,6 +238,27 @@ export default function SideBar() {
               </svg>
             </button>
           </div>
+
+          <Link
+            to="/"
+            className="mt-6 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 to-sky-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/20 transition duration-300 hover:scale-[1.02] hover:opacity-90 active:scale-95"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
+              />
+            </svg>
+            Sign out
+          </Link>
         </div>
       </div>
     </aside>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Header from "../../components/Header";
 import SideBar from "../../components/SideBar";
@@ -6,6 +7,7 @@ import EventGallery from "../../components/EventGallery";
 import EventMap from "../../components/EventMap";
 import EventPlaylist from "../../components/EventPlaylist";
 import EventCover from "../../components/EventCover";
+import ModalConfirmacao from "../../components/ModalConfirmacao";
 import {
   buscarEventoPorId,
   isDono,
@@ -17,6 +19,7 @@ export default function EventoDetalhe() {
   const { id } = useParams();
   const navigate = useNavigate();
   const evento = buscarEventoPorId(id);
+  const [modal, setModal] = useState(null);
 
   if (!evento) {
     return (
@@ -37,32 +40,40 @@ export default function EventoDetalhe() {
 
   const dono = isDono(evento);
 
-  function handleExcluir() {
-    const confirmado = window.confirm(
-      `Tem certeza que deseja excluir o evento "${evento.titulo}"? Essa ação não pode ser desfeita.`,
-    );
-    if (!confirmado) return;
-    excluirEvento(evento.id);
-    navigate("/eventos");
-  }
-
-  function handleSair() {
-    const confirmado = window.confirm(
-      `Deseja sair do evento "${evento.titulo}"? Ele deixará de aparecer na sua conta.`,
-    );
-    if (!confirmado) return;
-    sairDoEvento(evento.id);
-    navigate("/eventos");
+  function confirmarModal() {
+    if (modal === "excluir") {
+      excluirEvento(evento.id);
+      navigate("/eventos");
+    } else if (modal === "sair") {
+      sairDoEvento(evento.id);
+      navigate("/eventos");
+    }
+    setModal(null);
   }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <Header />
+
+      <ModalConfirmacao
+        aberto={modal !== null}
+        titulo={modal === "excluir" ? "Excluir evento" : "Sair do evento"}
+        mensagem={
+          modal === "excluir"
+            ? `Tem certeza que deseja excluir "${evento.titulo}"? Essa ação não pode ser desfeita.`
+            : `Deseja sair de "${evento.titulo}"? Ele deixará de aparecer na sua conta.`
+        }
+        textoConfirmar={modal === "excluir" ? "Excluir" : "Sair"}
+        perigo={modal === "excluir"}
+        onConfirmar={confirmarModal}
+        onCancelar={() => setModal(null)}
+      />
+
       <div className="flex min-h-[calc(100vh-80px)]">
         <SideBar />
         <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="max-w-7xl mx-auto space-y-8">
-            <div className="overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-900/80 shadow-2xl shadow-black/20">
+            <div className="overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-900/80 shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-fuchsia-500/20">
               <EventCover
                 capa={evento.capa}
                 tipo={evento.tipo}
@@ -101,8 +112,11 @@ export default function EventoDetalhe() {
                   )}
                   <Link
                     to="/eventos"
-                    className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition hover:opacity-90"
+                    className="group inline-flex items-center justify-center gap-1 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95"
                   >
+                    <span className="inline-block transition-transform duration-300 group-hover:-translate-x-1">
+                      ←
+                    </span>
                     Voltar aos eventos
                   </Link>
                 </div>
@@ -128,7 +142,7 @@ export default function EventoDetalhe() {
             <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
               <div className="space-y-6">
                 <EventChat initialParticipants={evento.participants} initialMessages={evento.messages} />
-                <EventGallery images={evento.images} />
+                <EventGallery eventoId={evento.id} />
               </div>
               <div className="space-y-6">
                 <EventMap location={evento.local} />
@@ -137,7 +151,7 @@ export default function EventoDetalhe() {
             </div>
 
             {/* AÇÕES DO EVENTO */}
-            <div className="rounded-3xl border border-slate-800/70 bg-slate-900/80 p-6 shadow-2xl shadow-black/20">
+            <div className="rounded-3xl border border-slate-800/70 bg-slate-900/80 p-6 shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-fuchsia-500/20">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-400">
@@ -153,7 +167,7 @@ export default function EventoDetalhe() {
                 {dono ? (
                   <button
                     type="button"
-                    onClick={handleExcluir}
+                    onClick={() => setModal("excluir")}
                     className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-500/90 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-500/20 transition hover:bg-red-500"
                   >
                     <svg
@@ -175,7 +189,7 @@ export default function EventoDetalhe() {
                 ) : (
                   <button
                     type="button"
-                    onClick={handleSair}
+                    onClick={() => setModal("sair")}
                     className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:bg-slate-800"
                   >
                     <svg

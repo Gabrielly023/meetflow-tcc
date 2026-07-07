@@ -6,7 +6,6 @@ import "./Home.css";
 
 const LINKS_HEADER = [
   { label: "Recursos", href: "#recursos" },
-  { label: "Eventos", href: "/eventos" },
   { label: "Entrar", href: "/login" },
   { label: "Criar conta", href: "/signup" },
 ];
@@ -17,7 +16,8 @@ const RECURSOS = [
     descricao:
       "Crie, personalize com capa e gerencie todos os seus eventos em um só lugar.",
     gradiente: "from-orange-500 via-fuchsia-500 to-sky-500",
-    icone: "M8.25 7.5h7.5M8.25 12h7.5M8.25 16.5h7.5",
+    icone:
+      "M6.75 3v2.25M17.25 3v2.25M3 8.25h18M4.5 4.5h15A1.5 1.5 0 0121 6v13.5A1.5 1.5 0 0119.5 21h-15A1.5 1.5 0 013 19.5V6a1.5 1.5 0 011.5-1.5z",
   },
   {
     titulo: "Chat do evento",
@@ -31,28 +31,32 @@ const RECURSOS = [
     descricao:
       "Reúna as fotos do evento em uma galeria bonita e compartilhável.",
     gradiente: "from-fuchsia-500 to-sky-500",
-    icone: "M3 16.5l4.5-4.5 3 3 4.5-4.5L21 15M3.75 5.25h16.5v13.5H3.75z",
+    icone:
+      "M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z",
   },
   {
     titulo: "Playlists",
     descricao:
       "Monte a trilha sonora perfeita e conecte ao Spotify do evento.",
     gradiente: "from-sky-500 to-violet-500",
-    icone: "M9 19.5l6-6-6-6M12 19.5v-15",
+    icone:
+      "M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z",
   },
   {
     titulo: "Localização",
     descricao:
       "Mostre onde o evento acontece e ajude todo mundo a chegar lá.",
     gradiente: "from-orange-500 via-fuchsia-500 to-sky-500",
-    icone: "M15 10.5a3 3 0 11-6 0 3 3 0 016 0z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z",
+    icone:
+      "M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.159.69.159 1.006 0z",
   },
   {
     titulo: "Participantes",
     descricao:
       "Convide pessoas, organize confirmações e defina quem é organizador.",
     gradiente: "from-sky-500 to-violet-500",
-    icone: "M17.25 9.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM4.5 19.5a7.5 7.5 0 0115 0",
+    icone:
+      "M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z",
   },
 ];
 
@@ -167,24 +171,41 @@ export default function Home() {
 
         <main>
           {/* ===================== HERO ===================== */}
-          <section className="mx-auto max-w-6xl px-6 pt-24 pb-24 text-center lg:pt-36">
-            <Reveal>
-              <div className="mb-14 flex flex-col items-center justify-center gap-5 sm:flex-row sm:gap-6">
-                <span className="flutuar fonte-flow flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 text-6xl font-bold text-white shadow-2xl shadow-fuchsia-500/20 sm:h-24 sm:w-24 sm:text-7xl">
-                  M
-                </span>
-                <span className="fonte-flow text-6xl font-bold tracking-tight sm:text-7xl lg:text-8xl">
-                  <span className="text-white">Meet</span>
-                  <span className="texto-gradiente">Flow</span>
-                </span>
-              </div>
-            </Reveal>
+          <section className="mx-auto max-w-6xl px-6 pb-24 text-center">
+            {/* Primeira tela: só a logo + a frase de efeito */}
+            <div className="flex min-h-[calc(100vh-72px)] flex-col items-center justify-center">
+              <Reveal>
+                <div className="flutuar mb-14 flex flex-col items-center justify-center gap-5 sm:flex-row sm:gap-6">
+                  <span className="fonte-flow flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 text-6xl font-bold text-white shadow-2xl shadow-fuchsia-500/20 sm:h-24 sm:w-24 sm:text-7xl">
+                    M
+                  </span>
+                  <span className="fonte-flow text-6xl font-bold tracking-tight sm:text-7xl lg:text-8xl">
+                    <span className="text-white">Meet</span>
+                    <span className="texto-gradiente">Flow</span>
+                  </span>
+                </div>
+              </Reveal>
 
-            <Reveal delay={100}>
-              <span className="pulsar inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/60 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.3em] text-slate-300 backdrop-blur">
-                Eventos que conectam, memórias que ficam
-              </span>
-            </Reveal>
+              <Reveal delay={200}>
+                <span className="pulso-badge inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/60 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.3em] text-slate-300 backdrop-blur">
+                  Eventos que conectam, memórias que ficam
+                </span>
+              </Reveal>
+
+              {/* Dica de rolagem */}
+              <div className="mt-16 animate-bounce text-slate-500">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="h-7 w-7"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+              </div>
+            </div>
 
             <Reveal delay={100}>
               <h1 className="mx-auto mt-8 max-w-4xl text-5xl font-semibold leading-tight text-white sm:text-6xl lg:text-7xl">
@@ -208,15 +229,6 @@ export default function Home() {
                   className="botao-brilho inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/25 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95"
                 >
                   Começar agora
-                </Link>
-                <Link
-                  to="/eventos"
-                  className="botao-brilho group inline-flex items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/50 px-7 py-3.5 text-sm font-semibold text-slate-100 backdrop-blur transition duration-300 hover:scale-105 hover:border-fuchsia-500/60 hover:bg-slate-900 active:scale-95"
-                >
-                  Explorar eventos
-                  <span className="ml-1 inline-block transition-transform duration-300 group-hover:translate-x-1">
-                    →
-                  </span>
                 </Link>
               </div>
             </Reveal>
@@ -434,10 +446,10 @@ export default function Home() {
                       Criar minha conta
                     </Link>
                     <Link
-                      to="/eventos"
+                      to="/login"
                       className="botao-brilho group inline-flex items-center justify-center rounded-2xl border border-slate-700 px-8 py-4 text-sm font-semibold text-slate-100 transition duration-300 hover:scale-105 hover:border-fuchsia-500/60 hover:bg-slate-900 active:scale-95"
                     >
-                      Ver eventos
+                      Login
                       <span className="ml-1 inline-block transition-transform duration-300 group-hover:translate-x-1">
                         →
                       </span>
