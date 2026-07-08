@@ -3,7 +3,11 @@ import { useNavigate, Link } from "react-router-dom";
 import AuthLayout from "../../components/AuthLayout";
 import AuthField from "../../components/AuthField";
 import GoogleButton from "../../components/GoogleButton";
-import { login as fazerLogin, mensagemDoErro } from "../../services/usuarioService";
+import {
+  login as fazerLogin,
+  entrarModoDemo,
+  mensagemDoErro,
+} from "../../services/usuarioService";
 
 const iconeEmail = (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.6" stroke="currentColor" className="h-5 w-5">
@@ -43,7 +47,9 @@ const Login = () => {
   };
 
   const handleGoogle = () => {
-    console.log("Login com Google");
+    // Login social ainda não existe no backend: cria uma sessão de
+    // demonstração local para navegar no app (ver entrarModoDemo).
+    entrarModoDemo();
     navigate("/usuarios");
   };
 

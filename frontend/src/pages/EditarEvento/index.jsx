@@ -4,29 +4,34 @@ import TituloDegrade from "../../components/TituloDegrade";
 import {
   buscarEventoPorId,
   atualizarEvento,
-  isDono,
 } from "../../services/eventoService";
+import {
+  getLocalPrincipal,
+  adicionarLocal,
+  removerLocal,
+} from "../../services/mapaService";
+import {
+  getPlaylistEmbed,
+  embedParaSpotify,
+  definirPlaylist,
+  removerPlaylist,
+} from "../../services/playlistService";
 
 export default function EditarEvento() {
   const { id } = useParams();
   const navigate = useNavigate();
   const evento = buscarEventoPorId(id);
 
-  // Evento inexistente OU usuário não é o dono → sem permissão de edição
-  if (!evento || !isDono(evento)) {
+  if (!evento) {
     return (
       <main className="flex flex-1 items-center justify-center px-6 py-10">
           <div className="rounded-3xl border border-red-500/40 bg-slate-900/90 p-10 text-center shadow-2xl shadow-black/30">
-            <h1 className="text-3xl font-semibold">
-              {evento ? "Você não pode editar este evento" : "Evento não encontrado"}
-            </h1>
+            <h1 className="text-3xl font-semibold">Evento não encontrado</h1>
             <p className="mt-4 text-slate-300">
-              {evento
-                ? "Apenas o organizador que criou o evento pode editá-lo."
-                : "Verifique se o link está correto ou volte para a página de eventos."}
+              Verifique se o link está correto ou volte para a página de eventos.
             </p>
             <Link
-              to={evento ? `/eventos/${evento.id}` : "/eventos"}
+              to="/eventos"
               className="mt-6 inline-flex rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
             >
               Voltar
@@ -36,15 +41,36 @@ export default function EditarEvento() {
     );
   }
 
+  // Links já existentes (para preencher o formulário e comparar ao salvar)
+  const mapaLinkAtual = getLocalPrincipal(evento.id)?.linkUrl || "";
+  const embedAtual = getPlaylistEmbed(evento.id);
+  const playlistLinkAtual = embedAtual ? embedParaSpotify(embedAtual) : "";
+
   function handleSalvar(dados) {
     atualizarEvento(evento.id, dados);
+
+    // Mapa: mantém o local principal em sincronia com o campo (troca/remove).
+    if (dados.mapaLink !== mapaLinkAtual) {
+      const principal = getLocalPrincipal(evento.id);
+      if (principal) removerLocal(evento.id, principal.id);
+      if (dados.mapaLink) {
+        adicionarLocal(evento.id, dados.mapaLink, "Local do evento");
+      }
+    }
+
+    // Playlist: define, troca ou remove conforme o campo.
+    if (dados.playlistLink !== playlistLinkAtual) {
+      if (dados.playlistLink) definirPlaylist(evento.id, dados.playlistLink);
+      else removerPlaylist(evento.id);
+    }
+
     navigate(`/eventos/${evento.id}`);
   }
 
   return (
     <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="mx-auto max-w-3xl">
-            <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div className="mb-8 flex flex-col items-center gap-3 text-center">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.3em]">
                   <span className="text-white">Editar </span>
@@ -66,7 +92,11 @@ export default function EditarEvento() {
             </div>
 
             <EventoForm
-              valorInicial={evento}
+              valorInicial={{
+                ...evento,
+                mapaLink: mapaLinkAtual,
+                playlistLink: playlistLinkAtual,
+              }}
               onSubmit={handleSalvar}
               textoBotao="Salvar alterações"
               cancelarHref={`/eventos/${evento.id}`}

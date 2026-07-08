@@ -3,7 +3,11 @@ import { useNavigate, Link } from "react-router-dom";
 import AuthLayout from "../../components/AuthLayout";
 import AuthField from "../../components/AuthField";
 import GoogleButton from "../../components/GoogleButton";
-import { cadastrar, mensagemDoErro } from "../../services/usuarioService";
+import {
+  cadastrar,
+  entrarModoDemo,
+  mensagemDoErro,
+} from "../../services/usuarioService";
 
 const iconeUsuario = (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.6" stroke="currentColor" className="h-5 w-5">
@@ -58,7 +62,9 @@ const Signup = () => {
   };
 
   const handleGoogle = () => {
-    console.log("Cadastro com Google");
+    // Cadastro social ainda não existe no backend: cria uma sessão de
+    // demonstração local para navegar no app (ver entrarModoDemo).
+    entrarModoDemo();
     navigate("/usuarios");
   };
 

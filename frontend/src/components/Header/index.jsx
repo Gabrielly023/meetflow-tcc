@@ -29,7 +29,7 @@ const Header = ({
           </Link>
 
           {/* Navegação */}
-          <nav className="ml-auto flex flex-wrap items-center justify-center gap-1">
+          <nav className="ml-auto flex flex-wrap items-center justify-center gap-3">
             {links.map((link, index) => {
               const ehAcaoPrincipal = index === links.length - 1;
               return ehAcaoPrincipal ? (
@@ -52,18 +52,35 @@ const Header = ({
             })}
           </nav>
 
-          {/* Usuário logado */}
+          {/* Sair + bolinha de perfil (leva para a página de perfil) */}
           {user && (
             <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-slate-200">
-                {user.name}
-              </span>
               <button
                 onClick={onLogout}
                 className="rounded-full border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800"
               >
                 Sair
               </button>
+              <Link
+                to="/perfil"
+                title="Meu perfil"
+                className="group flex items-center gap-2 rounded-full py-1 pl-1 pr-3 transition duration-300 hover:-translate-y-0.5 hover:bg-white/10 hover:shadow-lg hover:shadow-fuchsia-500/20"
+              >
+                {user.foto_perfil ? (
+                  <img
+                    src={user.foto_perfil}
+                    alt="Meu perfil"
+                    className="h-9 w-9 rounded-full object-cover ring-2 ring-fuchsia-500/40 transition group-hover:ring-fuchsia-400"
+                  />
+                ) : (
+                  <span className="fonte-flow flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 text-sm font-bold text-white ring-2 ring-fuchsia-500/40 transition group-hover:ring-fuchsia-400">
+                    {(user.name || "?").charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <span className="text-sm font-medium text-slate-200">
+                  {user.name}
+                </span>
+              </Link>
             </div>
           )}
         </div>

@@ -5,9 +5,28 @@
 > frontend espera, para que o app deixe de usar o "backend falso"
 > (localStorage) e passe a usar o backend real (Express + Prisma + MySQL).
 >
-> A boa notícia: **as tabelas já existem** no `schema.prisma`
-> (`Evento`, `Participantes`, `Galeria`, `Musica`, `Chat`). Na maioria dos
-> casos falta só **expor as rotas** para models que vocês já modelaram.
+> A maioria das tabelas já existe no `schema.prisma` (`Evento`,
+> `Participantes`, `Galeria`, `Musica`, `Chat`) — nesses casos falta só
+> **expor as rotas**. Algumas funcionalidades novas precisam de colunas/tabelas
+> a mais (resumo em §5).
+
+---
+
+## 🆕 Novidades desta versão
+
+O frontend evoluiu bastante. Em relação à versão anterior deste contrato, foi
+acrescentado:
+
+- **Evento — horário de término** (`data_hora_fim`): novo campo opcional (§4.1).
+- **Playlist principal do evento** (§4.4): além da lista colaborativa de
+  músicas, cada evento tem **uma playlist** (embed do Spotify) — precisa de rota
+  + 1 coluna.
+- **Mapas do evento** (§4.6): entidade **nova**. Qualquer participante cola um
+  link do Google Maps para marcar onde o evento será — precisa de tabela nova.
+- **Perfil — campos extras** (§4.7): `bio`, `foto_capa`, `localizacao`, `site`.
+
+> O resto que fizemos (criar evento já com mapa/playlist, ordenar tudo por data,
+> editar qualquer evento) é **lógica de frontend** e não muda a API.
 
 ---
 
@@ -24,6 +43,7 @@ export const USE_API = {
   playlists: false,
   galeria: false,
   chat: false,
+  mapas: false,
 };
 ```
 
@@ -48,9 +68,9 @@ precisamos que as rotas existam e devolvam o JSON no formato descrito aqui.
 `409` conflito · `500` erro do servidor.
 
 > ⚠️ **Importante:** quase todas as rotas abaixo precisam saber **quem é o
-> usuário logado** (para checar se ele é o dono do evento/foto/música). Isso
-> deve vir de um **middleware de autenticação** que lê o JWT. Recomendo criar
-> um `authMiddleware.js` e aplicá-lo nas rotas protegidas.
+> usuário logado** (para checar se ele é o dono do evento/foto/música/local).
+> Isso deve vir de um **middleware de autenticação** que lê o JWT. Recomendo
+> criar um `authMiddleware.js` e aplicá-lo nas rotas protegidas.
 
 ---
 
@@ -91,6 +111,7 @@ Essa parte está pronta e o frontend já sabe consumir. O que falta são as
   "titulo": "Noite de Música",
   "descricao": "Texto opcional",
   "data_hora": "2026-07-12T20:00:00.000Z",
+  "data_hora_fim": "2026-07-12T23:00:00.000Z",
   "localizacao": "Centro Cultural",
   "senha_acesso": "1234",
   "tipo": "Show",
@@ -107,27 +128,30 @@ Essa parte está pronta e o frontend já sabe consumir. O que falta são as
   "titulo": "Noite de Música",
   "descricao": "...",
   "data_hora": "2026-07-12T20:00:00.000Z",
+  "data_hora_fim": "2026-07-12T23:00:00.000Z",
   "localizacao": "Centro Cultural",
   "senha_acesso": "1234",
   "tipo": "Show",
-  "capa_url": "https://..."
+  "capa_url": "https://...",
+  "playlist_spotify": "https://open.spotify.com/playlist/XXXX"
 }
 ```
 
-> 🟥 **Atenção — 2 campos que o schema ainda NÃO tem.** O frontend usa `tipo`
-> (ex.: "Show", "Social") e `capa` (imagem de capa do evento). O model
-> `Evento` no `schema.prisma` **não tem** essas colunas. Peço que adicionem:
+> 🟥 **Colunas que o schema ainda NÃO tem.** O model `Evento` precisa de:
+> `tipo` (ex.: "Show", "Social"), `capa_url` (imagem de capa) e `data_hora_fim`
+> (término, opcional). Sugestão:
 >
 > ```prisma
 > model Evento {
 >   // ...campos existentes...
->   tipo      String?  @db.VarChar(50)
->   capa_url  String?  @db.VarChar(500)
+>   tipo           String?   @db.VarChar(50)
+>   capa_url       String?   @db.VarChar(500)
+>   data_hora_fim  DateTime?
+>   playlist_spotify String? @db.VarChar(500)  // ver §4.4
 > }
 > ```
-> Depois rodem `npx prisma migrate dev`. Se preferirem **não** adicionar, me
-> avisem — o front consegue guardar `tipo`/`capa` localmente como fallback,
-> mas o ideal é ter no banco.
+> Depois rodem `npx prisma migrate dev`. Se preferirem **não** adicionar algum,
+> me avisem — o front guarda localmente como fallback, mas o ideal é ter no banco.
 
 ---
 
@@ -185,16 +209,28 @@ Essa parte está pronta e o frontend já sabe consumir. O que falta são as
 
 ---
 
-### 4.4 Playlist / Músicas (de um evento)
+### 4.4 Playlist e Músicas (de um evento)
 
-O front tem **dois conceitos**:
+O front tem **dois conceitos** para o mesmo evento:
 
-1. **Lista colaborativa de músicas** — cada participante adiciona faixas do
-   Spotify e vota nas favoritas. **Isso mapeia direto no model `Musica`.**
-2. **Playlist única do evento** (um embed do Spotify) — hoje é só um link
-   salvo. Isso **não tem** coluna no schema (ver §5).
+1. **Playlist principal do evento** — um único embed do Spotify (é o player que
+   toca na barra lateral). Hoje é só um link salvo.
+2. **Lista colaborativa de músicas** — cada participante adiciona faixas do
+   Spotify e vota nas favoritas. **Mapeia direto no model `Musica`.**
 
-**Rotas da lista de músicas:**
+**Rotas da playlist principal (embed único):**
+
+| Método | Rota | O que faz |
+|---|---|---|
+| `PUT` | `/eventos/:id/playlist` | define/troca a playlist do evento |
+| `DELETE` | `/eventos/:id/playlist` | remove a playlist do evento |
+
+**Body do PUT:** `{ "link_spotify": "https://open.spotify.com/playlist/XXXX" }`
+
+> O valor atual pode vir no próprio `GET /eventos/:id` (campo
+> `playlist_spotify`). Precisa da coluna `playlist_spotify` em `Evento` (§5).
+
+**Rotas da lista colaborativa de músicas:**
 
 | Método | Rota | O que faz |
 |---|---|---|
@@ -263,20 +299,113 @@ O front tem **dois conceitos**:
 
 ---
 
+### 4.6 Mapas / Locais (de um evento) — 🆕 ENTIDADE NOVA
+
+Qualquer participante pode adicionar um ou mais **locais** (link do Google Maps)
+ao evento, para todos saberem onde será. Espelha a lógica da galeria/músicas:
+cada local tem um dono; o **dono do local OU o organizador** do evento pode
+remover.
+
+> 🟥 **Não existe no schema.** Precisa de um model novo (ex.: `Local`).
+> Sugestão no §5.
+
+| Método | Rota | O que faz |
+|---|---|---|
+| `GET` | `/eventos/:id/locais` | lista os locais do evento |
+| `POST` | `/eventos/:id/locais` | adiciona local (dono = logado) |
+| `DELETE` | `/locais/:idLocal` | remove local (dono do local ou organizador) |
+
+**Body do POST:**
+
+```json
+{ "nome": "Entrada principal", "link_maps": "https://maps.app.goo.gl/..." }
+```
+
+**Response do GET — lista:**
+
+```json
+[
+  {
+    "id_local": "uuid",
+    "nome": "Entrada principal",
+    "link_maps": "https://maps.app.goo.gl/...",
+    "id_usuario": "uuid-dono"
+  }
+]
+```
+
+> 💡 O front **deriva sozinho** a URL de incorporação (embed) do mapa a partir
+> do `link_maps`. Vocês só precisam guardar o link que o usuário colou (mais o
+> `nome`, opcional). **Não precisam gerar embed nem usar API paga do Google.**
+
+---
+
+### 4.7 Perfil — campos extras do usuário 🆕
+
+A tela de perfil ganhou personalização (estilo Instagram/Facebook). No
+`PUT /usuarios/:id` (que **já existe**), o front passa a enviar, além de
+`nome / username / email / telefone / foto_perfil`, estes campos:
+
+```json
+{
+  "bio": "Texto livre de apresentação",
+  "foto_capa": "https://...  (imagem de capa do perfil)",
+  "localizacao": "Cidade, Estado",
+  "site": "https://meusite.com"
+}
+```
+
+E o `GET /usuarios/:id` deve devolvê-los de volta.
+
+> 🟥 **Colunas novas em `Usuario`.** Não existem `bio`, `foto_capa`,
+> `localizacao` nem `site`. Sugestão no §5. Enquanto não existirem, o front
+> guarda esses campos localmente (o perfil funciona, mas não sincroniza entre
+> dispositivos).
+
+---
+
 ## 5. 🟥 Resumo das lacunas no schema
 
-Para o front funcionar 100%, faltam estes campos/tabelas. Ordem de prioridade:
+Para o front funcionar 100%, faltam estes campos/tabelas:
 
 | # | O que falta | Onde | Sugestão |
 |---|---|---|---|
-| 1 | `tipo` e `capa_url` do evento | model `Evento` | adicionar 2 colunas (§4.1) |
-| 2 | Votos de música (quem votou) | model novo | `MusicaVoto(id_musica, id_usuario)` PK composta |
-| 3 | Curtidas de foto (quem curtiu) | model novo | `GaleriaCurtida(id_foto, id_usuario)` PK composta |
-| 4 | Playlist única do evento (embed) | model `Evento` | coluna `playlist_spotify String? @db.VarChar(500)` |
+| 1 | `tipo`, `capa_url` e `data_hora_fim` do evento | model `Evento` | 3 colunas (§4.1) |
+| 2 | Playlist principal do evento | model `Evento` | coluna `playlist_spotify String? @db.VarChar(500)` |
+| 3 | **Locais do evento (mapas)** | model **novo** `Local` | id_evento, id_usuario, nome, link_maps |
+| 4 | Campos do perfil | model `Usuario` | `bio`, `foto_capa`, `localizacao`, `site` |
+| 5 | Votos de música (quem votou) | model novo | `MusicaVoto(id_musica, id_usuario)` PK composta |
+| 6 | Curtidas de foto (quem curtiu) | model novo | `GaleriaCurtida(id_foto, id_usuario)` PK composta |
 
-Exemplo das tabelas novas (2 e 3):
+Exemplos das tabelas/colunas novas:
 
 ```prisma
+// (3) Locais do evento — para os mapas
+model Local {
+  id_local   String   @id @default(uuid()) @db.Char(36)
+  nome       String?  @db.VarChar(150)
+  link_maps  String   @db.VarChar(500)
+  criado_em  DateTime @default(now())
+
+  id_evento  String
+  id_usuario String
+
+  evento  Evento  @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
+  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@index([id_evento])
+}
+
+// (4) Campos extras do perfil — adicionar em Usuario
+model Usuario {
+  // ...campos existentes...
+  bio          String?  @db.Text
+  foto_capa    String?  @db.VarChar(500)
+  localizacao  String?  @db.VarChar(150)
+  site         String?  @db.VarChar(255)
+}
+
+// (5) Votos de música
 model MusicaVoto {
   id_musica  String
   id_usuario String
@@ -285,6 +414,7 @@ model MusicaVoto {
   @@id([id_musica, id_usuario])
 }
 
+// (6) Curtidas de foto
 model GaleriaCurtida {
   id_foto    String
   id_usuario String
@@ -294,10 +424,10 @@ model GaleriaCurtida {
 }
 ```
 
-> Itens 2, 3 e 4 são **opcionais para um MVP**. Sem eles, o front continua
-> funcionando (votos/curtidas/playlist-embed ficam só no navegador). Mas se
-> quiserem que esses dados sejam compartilhados entre usuários, precisam ir
-> para o banco.
+> Prioridade: os itens **1, 2 e 3** destravam evento + playlist + mapas (o
+> núcleo do app). Os itens **4, 5 e 6** são refinamentos — sem eles o front
+> continua funcionando (esses dados ficam só no navegador), mas não são
+> compartilhados entre usuários.
 
 ---
 
@@ -305,11 +435,13 @@ model GaleriaCurtida {
 
 Do mais simples/independente para o mais complexo:
 
-1. **Eventos** (CRUD) — desbloqueia quase tudo. *(+ colunas `tipo`, `capa_url`)*
+1. **Eventos** (CRUD) — desbloqueia quase tudo. *(+ colunas `tipo`, `capa_url`, `data_hora_fim`, `playlist_spotify`)*
 2. **Participantes** — entrar/sair de evento.
 3. **Galeria** — listar/adicionar/remover fotos.
-4. **Músicas** — lista colaborativa *(+ tabela de votos, se quiserem persistir)*.
-5. **Chat** — mensagens do evento.
+4. **Mapas / Locais** — *(+ tabela nova `Local`)*.
+5. **Playlist do evento + Músicas** — playlist principal + lista colaborativa *(+ tabela de votos, se quiserem persistir)*.
+6. **Chat** — mensagens do evento.
+7. **Perfil** — colunas extras no `Usuario` (bio, foto_capa, localizacao, site).
 
 Cada bloco que vocês entregarem, a gente vira a flag `USE_API.<entidade>`
 para `true` e testa. Sem retrabalho, sem quebrar o que já funciona.
@@ -323,4 +455,3 @@ Sigam o mesmo padrão que já usam em `usuarioController.js` /
 `try/catch` com `res.status(...).json(...)`, e Prisma para o banco. Se
 seguirem os formatos de JSON deste documento, o frontend liga sem ajustes.
 </content>
-</invoke>

@@ -5,14 +5,17 @@ import {
   listarEventos,
   listarLixeiraEventos,
   restaurarEvento,
+  ordenarPorData,
 } from "../../services/eventoService";
 
 export default function EventosPage() {
   const [verLixeira, setVerLixeira] = useState(false);
   const [, setAtualizar] = useState(0);
 
-  const eventos = listarEventos();
-  const lixeira = listarLixeiraEventos();
+  // Sempre listados pela proximidade da data (mais próximos primeiro),
+  // independentemente da ordem de criação.
+  const eventos = ordenarPorData(listarEventos());
+  const lixeira = ordenarPorData(listarLixeiraEventos());
 
   function handleRestaurar(id) {
     restaurarEvento(id);
@@ -22,7 +25,7 @@ export default function EventosPage() {
   return (
     <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div className="mb-8 flex flex-col items-center gap-3 text-center">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.3em]">
                   {verLixeira ? (
@@ -48,7 +51,7 @@ export default function EventosPage() {
                 </h1>
               </div>
 
-              <div className="flex flex-col items-start gap-3 md:items-end">
+              <div className="flex flex-col items-center gap-3">
                 {/* Bloquinho com a contagem — borda em degradê roxo→azul */}
                 <div className="rounded-2xl bg-gradient-to-br from-violet-500 to-sky-500 p-[1.5px] shadow-lg shadow-violet-500/25">
                   <div className="rounded-2xl bg-slate-900 px-5 py-2.5 text-center">
@@ -183,6 +186,9 @@ export default function EventosPage() {
                       <div className="rounded-2xl bg-gradient-to-br from-orange-500/20 via-fuchsia-500/20 to-sky-500/20 p-4">
                         <h2 className="texto-gradiente-2 text-xl font-semibold">{evento.titulo}</h2>
                         <p className="mt-3 text-sm text-slate-300">{evento.data}</p>
+                        {evento.dataFim && (
+                          <p className="mt-0.5 text-xs text-slate-500">até {evento.dataFim}</p>
+                        )}
                         <p className="mt-1 text-sm text-slate-400">{evento.local}</p>
                       </div>
 

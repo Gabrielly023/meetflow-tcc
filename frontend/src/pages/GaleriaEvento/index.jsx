@@ -141,7 +141,7 @@ export default function GaleriaEvento() {
       <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="mx-auto max-w-6xl space-y-8">
             {/* Cabeçalho */}
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="flex flex-col items-center gap-4 text-center">
               <div>
                 <p className="texto-gradiente-2 text-sm font-semibold uppercase tracking-[0.3em]">
                   {verLixeira ? "Lixeira" : "Galeria"}

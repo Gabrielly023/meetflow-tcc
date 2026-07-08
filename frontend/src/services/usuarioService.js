@@ -44,6 +44,15 @@ export function estaLogado() {
   }
 }
 
+// Diz se a sessão atual é a de demonstração (botão "Entrar com Google" offline).
+export function ehModoDemo() {
+  try {
+    return localStorage.getItem(TOKEN_KEY) === "demo";
+  } catch {
+    return false;
+  }
+}
+
 // Encerra a sessão: remove token e usuário.
 export function logout() {
   try {
@@ -73,6 +82,17 @@ export const login = async (loginOuEmail, senha) => {
   salvarSessao(data.usuario, data.token);
   return data; // { mensagem, usuario, token }
 };
+
+// Sessão de DEMONSTRAÇÃO (sem backend): usada pelos botões "Entrar com Google"
+// enquanto o login social não existe. Permite navegar no app offline (a parte
+// de eventos/galeria/playlist roda em localStorage). Quando houver login real
+// com Google, é só trocar isto por uma chamada de verdade ao backend.
+export function entrarModoDemo() {
+  salvarSessao(
+    { nome: "Convidado", username: "convidado", email: "", telefone: "" },
+    "demo",
+  );
+}
 
 // ─────────────────────── CRUD (usado no futuro) ───────────────────────
 

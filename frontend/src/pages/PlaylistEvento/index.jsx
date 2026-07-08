@@ -13,6 +13,7 @@ import {
   isDonoMusica,
   curtirMusica,
   usuarioVotou,
+  setUltimaPlaylist,
 } from "../../services/playlistService";
 import { usePlayer } from "../../context/PlayerContext";
 import TituloDegrade from "../../components/TituloDegrade";
@@ -116,7 +117,7 @@ export default function PlaylistEvento() {
     <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="mx-auto max-w-5xl space-y-8">
             {/* Cabeçalho da página */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col items-center gap-4 text-center">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.3em]">
                   <span className="texto-gradiente-2">Playlist</span>
@@ -127,7 +128,7 @@ export default function PlaylistEvento() {
               </div>
               <Link
                 to={`/eventos/${evento.id}`}
-                className="group inline-flex items-center justify-center gap-1 self-start rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95"
+                className="group inline-flex items-center justify-center gap-1 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95"
               >
                 <span className="inline-block transition-transform duration-300 group-hover:-translate-x-1">
                   ←
@@ -229,7 +230,10 @@ export default function PlaylistEvento() {
                     {/* Película redonda e invisível, só sobre o botão de play do Spotify */}
                     <button
                       type="button"
-                      onClick={() => tocar(embedParaUri(embed), evento.titulo)}
+                      onClick={() => {
+                        setUltimaPlaylist(id);
+                        tocar(embedParaUri(embed), evento.titulo);
+                      }}
                       title="Tocar na barra do site"
                       aria-label="Tocar na barra do site"
                       className="absolute right-5 top-16 h-14 w-14 cursor-pointer rounded-full"
@@ -239,7 +243,10 @@ export default function PlaylistEvento() {
                     <div className="mt-5 flex flex-wrap gap-3">
                       <button
                         type="button"
-                        onClick={() => tocar(embedParaUri(embed), evento.titulo)}
+                        onClick={() => {
+                          setUltimaPlaylist(id);
+                          tocar(embedParaUri(embed), evento.titulo);
+                        }}
                         className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">

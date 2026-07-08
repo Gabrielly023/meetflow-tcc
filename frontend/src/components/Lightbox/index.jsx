@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react";
+import {
+  curtirFoto,
+  getVotosFoto,
+  usuarioCurtiuFoto,
+} from "../../services/galeriaService";
 
 // Visualizador de fotos em tela cheia, com navegação horizontal (← →).
 export default function Lightbox({ fotos, indiceInicial = 0, onFechar }) {
   const [indice, setIndice] = useState(indiceInicial);
+  const [, forcarAtualizacao] = useState(0);
 
   useEffect(() => {
     function aoTeclar(evt) {
@@ -26,6 +32,12 @@ export default function Lightbox({ fotos, indiceInicial = 0, onFechar }) {
   const proxima = (e) => {
     e?.stopPropagation();
     setIndice((i) => (i + 1) % fotos.length);
+  };
+
+  const handleCurtir = (e) => {
+    e.stopPropagation();
+    curtirFoto(foto.id);
+    forcarAtualizacao((n) => n + 1);
   };
 
   return (
@@ -75,6 +87,30 @@ export default function Lightbox({ fotos, indiceInicial = 0, onFechar }) {
         onClick={(e) => e.stopPropagation()}
         className="lightbox-img max-h-[85vh] max-w-[92vw] rounded-2xl object-contain shadow-2xl shadow-black/50"
       />
+
+      {/* Curtir a foto atual */}
+      <button
+        type="button"
+        onClick={handleCurtir}
+        title={usuarioCurtiuFoto(foto.id) ? "Remover meu like" : "Curtir foto"}
+        className={`absolute bottom-6 left-1/2 z-10 inline-flex -translate-x-1/2 items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium backdrop-blur transition duration-300 hover:scale-105 active:scale-95 ${
+          usuarioCurtiuFoto(foto.id)
+            ? "bg-fuchsia-500/30 text-fuchsia-200 ring-1 ring-fuchsia-400/50"
+            : "bg-slate-900/70 text-slate-200 ring-1 ring-slate-700"
+        }`}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill={usuarioCurtiuFoto(foto.id) ? "currentColor" : "none"}
+          stroke="currentColor"
+          strokeWidth="1.8"
+          className="h-4 w-4"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+        </svg>
+        {getVotosFoto(foto.id)}
+      </button>
 
       {/* Próxima */}
       {fotos.length > 1 && (

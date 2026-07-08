@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { listarEventos } from "../../services/eventoService";
+import { listarEventos, ordenarPorData } from "../../services/eventoService";
 import {
   getPlaylistEmbed,
   listarMusicas,
@@ -11,7 +11,9 @@ import {
 import { usePlayer } from "../../context/PlayerContext";
 
 export default function MinhasPlaylists() {
-  const eventos = listarEventos();
+  // Ordena por proximidade da data; a "ouvida por último" ainda é puxada
+  // para o topo depois (ver `ordenadas` abaixo).
+  const eventos = ordenarPorData(listarEventos());
 
   // Junta os dados de playlist de cada evento (embed do Spotify + músicas sugeridas)
   const playlists = eventos.map((evento) => ({
@@ -53,7 +55,7 @@ export default function MinhasPlaylists() {
   return (
     <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="mx-auto max-w-6xl space-y-8">
-            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="flex flex-col items-center gap-4 text-center">
               <div>
                 <p className="texto-gradiente-2 text-base font-semibold uppercase tracking-[0.3em]">
                   Playlists
@@ -68,7 +70,7 @@ export default function MinhasPlaylists() {
               </div>
 
               {/* Bloquinho com o resumo (quantidade de playlists) — borda em degradê roxo→azul */}
-              <div className="self-start rounded-2xl bg-gradient-to-br from-violet-500 to-sky-500 p-[1.5px] shadow-lg shadow-violet-500/25">
+              <div className="rounded-2xl bg-gradient-to-br from-violet-500 to-sky-500 p-[1.5px] shadow-lg shadow-violet-500/25">
                 <div className="rounded-2xl bg-slate-900 px-5 py-3 text-center">
                   <p className="texto-gradiente-2 text-2xl font-semibold">
                     {comPlaylist}
@@ -161,7 +163,10 @@ export default function MinhasPlaylists() {
                     {embed && (
                       <button
                         type="button"
-                        onClick={() => tocar(embedParaUri(embed), evento.titulo)}
+                        onClick={() => {
+                          setUltimaPlaylist(evento.id);
+                          tocar(embedParaUri(embed), evento.titulo);
+                        }}
                         className="mx-3 mt-3 flex items-center justify-center gap-2 rounded-2xl border border-violet-500/40 px-5 py-2.5 text-sm font-semibold text-slate-200 transition duration-300 hover:scale-[1.03] hover:border-transparent hover:bg-gradient-to-r hover:from-violet-500 hover:to-sky-500 hover:text-white hover:shadow-lg hover:shadow-violet-500/25 active:scale-95"
                       >
                         <svg

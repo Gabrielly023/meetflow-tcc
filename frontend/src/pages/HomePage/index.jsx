@@ -7,6 +7,7 @@ import {
   listarMusicas,
   getCapaPlaylist,
 } from "../../services/playlistService";
+import { getLocalPrincipal, listarLocais } from "../../services/mapaService";
 
 export default function HomePage() {
   const eventos = listarEventos();
@@ -46,6 +47,17 @@ export default function HomePage() {
 
   const proximo = eventos[0];
   const capaProximo = proximo?.capa || proximo?.images?.[0];
+
+  // Mapas: eventos com um local marcado (para as miniaturas) e total de locais
+  const eventosComLocal = eventos.filter((ev) => getLocalPrincipal(ev.id));
+  const tilesMapa = eventosComLocal
+    .map((ev) => ev.capa || ev.images?.[0])
+    .filter(Boolean)
+    .slice(0, 4);
+  const totalLocais = eventos.reduce(
+    (soma, ev) => soma + listarLocais(ev.id).length,
+    0,
+  );
 
   return (
     <main className="flex-1 px-6 py-8 lg:px-10">
@@ -135,7 +147,7 @@ export default function HomePage() {
               </span>
             </Link>
 
-            <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-6 grid gap-6 sm:grid-cols-2">
               {/* Bloco: Meus eventos */}
               <Link
                 to="/eventos"
@@ -272,6 +284,48 @@ export default function HomePage() {
                     <div className="flex h-16 items-center rounded-xl px-3 text-sm text-slate-400">
                       {totalMusicas}{" "}
                       {totalMusicas === 1 ? "música" : "músicas"}
+                    </div>
+                  </div>
+                )}
+              </Link>
+
+              {/* Bloco: Meus mapas */}
+              <Link
+                to="/mapas"
+                className="group rounded-3xl border border-slate-800/70 bg-slate-900/70 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 shadow-lg shadow-fuchsia-500/20">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-6 w-6 text-white">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.159.69.159 1.006 0z" />
+                      </svg>
+                    </div>
+                    <h2 className="text-xl font-semibold text-white">
+                      Meus mapas
+                    </h2>
+                    <p className="mt-2 text-sm text-slate-400">
+                      A localização de cada evento no mapa, tudo reunido num só
+                      lugar.
+                    </p>
+                  </div>
+                  <span className="text-fuchsia-400 transition group-hover:translate-x-1">
+                    →
+                  </span>
+                </div>
+
+                {tilesMapa.length > 0 && (
+                  <div className="mt-5 flex gap-2">
+                    {tilesMapa.map((url, i) => (
+                      <div
+                        key={i}
+                        className="h-16 w-16 overflow-hidden rounded-xl border border-slate-800/60"
+                      >
+                        <img src={url} alt="" className="h-full w-full object-cover" />
+                      </div>
+                    ))}
+                    <div className="flex h-16 items-center rounded-xl px-3 text-sm text-slate-400">
+                      {totalLocais} {totalLocais === 1 ? "local" : "locais"}
                     </div>
                   </div>
                 )}

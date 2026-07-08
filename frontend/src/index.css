@@ -178,6 +178,22 @@ html {
   border-radius: 14px;
 }
 
+/* Clareia o ícone (calendário/relógio) dos campos de data no tema escuro —
+   por padrão ele vem preto e some no fundo do site. */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.85);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
 /* Mantém os campos escuros mesmo quando o navegador preenche automaticamente */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,

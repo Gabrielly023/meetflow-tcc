@@ -19,9 +19,10 @@ import axios from "axios";
 export const USE_API = {
   usuarios: true, // já tem backend real (/usuarios): cadastro e login
   eventos: false, // CRUD de eventos
-  playlists: false, // lista colaborativa de músicas do evento
+  playlists: false, // playlist do evento + lista colaborativa de músicas
   galeria: false, // fotos do evento
   chat: false, // mensagens do evento
+  mapas: false, // locais (Google Maps) do evento
 };
 
 // URL base do backend Express (a mesma usada em usuarioService.js).

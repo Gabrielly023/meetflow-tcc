@@ -73,7 +73,7 @@ export default function EventoDetalhe() {
                 heightClass="h-56"
               />
               <div className="p-8">
-              <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="mb-6 flex flex-col items-center gap-4 text-center">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.3em]">
                     <span className="text-white">Detalhes do </span>
@@ -81,30 +81,31 @@ export default function EventoDetalhe() {
                   </p>
                   <h1 className="text-4xl font-semibold text-white"><TituloDegrade texto={evento.titulo} /></h1>
                   <p className="mt-2 text-sm text-slate-400">{evento.data} · {evento.local}</p>
+                  {evento.dataFim && (
+                    <p className="mt-1 text-xs text-slate-500">Término: {evento.dataFim}</p>
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  {isDono(evento) && (
-                    <Link
-                      to={`/eventos/${evento.id}/editar`}
-                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition hover:opacity-90"
+                  <Link
+                    to={`/eventos/${evento.id}/editar`}
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition hover:opacity-90"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth="1.5"
+                      stroke="currentColor"
+                      className="h-4 w-4"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth="1.5"
-                        stroke="currentColor"
-                        className="h-4 w-4"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"
-                        />
-                      </svg>
-                      Editar evento
-                    </Link>
-                  )}
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"
+                      />
+                    </svg>
+                    Editar evento
+                  </Link>
                   <Link
                     to="/eventos"
                     className="group inline-flex items-center justify-center gap-1 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95"
@@ -140,7 +141,7 @@ export default function EventoDetalhe() {
                 <EventGallery eventoId={evento.id} />
               </div>
               <div className="space-y-6">
-                <EventMap location={evento.local} />
+                <EventMap eventoId={evento.id} location={evento.local} />
                 <EventPlaylist playlist={evento.playlist} eventoId={evento.id} />
               </div>
             </div>

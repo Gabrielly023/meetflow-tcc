@@ -27,12 +27,20 @@ const MESES = [
   "Dez",
 ];
 
-// Converte "2026-07-12T20:00" -> "12 Jul · 20:00" (padrão de exibição dos eventos)
+// Converte "2026-07-12T20:00" -> "12 Jul 2026 · 20:00" (padrão de exibição)
 export function formatarDataHora(valor) {
   if (!valor) return "";
   const [dataParte, horaParte] = valor.split("T");
-  const [, mes, dia] = dataParte.split("-");
-  return `${parseInt(dia, 10)} ${MESES[parseInt(mes, 10) - 1]} · ${horaParte}`;
+  const [ano, mes, dia] = dataParte.split("-");
+  return `${parseInt(dia, 10)} ${MESES[parseInt(mes, 10) - 1]} ${ano} · ${horaParte}`;
+}
+
+// Ordena eventos pela PROXIMIDADE da data (mais próximos primeiro).
+// Eventos sem data definida vão para o fim.
+export function ordenarPorData(lista) {
+  const tempo = (ev) =>
+    ev?.dataHora ? new Date(ev.dataHora).getTime() : Infinity;
+  return [...lista].sort((a, b) => tempo(a) - tempo(b));
 }
 
 // Id estável do "usuário atual" deste navegador (substitui o login real por enquanto)
@@ -110,9 +118,18 @@ function salvarEventosExcluidos(lista) {
   }
 }
 
-// Todos os eventos existentes (mock + criados), sem filtrar
+// Todos os eventos existentes (mock + criados), sem filtrar.
+// - Eventos no armazenamento (localStorage) sobrepõem os do mock com o mesmo id
+//   (é assim que editamos um evento do mock: ele é copiado com as alterações).
+// - Recalcula o texto de exibição (`data`) a partir do `dataHora`, garantindo
+//   que o ano apareça de forma consistente em todo o app.
 function todosEventos() {
-  return [...eventosSeed, ...lerEventosCriados()];
+  const criados = lerEventosCriados();
+  const idsCriados = new Set(criados.map((e) => String(e.id)));
+  const seeds = eventosSeed.filter((e) => !idsCriados.has(String(e.id)));
+  return [...seeds, ...criados].map((ev) =>
+    ev.dataHora ? { ...ev, data: formatarDataHora(ev.dataHora) } : ev,
+  );
 }
 
 // Lista os eventos visíveis (esconde os que o usuário saiu e os excluídos)
@@ -140,10 +157,13 @@ function montarCamposEvento(dados) {
     tipo: dados.tipo,
     dataHora: dados.dataHora || "",
     data: formatarDataHora(dados.dataHora),
+    dataHoraFim: dados.dataHoraFim || "",
+    dataFim: dados.dataHoraFim ? formatarDataHora(dados.dataHoraFim) : "",
     local: dados.local,
     descricao: dados.descricao || "",
     senhaAcesso: dados.senhaAcesso || "",
     capa: dados.capa || "",
+    capaOrig: dados.capaOrig || "", // original para reajustar a capa depois
     images: dados.capa ? [dados.capa] : [],
     playlist: {
       name: dados.titulo,
@@ -170,28 +190,41 @@ export function criarEvento(dados) {
   return novoEvento;
 }
 
-// Atualiza um evento existente. Só é possível para eventos criados pelo usuário
-// (os do mock não ficam no localStorage). Retorna null se não puder editar.
+// Atualiza um evento existente. Funciona para qualquer evento: se for do mock,
+// ele é copiado para o armazenamento com as alterações.
 export function atualizarEvento(id, dados) {
   if (USE_API.eventos) return eventoApi.atualizarEvento(id, dados);
   const criados = lerEventosCriados();
-  const indice = criados.findIndex((evento) => String(evento.id) === String(id));
+  const indice = criados.findIndex((ev) => String(ev.id) === String(id));
+  const campos = montarCamposEvento(dados);
 
-  if (indice === -1) return null;
+  // Já está no armazenamento (criado pelo usuário ou mock editado antes)
+  if (indice !== -1) {
+    const atual = criados[indice];
+    const atualizado = {
+      ...atual,
+      ...campos,
+      participants: atual.participants || [],
+      messages: atual.messages || [],
+    };
+    criados[indice] = atualizado;
+    salvarEventosCriados(criados);
+    return atualizado;
+  }
 
-  const atual = criados[indice];
-  if (!isDono(atual)) return null;
-
+  // Evento do mock (ainda não editado): copia para o armazenamento com as
+  // alterações, preservando galeria, playlist e participantes originais.
+  const base = buscarEventoPorId(id);
+  if (!base) return null;
   const atualizado = {
-    ...atual,
-    ...montarCamposEvento(dados),
-    // preserva o que não vem do formulário
-    participants: atual.participants || [],
-    messages: atual.messages || [],
+    ...base,
+    ...campos,
+    images: base.images || campos.images,
+    playlist: base.playlist || campos.playlist,
+    participants: base.participants || [],
+    messages: base.messages || [],
   };
-
-  criados[indice] = atualizado;
-  salvarEventosCriados(criados);
+  salvarEventosCriados([...criados, atualizado]);
   return atualizado;
 }
 

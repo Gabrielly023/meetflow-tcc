@@ -86,7 +86,7 @@ const menuItems = [
   },
   {
     title: "Maps",
-    href: "#",
+    to: "/mapas",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -150,8 +150,9 @@ const menuItems = [
 const menuItemClass =
   "menu-item flex items-center justify-start gap-3 px-4 py-3 text-slate-200 rounded-2xl transition duration-300 hover:text-white hover:shadow-lg hover:shadow-violet-500/20";
 
-export default function SideBar() {
+export default function SideBar({ usuario, onLogout }) {
   const { registrarHost, aberto, fechar, origem } = usePlayer();
+  const nomeUsuario = usuario?.nome || "Convidado";
 
   return (
     <aside className="sidebar-borda sidebar-scrollbar mt-6 flex w-64 shrink-0 flex-col self-stretch px-5 py-8">
@@ -207,7 +208,7 @@ export default function SideBar() {
               por isso continua tocando quando o usuário troca de página. */}
           {/* Borda em degradê azul→roxo: wrapper com o degradê + padding, e um
               interno arredondado por dentro (encaixa sem "quininhas" nos cantos) */}
-          <div className="-mx-3 rounded-xl bg-gradient-to-br from-sky-400 to-violet-500 p-[2px] shadow-lg shadow-violet-500/20">
+          <div className="-mx-3 rounded-xl bg-gradient-to-br from-sky-400 to-violet-500 p-[2px] shadow-lg shadow-violet-500/20 transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-violet-500/40">
             <div className="overflow-hidden rounded-[10px] bg-slate-900">
             {/* Moldura fina: rótulo + de qual evento veio */}
             <div className="flex items-center justify-between gap-2 px-2 py-1.5">
@@ -236,7 +237,7 @@ export default function SideBar() {
                 a 300px de largura (para o Spotify usar o layout vertical) e
                 encolhido com scale — sem recarregar o player. */}
             <div
-              className="relative mx-auto overflow-hidden bg-slate-950/60"
+              className="relative mx-auto mb-2 overflow-hidden rounded-[14px] bg-slate-950/60"
               style={{ width: 236, height: 346 }}
             >
               {/* O React só gerencia esta div; o iframe do Spotify vive num filho solto */}
@@ -258,16 +259,30 @@ export default function SideBar() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between mt-6">
+          <div className="-mx-2 mt-6 flex items-center justify-between rounded-2xl px-2 py-1.5 transition duration-300 hover:-translate-y-1 hover:bg-white/5 hover:shadow-lg hover:shadow-fuchsia-500/10">
             <Link to="/perfil" className="flex items-center gap-x-2">
-              <img
-                className="object-cover rounded-full h-7 w-7"
-                src="https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=634&h=634&q=80"
-                alt="avatar"
-              />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">John Doe</span>
+              {usuario?.foto_perfil ? (
+                <img
+                  className="object-cover rounded-full h-7 w-7"
+                  src={usuario.foto_perfil}
+                  alt="avatar"
+                />
+              ) : (
+                <span className="fonte-flow flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 text-xs font-bold text-white">
+                  {nomeUsuario.charAt(0).toUpperCase()}
+                </span>
+              )}
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                {nomeUsuario}
+              </span>
             </Link>
-            <button className="text-gray-500 transition-colors duration-200 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400">
+            <button
+              type="button"
+              onClick={onLogout}
+              title="Sair"
+              aria-label="Sair"
+              className="text-gray-500 transition-colors duration-200 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -285,9 +300,10 @@ export default function SideBar() {
             </button>
           </div>
 
-          <Link
-            to="/"
-            className="mt-6 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 to-sky-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/20 transition duration-300 hover:scale-[1.02] hover:opacity-90 active:scale-95"
+          <button
+            type="button"
+            onClick={onLogout}
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 to-sky-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/20 transition duration-300 hover:scale-[1.02] hover:opacity-90 active:scale-95"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -303,8 +319,8 @@ export default function SideBar() {
                 d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
               />
             </svg>
-            Sign out
-          </Link>
+            Sair
+          </button>
         </div>
       </div>
     </aside>

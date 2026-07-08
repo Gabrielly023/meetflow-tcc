@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import Lightbox from "../../components/Lightbox";
-import { listarEventos } from "../../services/eventoService";
+import { listarEventos, ordenarPorData } from "../../services/eventoService";
 import {
   listarFotos,
   curtirFoto,
@@ -10,7 +10,7 @@ import {
 } from "../../services/galeriaService";
 
 export default function MinhasGalerias() {
-  const eventos = listarEventos();
+  const eventos = ordenarPorData(listarEventos());
   const todasFotos = eventos.flatMap((ev) =>
     listarFotos(ev.id).map((foto) => ({
       ...foto,
@@ -38,7 +38,7 @@ export default function MinhasGalerias() {
 
       <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="mx-auto max-w-6xl space-y-8">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div className="flex flex-col items-center gap-3 text-center">
               <div>
                 <p className="texto-gradiente-2 text-sm font-semibold uppercase tracking-[0.3em]">
                   Galerias
@@ -52,7 +52,7 @@ export default function MinhasGalerias() {
                 </p>
               </div>
               {/* Bloquinho com a contagem — borda em degradê roxo→azul */}
-              <div className="self-start rounded-2xl bg-gradient-to-br from-violet-500 to-sky-500 p-[1.5px] shadow-lg shadow-violet-500/25">
+              <div className="rounded-2xl bg-gradient-to-br from-violet-500 to-sky-500 p-[1.5px] shadow-lg shadow-violet-500/25">
                 <div className="rounded-2xl bg-slate-900 px-5 py-3 text-center">
                   <p className="texto-gradiente-2 text-2xl font-semibold">
                     {eventos.length}
