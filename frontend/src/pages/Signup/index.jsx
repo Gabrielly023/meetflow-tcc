@@ -3,10 +3,17 @@ import { useNavigate, Link } from "react-router-dom";
 import AuthLayout from "../../components/AuthLayout";
 import AuthField from "../../components/AuthField";
 import GoogleButton from "../../components/GoogleButton";
+import { cadastrar, mensagemDoErro } from "../../services/usuarioService";
 
 const iconeUsuario = (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.6" stroke="currentColor" className="h-5 w-5">
     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+  </svg>
+);
+
+const iconeArroba = (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.6" stroke="currentColor" className="h-5 w-5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12a4.5 4.5 0 10-1.5 3.35M16.5 12V8.25m0 3.75v1.5a2.25 2.25 0 004.5 0V12a9 9 0 10-3.6 7.2" />
   </svg>
 );
 
@@ -32,6 +39,7 @@ const Signup = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     nome: "",
+    username: "",
     email: "",
     telefone: "",
     senha: "",
@@ -60,6 +68,19 @@ const Signup = () => {
     setError("");
     setSuccess("");
 
+    const username = formData.username.trim();
+    // Telefone vai só com números para o backend (ex.: "11987654321").
+    const telefoneNumeros = formData.telefone.replace(/\D/g, "");
+
+    // username: sem espaços e sem caracteres especiais (só letras, números, . e _)
+    if (!/^[a-zA-Z0-9._]+$/.test(username)) {
+      setError(
+        "Nome de usuário inválido: use apenas letras, números, ponto (.) e underline (_), sem espaços.",
+      );
+      setLoading(false);
+      return;
+    }
+
     if (formData.senha !== formData.senhaConfirma) {
       setError("As senhas não correspondem.");
       setLoading(false);
@@ -72,17 +93,18 @@ const Signup = () => {
       return;
     }
 
-    if (formData.telefone.length < 10) {
-      setError("Telefone inválido.");
+    if (telefoneNumeros.length < 10) {
+      setError("Telefone inválido. Informe DDD + número (ex.: 11987654321).");
       setLoading(false);
       return;
     }
 
     try {
-      console.log("Cadastro com:", {
-        nome: formData.nome,
-        email: formData.email,
-        telefone: formData.telefone,
+      await cadastrar({
+        nome: formData.nome.trim(),
+        username,
+        email: formData.email.trim(),
+        telefone: telefoneNumeros,
         senha: formData.senha,
       });
 
@@ -91,7 +113,7 @@ const Signup = () => {
       );
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
-      setError("Erro ao fazer cadastro. Tente novamente.");
+      setError(mensagemDoErro(err, "Erro ao fazer cadastro. Tente novamente."));
       console.error(err);
     } finally {
       setLoading(false);
@@ -133,6 +155,16 @@ const Signup = () => {
               onChange={handleChange}
               placeholder="Seu nome completo"
               icon={iconeUsuario}
+              required
+            />
+
+            <AuthField
+              id="username"
+              label="Nome de usuário"
+              value={formData.username}
+              onChange={handleChange}
+              placeholder="seu_usuario (único, sem espaços)"
+              icon={iconeArroba}
               required
             />
 

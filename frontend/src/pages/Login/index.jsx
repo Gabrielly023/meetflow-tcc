@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import AuthLayout from "../../components/AuthLayout";
 import AuthField from "../../components/AuthField";
 import GoogleButton from "../../components/GoogleButton";
+import { login as fazerLogin, mensagemDoErro } from "../../services/usuarioService";
 
 const iconeEmail = (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.6" stroke="currentColor" className="h-5 w-5">
@@ -18,7 +19,7 @@ const iconeSenha = (
 
 const Login = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -28,8 +29,17 @@ const Login = () => {
     setLoading(true);
     setError("");
 
-    console.log("Login com:", { email, password });
-    navigate("/usuarios");
+    try {
+      // `login` pode ser o email OU o nome de usuário. O serviço já guarda
+      // o token JWT e o usuário no localStorage em caso de sucesso.
+      await fazerLogin(login.trim(), password);
+      navigate("/usuarios");
+    } catch (err) {
+      setError(mensagemDoErro(err, "Erro ao realizar login. Tente novamente."));
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoogle = () => {
@@ -62,12 +72,12 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <AuthField
-              id="email"
-              label="Email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
+              id="login"
+              label="Email ou nome de usuário"
+              type="text"
+              value={login}
+              onChange={(e) => setLogin(e.target.value)}
+              placeholder="seu@email.com ou seu_usuario"
               icon={iconeEmail}
               required
             />

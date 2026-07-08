@@ -1,70 +1,99 @@
-import axios from "axios";
+import { api, TOKEN_KEY } from "./config";
 
-// URL base do backend
-const API_URL = "http://localhost:3000";
+// Serviço de usuários: cadastro, login, sessão (token JWT) e CRUD.
+// Usa a instância compartilhada do Axios (config.js), que já anexa o token
+// automaticamente nas requisições. Rotas: ver CONTRATO_API_FRONTEND.md.
 
-// Criar instância do axios
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  withCredentials: true,
-});
+// Onde guardamos o usuário logado (o token fica em TOKEN_KEY, ver config.js).
+const USUARIO_KEY = "meetflow.usuario";
 
-// GET - Listar todos os usuários
+// Extrai a mensagem de erro que o backend envia ({ mensagem: "..." }),
+// caindo para um texto padrão se não houver resposta (ex.: backend offline).
+export function mensagemDoErro(erro, padrao = "Algo deu errado. Tente novamente.") {
+  return erro?.response?.data?.mensagem || padrao;
+}
+
+// ─────────────────────── SESSÃO (token + usuário) ───────────────────────
+
+// Guarda o token JWT e o usuário logado no localStorage.
+export function salvarSessao(usuario, token) {
+  try {
+    if (token) localStorage.setItem(TOKEN_KEY, token);
+    if (usuario) localStorage.setItem(USUARIO_KEY, JSON.stringify(usuario));
+  } catch (erro) {
+    console.error("Erro ao salvar a sessão:", erro);
+  }
+}
+
+// Retorna o usuário logado (ou null se não houver).
+export function getUsuarioLogado() {
+  try {
+    const bruto = localStorage.getItem(USUARIO_KEY);
+    return bruto ? JSON.parse(bruto) : null;
+  } catch {
+    return null;
+  }
+}
+
+// Diz se há alguém logado (existe token guardado).
+export function estaLogado() {
+  try {
+    return Boolean(localStorage.getItem(TOKEN_KEY));
+  } catch {
+    return false;
+  }
+}
+
+// Encerra a sessão: remove token e usuário.
+export function logout() {
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USUARIO_KEY);
+  } catch {
+    // sem localStorage: nada a fazer
+  }
+}
+
+// ─────────────────────── CADASTRO E LOGIN ───────────────────────
+
+// POST /usuarios — cadastro.
+// `dados`: { nome, username, email, telefone, senha }
+export const cadastrar = async (dados) => {
+  const { data } = await api.post("/usuarios", dados);
+  return data; // { mensagem, usuario }
+};
+
+// POST /usuarios/login — `login` pode ser o email OU o username.
+// Em caso de sucesso, já guarda o token e o usuário na sessão.
+export const login = async (loginOuEmail, senha) => {
+  const { data } = await api.post("/usuarios/login", {
+    login: loginOuEmail,
+    senha,
+  });
+  salvarSessao(data.usuario, data.token);
+  return data; // { mensagem, usuario, token }
+};
+
+// ─────────────────────── CRUD (usado no futuro) ───────────────────────
+
 export const listarUsuarios = async () => {
-  try {
-    const response = await api.get("/usuarios");
-    return response.data;
-  } catch (error) {
-    console.error("Erro ao listar usuários:", error);
-    throw error;
-  }
+  const { data } = await api.get("/usuarios");
+  return data;
 };
 
-// GET - Buscar usuário por ID
 export const buscarUsuarioPorId = async (id) => {
-  try {
-    const response = await api.get(`/usuarios/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Erro ao buscar usuário ${id}:`, error);
-    throw error;
-  }
+  const { data } = await api.get(`/usuarios/${id}`);
+  return data;
 };
 
-// POST - Criar novo usuário
-export const criarUsuario = async (dados) => {
-  try {
-    const response = await api.post("/usuarios", dados);
-    return response.data;
-  } catch (error) {
-    console.error("Erro ao criar usuário:", error);
-    throw error;
-  }
-};
-
-// PUT - Atualizar usuário
 export const atualizarUsuario = async (id, dados) => {
-  try {
-    const response = await api.put(`/usuarios/${id}`, dados);
-    return response.data;
-  } catch (error) {
-    console.error(`Erro ao atualizar usuário ${id}:`, error);
-    throw error;
-  }
+  const { data } = await api.put(`/usuarios/${id}`, dados);
+  return data;
 };
 
-// DELETE - Deletar usuário
 export const deletarUsuario = async (id) => {
-  try {
-    const response = await api.delete(`/usuarios/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Erro ao deletar usuário ${id}:`, error);
-    throw error;
-  }
+  const { data } = await api.delete(`/usuarios/${id}`);
+  return data;
 };
 
 export default api;
