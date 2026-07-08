@@ -1,4 +1,6 @@
 import { buscarEventoPorId, getUsuarioAtualId } from "./eventoService";
+import { USE_API } from "./config";
+import * as galeriaApi from "./galeriaApi";
 
 // "Backend falso" da galeria de cada evento (persistido em localStorage).
 // Cada foto tem um dono (quem enviou). Regras:
@@ -47,6 +49,7 @@ function fotosSeed(evento) {
 
 // Lista as fotos visíveis para o usuário atual, na ordem definida
 export function listarFotos(eventId) {
+  if (USE_API.galeria) return galeriaApi.listarFotos(eventId);
   const evento = buscarEventoPorId(eventId);
   const adicionadas = ler(KEY_ADD, {})[eventId] || [];
   const excluidas = ler(KEY_EXCLUIDAS, []);
@@ -97,6 +100,8 @@ function arquivoParaDataUrl(arquivo, maxLado = 1200) {
 
 // Adiciona fotos do dispositivo do usuário (dono = usuário atual)
 export async function adicionarFotos(eventId, arquivos) {
+  if (USE_API.galeria)
+    return galeriaApi.adicionarFotos(eventId, arquivos, arquivoParaDataUrl);
   const imagens = Array.from(arquivos).filter((a) => a.type.startsWith("image/"));
   const ownerId = getUsuarioAtualId();
   const novas = [];
@@ -127,6 +132,7 @@ export function removerParaMim(fotoId) {
 // Exclui a foto para todos — só o dono da foto pode.
 // Não apaga de vez: vai para a lixeira (pode ser restaurada).
 export function excluirParaTodos(foto) {
+  if (USE_API.galeria) return galeriaApi.excluirParaTodos(foto);
   if (!isDonoFoto(foto)) return false;
   const excluidas = ler(KEY_EXCLUIDAS, []);
   if (!excluidas.includes(foto.id)) {

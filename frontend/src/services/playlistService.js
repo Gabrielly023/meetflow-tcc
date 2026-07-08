@@ -1,4 +1,6 @@
 import { buscarEventoPorId, getUsuarioAtualId } from "./eventoService";
+import { USE_API } from "./config";
+import * as musicaApi from "./musicaApi";
 
 // "Backend falso" da playlist de cada evento (persistido em localStorage).
 // Cada evento tem sua própria playlist e elas não se misturam (igual à galeria).
@@ -214,6 +216,7 @@ function comVotos(musica) {
 // Lista as músicas do evento, das mais votadas para as menos votadas.
 // Empate mantém a ordem em que foram adicionadas (sort estável do JS).
 export function listarMusicas(eventId) {
+  if (USE_API.playlists) return musicaApi.listarMusicas(eventId);
   const lista = (lerMusicas()[eventId] || []).map(comVotos);
   return [...lista].sort((a, b) => b.votos.length - a.votos.length);
 }
@@ -226,6 +229,7 @@ export function usuarioVotou(musica) {
 // Adiciona uma música à lista do evento a partir de um link do Spotify.
 // Retorna { musica } em caso de sucesso, ou { erro: "invalido" | "duplicada" }.
 export function adicionarMusica(eventId, entrada) {
+  if (USE_API.playlists) return musicaApi.adicionarMusica(eventId, entrada);
   const embed = normalizarParaEmbed(entrada);
   if (!embed) return { erro: "invalido" };
 
@@ -254,6 +258,7 @@ export function adicionarMusica(eventId, entrada) {
 
 // Alterna o voto do usuário atual em uma música (curtir / descurtir).
 export function curtirMusica(eventId, musicaId) {
+  if (USE_API.playlists) return musicaApi.curtirMusica(eventId, musicaId);
   const uid = getUsuarioAtualId();
   const todas = lerMusicas();
   const lista = todas[eventId] || [];
@@ -274,6 +279,7 @@ export function curtirMusica(eventId, musicaId) {
 
 // Remove uma música da lista (só o dono da música pode).
 export function removerMusica(eventId, musicaId) {
+  if (USE_API.playlists) return musicaApi.removerMusica(eventId, musicaId);
   const todas = lerMusicas();
   const lista = todas[eventId] || [];
   const alvo = lista.find((m) => m.id === musicaId);

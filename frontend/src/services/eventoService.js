@@ -1,4 +1,6 @@
 import { eventos as eventosSeed } from "../data/eventosData";
+import { USE_API } from "./config";
+import * as eventoApi from "./eventoApi";
 
 // "Backend falso" dos eventos.
 // Hoje os dados vêm do mock (eventosData) + do que o usuário cria (localStorage).
@@ -115,6 +117,7 @@ function todosEventos() {
 
 // Lista os eventos visíveis (esconde os que o usuário saiu e os excluídos)
 export function listarEventos() {
+  if (USE_API.eventos) return eventoApi.listarEventos();
   const saidos = lerEventosSaidos();
   const excluidos = lerEventosExcluidos();
   return todosEventos().filter(
@@ -126,6 +129,7 @@ export function listarEventos() {
 
 // Busca um evento por id (compara como string para aceitar id numérico ou texto)
 export function buscarEventoPorId(id) {
+  if (USE_API.eventos) return eventoApi.buscarEventoPorId(id);
   return listarEventos().find((evento) => String(evento.id) === String(id));
 }
 
@@ -150,6 +154,7 @@ function montarCamposEvento(dados) {
 
 // Cria um novo evento seguindo o mesmo formato dos eventos existentes
 export function criarEvento(dados) {
+  if (USE_API.eventos) return eventoApi.criarEvento(dados);
   const criados = lerEventosCriados();
 
   const novoEvento = {
@@ -168,6 +173,7 @@ export function criarEvento(dados) {
 // Atualiza um evento existente. Só é possível para eventos criados pelo usuário
 // (os do mock não ficam no localStorage). Retorna null se não puder editar.
 export function atualizarEvento(id, dados) {
+  if (USE_API.eventos) return eventoApi.atualizarEvento(id, dados);
   const criados = lerEventosCriados();
   const indice = criados.findIndex((evento) => String(evento.id) === String(id));
 
@@ -192,6 +198,7 @@ export function atualizarEvento(id, dados) {
 // Exclui um evento (só o dono/organizador pode). Não apaga de vez:
 // vai para a lixeira e pode ser restaurado.
 export function excluirEvento(id) {
+  if (USE_API.eventos) return eventoApi.excluirEvento(id);
   const alvo = buscarEventoPorId(id);
   if (!alvo || !isDono(alvo)) return false;
 
@@ -205,6 +212,7 @@ export function excluirEvento(id) {
 // "Sai" de um evento: apenas o esconde da conta do usuário atual, sem apagá-lo
 // para os outros. Usado por participantes que não são donos.
 export function sairDoEvento(id) {
+  if (USE_API.eventos) return eventoApi.sairDoEvento(id);
   const saidos = lerEventosSaidos();
   if (!saidos.includes(String(id))) {
     salvarEventosSaidos([...saidos, String(id)]);
