@@ -4,10 +4,10 @@ import { listarEventos } from "../../services/eventoService";
 import { listarFotos } from "../../services/galeriaService";
 import {
   getPlaylistEmbed,
-  listarMusicas,
   getCapaPlaylist,
 } from "../../services/playlistService";
 import { getLocalPrincipal, listarLocais } from "../../services/mapaService";
+import { contarNaoLidas } from "../../services/chatService";
 
 export default function HomePage() {
   const eventos = listarEventos();
@@ -16,15 +16,10 @@ export default function HomePage() {
     .map((ev) => ev.capa || ev.images?.[0])
     .filter(Boolean)
     .slice(0, 4);
-  // Playlists: total de músicas sugeridas em todos os eventos
-  const totalMusicas = eventos.reduce(
-    (soma, ev) => soma + listarMusicas(ev.id).length,
-    0,
-  );
   // Miniaturas de playlist para o card: eventos que têm playlist
-  const tilesPlaylist = eventos
-    .filter((ev) => getPlaylistEmbed(ev.id))
-    .slice(0, 4);
+  const eventosComPlaylist = eventos.filter((ev) => getPlaylistEmbed(ev.id));
+  const tilesPlaylist = eventosComPlaylist.slice(0, 4);
+  const totalPlaylists = eventosComPlaylist.length;
   const chaveCapas = tilesPlaylist.map((ev) => ev.id).join(",");
   const [capasPlaylist, setCapasPlaylist] = useState({});
 
@@ -56,6 +51,11 @@ export default function HomePage() {
     .slice(0, 4);
   const totalLocais = eventos.reduce(
     (soma, ev) => soma + listarLocais(ev.id).length,
+    0,
+  );
+  // Chats: total de mensagens não lidas em todos os eventos
+  const totalNaoLidasChat = eventos.reduce(
+    (soma, ev) => soma + contarNaoLidas(ev.id),
     0,
   );
 
@@ -125,7 +125,7 @@ export default function HomePage() {
             {/* Bloco menor: Criar evento */}
             <Link
               to="/eventos/novo"
-              className="group mt-8 flex items-center justify-between gap-4 rounded-3xl bg-gradient-to-r from-sky-500 to-violet-600 p-5 shadow-lg shadow-violet-500/25 transition duration-300 hover:scale-[1.01] hover:opacity-95 active:scale-100"
+              className="group mt-8 flex items-center justify-between gap-4 rounded-3xl bg-gradient-to-r from-sky-500 to-violet-600 p-5 text-left shadow-lg shadow-violet-500/25 transition duration-300 hover:scale-[1.01] hover:opacity-95 active:scale-100"
             >
               <div className="flex items-center gap-4">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 text-white">
@@ -151,7 +151,7 @@ export default function HomePage() {
               {/* Bloco: Meus eventos */}
               <Link
                 to="/eventos"
-                className="group rounded-3xl border border-slate-800/70 bg-slate-900/70 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="group rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -164,7 +164,7 @@ export default function HomePage() {
                       Meus eventos
                     </h2>
                     <p className="mt-2 text-sm text-slate-400">
-                      Crie, veja e gerencie todos os seus eventos.
+                      Crie, veja e gerencie todos os meus eventos.
                     </p>
                   </div>
                   <span className="text-fuchsia-400 transition group-hover:translate-x-1">
@@ -193,7 +193,7 @@ export default function HomePage() {
               {/* Bloco: Minhas galerias */}
               <Link
                 to="/galerias"
-                className="group rounded-3xl border border-slate-800/70 bg-slate-900/70 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="group rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -206,7 +206,7 @@ export default function HomePage() {
                       Minhas galerias
                     </h2>
                     <p className="mt-2 text-sm text-slate-400">
-                      Todas as fotos dos seus eventos, lado a lado, num só lugar.
+                      Todas as fotos dos meus eventos, lado a lado, num só lugar.
                     </p>
                   </div>
                   <span className="text-fuchsia-400 transition group-hover:translate-x-1">
@@ -239,7 +239,7 @@ export default function HomePage() {
               {/* Bloco: Minhas playlists */}
               <Link
                 to="/playlists"
-                className="group rounded-3xl border border-slate-800/70 bg-slate-900/70 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="group rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -282,8 +282,8 @@ export default function HomePage() {
                       </div>
                     ))}
                     <div className="flex h-16 items-center rounded-xl px-3 text-sm text-slate-400">
-                      {totalMusicas}{" "}
-                      {totalMusicas === 1 ? "música" : "músicas"}
+                      {totalPlaylists}{" "}
+                      {totalPlaylists === 1 ? "playlist" : "playlists"}
                     </div>
                   </div>
                 )}
@@ -292,7 +292,7 @@ export default function HomePage() {
               {/* Bloco: Meus mapas */}
               <Link
                 to="/mapas"
-                className="group rounded-3xl border border-slate-800/70 bg-slate-900/70 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="group rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -326,6 +326,50 @@ export default function HomePage() {
                     ))}
                     <div className="flex h-16 items-center rounded-xl px-3 text-sm text-slate-400">
                       {totalLocais} {totalLocais === 1 ? "local" : "locais"}
+                    </div>
+                  </div>
+                )}
+              </Link>
+
+              {/* Bloco: Meus chats */}
+              <Link
+                to="/chats"
+                className="group rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 shadow-lg shadow-fuchsia-500/20">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-6 w-6 text-white">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                      </svg>
+                    </div>
+                    <h2 className="text-xl font-semibold text-white">
+                      Meus chats
+                    </h2>
+                    <p className="mt-2 text-sm text-slate-400">
+                      As conversas de todos os meus eventos, reunidas num só
+                      lugar.
+                    </p>
+                  </div>
+                  <span className="text-fuchsia-400 transition group-hover:translate-x-1">
+                    →
+                  </span>
+                </div>
+
+                {capas.length > 0 && (
+                  <div className="mt-5 flex gap-2">
+                    {capas.map((url, i) => (
+                      <div
+                        key={i}
+                        className="h-16 w-16 overflow-hidden rounded-xl border border-slate-800/60"
+                      >
+                        <img src={url} alt="" className="h-full w-full object-cover" />
+                      </div>
+                    ))}
+                    <div className="flex h-16 items-center rounded-xl px-3 text-sm text-slate-400">
+                      {totalNaoLidasChat > 0
+                        ? `${totalNaoLidasChat} não lidas`
+                        : `${eventos.length} ${eventos.length === 1 ? "conversa" : "conversas"}`}
                     </div>
                   </div>
                 )}

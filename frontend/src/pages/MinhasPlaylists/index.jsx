@@ -64,7 +64,7 @@ export default function MinhasPlaylists() {
                   Minhas <span className="texto-gradiente">playlists</span>
                 </h1>
                 <p className="mt-2 text-slate-400">
-                  As trilhas sonoras de todos os seus eventos, lado a lado. Toque
+                  As trilhas sonoras de todos os meus eventos, lado a lado. Toque
                   aqui mesmo ou abra o evento para ouvir as músicas.
                 </p>
               </div>

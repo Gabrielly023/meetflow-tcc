@@ -87,11 +87,45 @@ export function fotoDaApi(f) {
 
 // ───────────────────────── CHAT ─────────────────────────
 
+// Converte uma mensagem do backend para o formato que o chat do front espera.
+// Mantém o mesmo shape do chatService (mock), para as telas não perceberem
+// diferença ao ligar USE_API.chat. Campos "ricos" (reações, leitura, resposta,
+// imagem, edição) dependem de colunas/tabelas novas — ver CONTRATO §4.5.
 export function mensagemDaApi(c, usuarioAtualId) {
+  const souEu = c.id_usuario === usuarioAtualId;
   return {
     id: c.id_chat,
-    sender:
-      c.autor_nome || (c.id_usuario === usuarioAtualId ? "Você" : "Participante"),
-    text: c.conteudo,
+    eventId: c.id_evento,
+    ownerId: c.id_usuario,
+    sender: souEu ? "Você" : c.autor_nome || "Participante",
+    tipo: c.tipo || "mensagem",
+    text: c.conteudo || "",
+    imageUrl: c.imagem_url || null,
+    audioUrl: c.audio_url || null,
+    duracao: c.duracao || null,
+    createdAt: c.criado_em ? new Date(c.criado_em).getTime() : Date.now(),
+    editedAt: c.editado_em ? new Date(c.editado_em).getTime() : null,
+    replyTo: c.responder_a
+      ? {
+          id: c.responder_a.id_chat,
+          sender: c.responder_a.autor_nome,
+          text: c.responder_a.conteudo,
+        }
+      : null,
+    reactions: c.reacoes || {},
+    readBy: c.lido_por || [],
+    deleted: Boolean(c.excluido),
+  };
+}
+
+// Traduz os dados do envio (front) para o corpo esperado pelo backend.
+export function mensagemParaApi(texto, opts = {}) {
+  return {
+    conteudo: texto || "",
+    tipo: opts.tipo || "mensagem",
+    imagem_url: opts.imageUrl || null,
+    audio_url: opts.audioUrl || null,
+    duracao: opts.duracao || null,
+    responder_a: opts.replyTo?.id || null,
   };
 }

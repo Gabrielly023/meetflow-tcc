@@ -66,7 +66,7 @@ const Login = () => {
               Bem-vindo de volta
             </h1>
             <p className="mt-2 text-sm text-slate-400">
-              Entre para continuar organizando seus eventos.
+              Entre para continuar organizando meus eventos.
             </p>
           </div>
 

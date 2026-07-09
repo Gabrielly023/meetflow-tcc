@@ -13,6 +13,28 @@ import {
   excluirEvento,
   sairDoEvento,
 } from "../../services/eventoService";
+import { listarParticipantes } from "../../services/chatService";
+
+// Contagem regressiva até o evento (em dias de calendário).
+function calcularContagem(dataHora) {
+  if (!dataHora) return { titulo: "Sem data", sub: "defina a data do evento" };
+  const alvo = new Date(dataHora);
+  if (Number.isNaN(alvo.getTime())) {
+    return { titulo: "Sem data", sub: "defina a data do evento" };
+  }
+  const agora = new Date();
+  const inicioHoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+  const inicioAlvo = new Date(alvo.getFullYear(), alvo.getMonth(), alvo.getDate());
+  const dias = Math.round((inicioAlvo - inicioHoje) / 86400000);
+  if (dias > 1) return { titulo: `Faltam ${dias} dias`, sub: "para o evento" };
+  if (dias === 1) return { titulo: "Amanhã!", sub: "é quase lá" };
+  if (dias === 0) return { titulo: "É hoje!", sub: "o grande dia chegou" };
+  const passados = Math.abs(dias);
+  return {
+    titulo: "Já aconteceu",
+    sub: `há ${passados} ${passados === 1 ? "dia" : "dias"}`,
+  };
+}
 
 export default function EventoDetalhe() {
   const { id } = useParams();
@@ -35,6 +57,8 @@ export default function EventoDetalhe() {
   }
 
   const dono = isDono(evento);
+  const contagem = calcularContagem(evento.dataHora);
+  const numParticipantes = listarParticipantes(evento.id).length;
 
   function confirmarModal() {
     if (modal === "excluir") {
@@ -118,18 +142,57 @@ export default function EventoDetalhe() {
                 </div>
               </div>
               {evento.descricao && (
-                <p className="mb-6 text-sm leading-relaxed text-slate-300">
-                  {evento.descricao}
-                </p>
+                <div className="mb-6 flex flex-col items-center rounded-3xl border border-slate-800/70 bg-slate-950/40 p-6 text-center">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-fuchsia-400">
+                    Sobre o evento
+                  </p>
+                  <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-300">
+                    {evento.descricao}
+                  </p>
+                </div>
               )}
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-3xl bg-gradient-to-br from-orange-500/15 via-fuchsia-500/15 to-sky-500/15 p-6">
-                  <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Tipo</p>
-                  <p className="mt-4 text-2xl font-semibold text-white">{evento.tipo}</p>
+                {/* Coluna esquerda: Tipo (em cima) + Participantes (embaixo) */}
+                <div className="grid gap-4">
+                  {/* Tipo */}
+                  <div className="rounded-3xl border border-slate-800/70 bg-gradient-to-br from-orange-500/15 via-fuchsia-500/15 to-sky-500/15 p-4 text-center">
+                    <div className="flex items-center justify-center gap-2 text-slate-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-4 w-4">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
+                      </svg>
+                      <p className="text-xs uppercase tracking-[0.3em]">Tipo</p>
+                    </div>
+                    <p className="mt-2 text-xl font-semibold text-white">
+                      {evento.tipo || "—"}
+                    </p>
+                  </div>
+                  {/* Participantes */}
+                  <div className="rounded-3xl border border-slate-800/70 bg-gradient-to-br from-sky-500/15 via-violet-500/15 to-fuchsia-500/15 p-4 text-center">
+                    <div className="flex items-center justify-center gap-2 text-slate-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-4 w-4">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                      </svg>
+                      <p className="text-xs uppercase tracking-[0.3em]">Participantes</p>
+                    </div>
+                    <p className="mt-2 text-xl font-semibold text-white">
+                      {numParticipantes}{" "}
+                      <span className="text-sm font-normal text-slate-400">
+                        {numParticipantes === 1 ? "pessoa" : "pessoas"}
+                      </span>
+                    </p>
+                  </div>
                 </div>
-                <div className="rounded-3xl bg-gradient-to-br from-sky-500 to-violet-500 p-6 shadow-lg shadow-violet-500/20">
-                  <p className="text-sm uppercase tracking-[0.3em] text-white/80">Status</p>
-                  <p className="mt-4 text-2xl font-semibold text-white">Pronto para gerenciamento</p>
+                {/* Contagem regressiva (ocupa a altura das duas ao lado) */}
+                <div className="flex flex-col justify-center rounded-3xl bg-gradient-to-br from-sky-500 to-violet-500 p-6 text-center shadow-lg shadow-violet-500/20">
+                  <div className="flex items-center justify-center gap-2 text-white/80">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-4 w-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-xs uppercase tracking-[0.3em]">Contagem regressiva</p>
+                  </div>
+                  <p className="mt-3 text-3xl font-semibold text-white">{contagem.titulo}</p>
+                  <p className="text-sm text-white/80">{contagem.sub}</p>
                 </div>
               </div>
               </div>
@@ -137,7 +200,7 @@ export default function EventoDetalhe() {
 
             <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
               <div className="space-y-6">
-                <EventChat initialParticipants={evento.participants} initialMessages={evento.messages} />
+                <EventChat eventoId={evento.id} />
                 <EventGallery eventoId={evento.id} />
               </div>
               <div className="space-y-6">

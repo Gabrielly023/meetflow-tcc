@@ -12,21 +12,30 @@
 
 ---
 
-## 🆕 Novidades desta versão
+## 🆕 Novidades desta versão (o que mudou por último)
 
-O frontend evoluiu bastante. Em relação à versão anterior deste contrato, foi
-acrescentado:
+Grandes avanços no frontend — em ordem de impacto no backend:
 
-- **Evento — horário de término** (`data_hora_fim`): novo campo opcional (§4.1).
-- **Playlist principal do evento** (§4.4): além da lista colaborativa de
-  músicas, cada evento tem **uma playlist** (embed do Spotify) — precisa de rota
-  + 1 coluna.
-- **Mapas do evento** (§4.6): entidade **nova**. Qualquer participante cola um
-  link do Google Maps para marcar onde o evento será — precisa de tabela nova.
-- **Perfil — campos extras** (§4.7): `bio`, `foto_capa`, `localizacao`, `site`.
+- **Chat completamente reformulado (§4.5)** — agora tem: **responder/citar**,
+  **reações (emoji)**, **enviar imagem**, **gravar e enviar áudio**, **editar**,
+  **apagar**, **confirmação de leitura ("visto")**, **mensagens de sistema**,
+  **busca** e **não-lidas**.
+- **Grupo do chat (§4.8) — ENTIDADE NOVA** — cada evento tem um "grupo" (estilo
+  WhatsApp) com **nome próprio** (pode diferir do título do evento),
+  **descrição**, **foto**, **papel de parede** e **admins**. O criador nomeia
+  admins; só admins adicionam/removem participantes.
+- **Participantes já na criação (§4.1/§4.2)** — dá pra convidar gente na hora de
+  criar o evento (não só depois no chat).
+- **Mapas: Waze além do Google (§4.6)** — o usuário escolhe Google Maps **ou**
+  Waze ao colar o link. Pro backend muda quase nada (é só o link salvo).
 
-> O resto que fizemos (criar evento já com mapa/playlist, ordenar tudo por data,
-> editar qualquer evento) é **lógica de frontend** e não muda a API.
+Versões anteriores já haviam adicionado (mantidos abaixo): término do evento
+(`data_hora_fim`, §4.1), playlist principal (§4.4), mapas/locais (§4.6) e campos
+extras de perfil (§4.7).
+
+> O que **não** muda a API (é só lógica de frontend): criar evento já com
+> mapa/playlist, ordenar tudo por data, editar qualquer evento, derivar o embed
+> do mapa, e o papel de parede/predefinições (o front só guarda um valor).
 
 ---
 
@@ -160,19 +169,37 @@ Essa parte está pronta e o frontend já sabe consumir. O que falta são as
 | Método | Rota | O que faz |
 |---|---|---|
 | `GET` | `/eventos/:id/participantes` | lista os participantes do evento |
-| `POST` | `/eventos/:id/participantes` | entrar no evento (com `senha_acesso`) |
+| `POST` | `/eventos/:id/participantes` | adiciona/entra no evento |
 | `DELETE` | `/eventos/:id/participantes/me` | o logado **sai** do evento |
+| `DELETE` | `/eventos/:id/participantes/:idUsuario` | um **admin** remove outro participante (ver §4.8) |
 
-**Response do GET — lista:**
+**Response do GET — lista** (agora com o campo `admin`, ver §4.8):
 
 ```json
 [
-  { "id_usuario": "uuid", "nome": "Ana", "papel": "convidado", "status": "confirmado" }
+  { "id_usuario": "uuid", "nome": "Ana", "papel": "convidado", "status": "confirmado", "admin": true }
 ]
 ```
 
 > O front hoje mostra participantes como `{ id, name }`. O `nome` precisa vir
 > do **join** com a tabela `usuario` (a tabela `Participantes` só tem os ids).
+
+> 🟨 **Participantes na criação do evento.** O formulário de criar evento agora
+> tem um campo "Participantes" — os convidados informados ali entram no grupo já
+> na criação. No **mock atual**, o participante é só um **nome livre** (texto).
+> No backend real, participante é um **usuário** (precisa de conta): a forma
+> ideal é o front criar o evento e, em seguida, adicionar cada um via
+> `POST /eventos/:id/participantes` **por username/email/id** (não por nome
+> solto). Quando vocês definirem como será o "convidar" (por username? email?),
+> a gente adapta o campo do front. Enquanto isso, dá pra aceitar `{ "nome": "..." }`
+> como placeholder.
+
+**Body do POST (`/eventos/:id/participantes`):**
+
+```json
+{ "senha_acesso": "1234" }          // para o próprio logado entrar
+{ "username": "ana" }               // um admin adicionando alguém (ver §4.8)
+```
 
 ---
 
@@ -266,36 +293,105 @@ O front tem **dois conceitos** para o mesmo evento:
 
 ---
 
-### 4.5 Chat (de um evento)
+### 4.5 Chat (de um evento) — 🆕 AMPLIADO (chat "recheado")
+
+O chat evoluiu bastante no frontend: além de enviar/listar mensagens, ele tem
+**responder/citar, reações (emoji), imagem, editar, apagar, confirmação de
+leitura ("visto"), mensagens de sistema e busca**. Boa parte já é prevista pelo
+schema (o enum `TipoChat = mensagem | imagem | sistema` e a tabela
+`ChatLeitura`); o resto precisa de poucas colunas/rotas a mais (resumo abaixo).
+
+> **Importante:** tudo isso já funciona hoje no front via localStorage. Nada
+> quebra se vocês entregarem por partes — só implementem as rotas na ordem que
+> der, e a gente liga `USE_API.chat`.
+
+**Rotas:**
 
 | Método | Rota | O que faz |
 |---|---|---|
-| `GET` | `/eventos/:id/chat` | lista as mensagens do evento |
+| `GET` | `/eventos/:id/chat` | lista as mensagens do evento (ordenadas por data) |
 | `POST` | `/eventos/:id/chat` | envia mensagem (autor = logado) |
+| `PUT` | `/chat/:idChat` | edita o conteúdo (só o autor) |
+| `DELETE` | `/chat/:idChat` | apaga a mensagem (autor **ou** organizador) |
+| `POST` | `/chat/:idChat/reacao` | alterna a reação do logado (`{ "emoji": "👍" }`) |
+| `POST` | `/eventos/:id/chat/lido` | marca todas as mensagens do evento como lidas pelo logado |
 
-**Body do POST:**
+**Body do POST (enviar):**
 
 ```json
-{ "conteudo": "Texto da mensagem", "tipo": "mensagem" }
+{
+  "conteudo": "Texto da mensagem",
+  "tipo": "mensagem",
+  "imagem_url": null,
+  "audio_url": null,
+  "duracao": null,
+  "responder_a": "uuid-da-mensagem-citada-ou-null"
+}
 ```
 
-**Response do GET — lista:**
+> - Para **imagem**: `tipo: "imagem"` + `imagem_url` com a URL (ou data URL).
+> - Para **áudio** (gravado no chat): `tipo: "audio"` + `audio_url` com o arquivo
+>   (o front hoje manda uma data URL `audio/webm`; com storage real, mandaria a
+>   URL) + `duracao` em segundos.
+> - Para **mensagem de sistema** ("Fulano entrou"), o backend pode gerar com
+>   `tipo: "sistema"`.
+
+**Response do GET — lista (um item):**
 
 ```json
 [
   {
     "id_chat": "uuid",
+    "id_evento": "uuid",
+    "id_usuario": "uuid-autor",
+    "autor_nome": "Ana",
     "conteudo": "A banda confirmou o set list?",
     "tipo": "mensagem",
+    "imagem_url": null,
     "criado_em": "2026-07-01T12:00:00.000Z",
-    "id_usuario": "uuid-autor",
-    "autor_nome": "Ana"
+    "editado_em": null,
+    "excluido": false,
+    "responder_a": {
+      "id_chat": "uuid-citada",
+      "autor_nome": "Bruno",
+      "conteudo": "trecho citado"
+    },
+    "reacoes": { "👍": ["uuid-user-1"], "❤️": ["uuid-user-2"] },
+    "lido_por": ["uuid-user-1", "uuid-user-2"]
   }
 ]
 ```
 
-> O `autor_nome` precisa vir do **join** com `usuario` — o front exibe o nome
-> de quem mandou a mensagem.
+> - `autor_nome` vem do **join** com `usuario`.
+> - `responder_a` pode ser `null`; quando existe, traz um resumo da mensagem citada.
+> - `reacoes` é um mapa `emoji -> [ids de quem reagiu]`.
+> - `lido_por` é a lista de ids que já leram (vem da tabela `ChatLeitura`).
+> - `excluido` = mensagem apagada (o front mostra "mensagem apagada").
+
+> 🟥 **Faltam no schema do `Chat`:** `imagem_url String? @db.VarChar(500)`,
+> `audio_url String? @db.VarChar(500)`, `duracao Int?`, `editado_em DateTime?`,
+> `excluido Boolean @default(false)` e `responder_a String?` (FK auto-relacional
+> para `id_chat`). O enum `TipoChat` também precisa do valor **`audio`**. E uma
+> tabela nova de reações:
+>
+> ```prisma
+> model ChatReacao {
+>   id_chat    String
+>   id_usuario String
+>   emoji      String  @db.VarChar(16)
+>   chat    Chat    @relation(fields: [id_chat], references: [id_chat], onDelete: Cascade)
+>   usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+>   @@id([id_chat, id_usuario, emoji])
+> }
+> ```
+>
+> A **confirmação de leitura** usa a `ChatLeitura` que **já existe** no schema
+> (grava `lido_em` por `(id_chat, id_usuario)`). O `POST .../chat/lido` deve
+> inserir/atualizar uma linha por mensagem ainda não lida pelo logado.
+
+> 💡 **Busca** e **não-lidas** são derivadas no front a partir da lista — não
+> precisam de rota própria (mas, se o volume crescer, um `?busca=` e um
+> `GET /eventos/:id/chat/nao-lidas` ajudariam).
 
 ---
 
@@ -338,6 +434,14 @@ remover.
 > do `link_maps`. Vocês só precisam guardar o link que o usuário colou (mais o
 > `nome`, opcional). **Não precisam gerar embed nem usar API paga do Google.**
 
+> 🆕 **Waze além do Google Maps.** Agora o usuário escolhe **Google Maps ou
+> Waze** ao adicionar um local, e cola o link do app escolhido. Para o backend
+> **muda quase nada**: continua sendo só um `link_maps` salvo. Se quiserem, dá
+> pra guardar um campo opcional `provedor` (`"google"` | `"waze"`), mas **não é
+> obrigatório** — o front consegue re-deduzir isso pelo próprio link. (Curiosidade:
+> quando o link do Waze não tem coordenadas, o front geocodifica o endereço via
+> Nominatim/OpenStreetMap **no navegador**, sem custo pro backend.)
+
 ---
 
 ### 4.7 Perfil — campos extras do usuário 🆕
@@ -364,6 +468,88 @@ E o `GET /usuarios/:id` deve devolvê-los de volta.
 
 ---
 
+### 4.8 Grupo do chat (de um evento) — 🆕 ENTIDADE NOVA
+
+Cada evento agora tem um **grupo** (estilo WhatsApp): é a camada social do chat.
+O front tem uma página de **gerenciamento do grupo** (`/eventos/:id/grupo`) com:
+
+- **Nome do grupo** — próprio, pode ser **diferente** do título do evento (cai
+  para o título se ninguém personalizar).
+- **Descrição** do grupo.
+- **Foto** do grupo (avatar).
+- **Papel de parede** do chat — **compartilhado**: todos os participantes veem o
+  mesmo. O valor é um id de predefinição (ex.: `"oceano"`) **ou** uma imagem
+  (URL/data URL).
+- **Admins** — quem pode gerenciar (ver regras abaixo).
+
+**Regras de permissão (o front já aplica isso):**
+
+| Ação | Quem pode |
+|---|---|
+| Nomear / remover **admin** | só o **criador** do evento (organizador) |
+| Adicionar / remover **participante** | qualquer **admin** (criador + promovidos) |
+| Editar **nome / descrição / foto** do grupo | qualquer **admin** |
+| Trocar **papel de parede** | **qualquer participante** (é cosmético/compartilhado) |
+
+> O **criador** (papel `organizador`) é **sempre admin** e é o **único** que
+> nomeia outros admins.
+
+**Rotas:**
+
+| Método | Rota | O que faz |
+|---|---|---|
+| `GET` | `/eventos/:id/grupo` | config do grupo (nome, descrição, foto, papel de parede) |
+| `PUT` | `/eventos/:id/grupo` | edita nome/descrição/foto (só admin) |
+| `PUT` | `/eventos/:id/grupo/papel-parede` | troca o papel de parede (qualquer participante) |
+| `POST` | `/eventos/:id/participantes/:idUsuario/admin` | promove a admin (só o criador) |
+| `DELETE` | `/eventos/:id/participantes/:idUsuario/admin` | rebaixa de admin (só o criador) |
+
+> As rotas de **adicionar/remover participante** já estão no §4.2 (agora só
+> **admins** podem). A config do grupo também pode vir embutida no
+> `GET /eventos/:id` em vez de uma rota separada — tanto faz pro front.
+
+**Response do GET `/eventos/:id/grupo`:**
+
+```json
+{
+  "nome_grupo": "Galera do Show",
+  "descricao_grupo": "Só avisos importantes por aqui.",
+  "foto_grupo": "https://... (ou data URL)",
+  "papel_parede": "oceano"
+}
+```
+
+**Body do PUT `/eventos/:id/grupo`:** os campos que mudaram, ex.:
+`{ "nome_grupo": "Galera do Show", "descricao_grupo": "...", "foto_grupo": "..." }`
+
+**Body do PUT `.../grupo/papel-parede`:** `{ "papel_parede": "oceano" }`
+
+> 🟥 **Faltam no schema.** O jeito mais simples é adicionar colunas no `Evento`:
+>
+> ```prisma
+> model Evento {
+>   // ...campos existentes...
+>   nome_grupo      String? @db.VarChar(150)
+>   descricao_grupo String? @db.Text
+>   foto_grupo      String? @db.VarChar(500)   // ou @db.Text se guardar data URL
+>   papel_parede    String? @db.VarChar(500)
+> }
+> ```
+>
+> E o campo de **admin** na tabela `Participantes`:
+>
+> ```prisma
+> model Participantes {
+>   // ...campos existentes...
+>   admin Boolean @default(false)   // criador (papel organizador) conta como admin sempre
+> }
+> ```
+>
+> (Alternativa: um model `Grupo` 1‑para‑1 com `Evento`. Mas colunas no `Evento`
+> resolvem e são mais simples.)
+
+---
+
 ## 5. 🟥 Resumo das lacunas no schema
 
 Para o front funcionar 100%, faltam estes campos/tabelas:
@@ -376,6 +562,10 @@ Para o front funcionar 100%, faltam estes campos/tabelas:
 | 4 | Campos do perfil | model `Usuario` | `bio`, `foto_capa`, `localizacao`, `site` |
 | 5 | Votos de música (quem votou) | model novo | `MusicaVoto(id_musica, id_usuario)` PK composta |
 | 6 | Curtidas de foto (quem curtiu) | model novo | `GaleriaCurtida(id_foto, id_usuario)` PK composta |
+| 7 | Chat "recheado" (imagem, **áudio**, edição, apagar, resposta) | model `Chat` | colunas `imagem_url`, `audio_url`, `duracao`, `editado_em`, `excluido`, `responder_a` + valor `audio` no enum `TipoChat` (ver §4.5) |
+| 8 | Reações de mensagem (emoji) | model novo | `ChatReacao(id_chat, id_usuario, emoji)` PK composta (ver §4.5) |
+| 9 | **Grupo do chat** (nome, descrição, foto, papel de parede) | model `Evento` | colunas `nome_grupo`, `descricao_grupo`, `foto_grupo`, `papel_parede` (ver §4.8) |
+| 10 | **Admins do grupo** | model `Participantes` | coluna `admin Boolean @default(false)` (ver §4.8) |
 
 Exemplos das tabelas/colunas novas:
 
@@ -424,10 +614,16 @@ model GaleriaCurtida {
 }
 ```
 
-> Prioridade: os itens **1, 2 e 3** destravam evento + playlist + mapas (o
-> núcleo do app). Os itens **4, 5 e 6** são refinamentos — sem eles o front
+> Os exemplos Prisma dos itens **7 a 10** (colunas do `Chat`, `ChatReacao`,
+> colunas de grupo no `Evento` e `admin` em `Participantes`) estão nas seções
+> **§4.5** e **§4.8**, junto das rotas.
+
+> **Prioridade:** os itens **1, 2 e 3** destravam evento + playlist + mapas (o
+> núcleo do app). Os itens **4 a 10** são refinamentos — sem eles o front
 > continua funcionando (esses dados ficam só no navegador), mas não são
-> compartilhados entre usuários.
+> compartilhados entre usuários. Dentro do chat, a ordem natural é: mensagens
+> básicas → imagem/áudio → resposta/edição/apagar → reações → leitura ("visto")
+> → grupo (nome/foto/admins).
 
 ---
 
@@ -436,11 +632,11 @@ model GaleriaCurtida {
 Do mais simples/independente para o mais complexo:
 
 1. **Eventos** (CRUD) — desbloqueia quase tudo. *(+ colunas `tipo`, `capa_url`, `data_hora_fim`, `playlist_spotify`)*
-2. **Participantes** — entrar/sair de evento.
+2. **Participantes** — entrar/sair de evento *(+ coluna `admin` e as regras de admin do §4.8)*.
 3. **Galeria** — listar/adicionar/remover fotos.
 4. **Mapas / Locais** — *(+ tabela nova `Local`)*.
 5. **Playlist do evento + Músicas** — playlist principal + lista colaborativa *(+ tabela de votos, se quiserem persistir)*.
-6. **Chat** — mensagens do evento.
+6. **Chat** — comece pelo básico (listar/enviar) e vá somando: imagem/áudio → responder/editar/apagar → reações → leitura → **grupo** (nome/descrição/foto/papel de parede/admins, §4.8). *(+ colunas do `Chat`, `ChatReacao` e colunas de grupo no `Evento`)*
 7. **Perfil** — colunas extras no `Usuario` (bio, foto_capa, localizacao, site).
 
 Cada bloco que vocês entregarem, a gente vira a flag `USE_API.<entidade>`

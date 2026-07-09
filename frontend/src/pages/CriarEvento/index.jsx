@@ -47,6 +47,7 @@ export default function CriarEvento() {
               onSubmit={handleCriar}
               textoBotao="Criar evento"
               cancelarHref="/eventos"
+              permitirParticipantes
             />
           </div>
     </main>

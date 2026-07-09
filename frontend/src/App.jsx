@@ -10,9 +10,12 @@ import EventoDetalhe from "./pages/EventoDetalhe";
 import GaleriaEvento from "./pages/GaleriaEvento";
 import PlaylistEvento from "./pages/PlaylistEvento";
 import MapaEvento from "./pages/MapaEvento";
+import ChatEvento from "./pages/ChatEvento";
+import GrupoEvento from "./pages/GrupoEvento";
 import MinhasGalerias from "./pages/MinhasGalerias";
 import MinhasPlaylists from "./pages/MinhasPlaylists";
 import MapasGerais from "./pages/MapasGerais";
+import MeusChats from "./pages/MeusChats";
 import Perfil from "./pages/Perfil";
 import ScrollToTop from "./components/ScrollToTop";
 import AppLayout from "./components/AppLayout";
@@ -43,6 +46,7 @@ function App() {
           <Route path="/galerias" element={<MinhasGalerias />} />
           <Route path="/playlists" element={<MinhasPlaylists />} />
           <Route path="/mapas" element={<MapasGerais />} />
+          <Route path="/chats" element={<MeusChats />} />
           <Route path="/eventos" element={<EventosPage />} />
           <Route path="/eventos/novo" element={<CriarEvento />} />
           <Route path="/eventos/:id" element={<EventoDetalhe />} />
@@ -50,6 +54,8 @@ function App() {
           <Route path="/eventos/:id/galeria" element={<GaleriaEvento />} />
           <Route path="/eventos/:id/playlist" element={<PlaylistEvento />} />
           <Route path="/eventos/:id/mapa" element={<MapaEvento />} />
+          <Route path="/eventos/:id/chat" element={<ChatEvento />} />
+          <Route path="/eventos/:id/grupo" element={<GrupoEvento />} />
         </Route>
         </Routes>
       </PlayerProvider>

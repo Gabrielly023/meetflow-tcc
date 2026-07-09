@@ -47,7 +47,7 @@ export default function MinhasGalerias() {
                   Minhas <span className="texto-gradiente">galerias</span>
                 </h1>
                 <p className="mt-2 text-slate-400">
-                  Todas as galerias dos seus eventos, lado a lado. Clique em uma
+                  Todas as galerias dos meus eventos, lado a lado. Clique em uma
                   para ver e gerenciar as fotos.
                 </p>
               </div>
@@ -132,7 +132,7 @@ export default function MinhasGalerias() {
                     Galeria geral
                   </p>
                   <p className="mt-3 text-4xl font-semibold texto-gradiente sm:text-5xl">
-                    Todas as suas memórias
+                    Todas as minhas memórias
                   </p>
                   <p className="mt-3 text-slate-400">
                     {todasFotos.length} fotos de todos os eventos, num só lugar.

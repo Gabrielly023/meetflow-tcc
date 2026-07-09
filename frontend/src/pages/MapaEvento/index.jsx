@@ -24,8 +24,31 @@ const iconeAbrir = (
   </svg>
 );
 
-// Um cartão de local: mapa embutido + rótulo + abrir no Google Maps + remover.
+// Ícone de navegação (seta) usado no botão do Waze.
+const iconeNavegar = (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+    <path d="M11.03 2.59a1.5 1.5 0 011.94 0l7.5 6.363a1.5 1.5 0 01-.977 2.64H16.5v6.75a1.5 1.5 0 01-1.5 1.5h-6a1.5 1.5 0 01-1.5-1.5v-6.75H4.507a1.5 1.5 0 01-.977-2.64l7.5-6.363z" />
+  </svg>
+);
+
+// Estilo do botão "abrir" conforme o provedor do local.
+const ESTILO_PROVEDOR = {
+  google: {
+    rotulo: "Abrir no Google Maps",
+    icone: iconeAbrir,
+    classe:
+      "bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 shadow-fuchsia-500/20",
+  },
+  waze: {
+    rotulo: "Abrir no Waze",
+    icone: iconeNavegar,
+    classe: "bg-gradient-to-r from-cyan-400 to-sky-500 shadow-cyan-500/25",
+  },
+};
+
+// Um cartão de local: mapa embutido + rótulo + abrir no app (Google/Waze) + remover.
 function CardLocal({ local, podeRemover, onRemover }) {
+  const estilo = ESTILO_PROVEDOR[local.provedor] || ESTILO_PROVEDOR.google;
   return (
     <div className="overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-900/80 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20">
       {/* Mapa (visível dentro do app) */}
@@ -43,11 +66,13 @@ function CardLocal({ local, podeRemover, onRemover }) {
         <div className="flex aspect-[16/10] flex-col items-center justify-center gap-2 bg-slate-950/80 px-6 text-center text-slate-400">
           <span className="text-fuchsia-400">{iconeMapa}</span>
           <p className="text-sm">
-            Prévia indisponível para este link (provavelmente encurtado).
+            {local.provedor === "waze"
+              ? "Não conseguimos localizar este ponto para a prévia do Waze."
+              : "Prévia indisponível para este link (provavelmente encurtado)."}
           </p>
           <p className="text-xs text-slate-500">
-            Use o botão abaixo para abrir no Google Maps, ou cole o link completo
-            para ver o mapa aqui.
+            Use o botão abaixo para abrir o local, ou cole um link com
+            coordenadas (ou um endereço mais específico) para ver o mapa aqui.
           </p>
         </div>
       )}
@@ -68,10 +93,10 @@ function CardLocal({ local, podeRemover, onRemover }) {
               href={local.linkUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95"
+              className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold text-white shadow-lg transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95 ${estilo.classe}`}
             >
-              {iconeAbrir}
-              Abrir no Google Maps
+              {estilo.icone}
+              {estilo.rotulo}
             </a>
           )}
           {podeRemover && (
@@ -100,7 +125,9 @@ export default function MapaEvento() {
   const [locais, setLocais] = useState(() => listarLocais(id));
   const [link, setLink] = useState("");
   const [label, setLabel] = useState("");
+  const [provedor, setProvedor] = useState("google");
   const [erro, setErro] = useState("");
+  const [enviando, setEnviando] = useState(false);
   const [aRemover, setARemover] = useState(null);
 
   if (!evento) {
@@ -125,23 +152,30 @@ export default function MapaEvento() {
   // Prévia padrão (endereço do evento) quando ninguém adicionou local ainda.
   const padrao = mapaDoTexto(evento.local);
 
-  function handleAdicionar(e) {
+  async function handleAdicionar(e) {
     e.preventDefault();
     setErro("");
-    const res = adicionarLocal(id, link, label);
-    if (res.erro === "invalido") {
-      setErro(
-        "Não reconhecemos esse local. Cole um link do Google Maps, o código de incorporar, ou um endereço.",
-      );
-      return;
+    setEnviando(true);
+    try {
+      const res = await adicionarLocal(id, link, label, provedor);
+      if (res.erro === "invalido") {
+        setErro(
+          provedor === "waze"
+            ? "Não reconhecemos esse local. Cole um link do Waze, ou um endereço."
+            : "Não reconhecemos esse local. Cole um link do Google Maps, o código de incorporar, ou um endereço.",
+        );
+        return;
+      }
+      if (res.erro === "duplicado") {
+        setErro("Esse local já foi adicionado.");
+        return;
+      }
+      setLink("");
+      setLabel("");
+      setLocais(listarLocais(id));
+    } finally {
+      setEnviando(false);
     }
-    if (res.erro === "duplicado") {
-      setErro("Esse local já foi adicionado.");
-      return;
-    }
-    setLink("");
-    setLabel("");
-    setLocais(listarLocais(id));
   }
 
   function confirmarRemocao() {
@@ -199,10 +233,36 @@ export default function MapaEvento() {
               Adicionar local
             </p>
             <p className="mt-2 text-sm text-slate-400">
-              Cole o link do Google Maps do local do evento (ou o código de
-              incorporar). Qualquer participante pode adicionar, para todos
-              saberem onde será.
+              Escolha o app e cole o link do local do evento. Qualquer
+              participante pode adicionar, para todos saberem onde será.
             </p>
+
+            {/* Escolha do app: Google Maps ou Waze */}
+            <div
+              role="radiogroup"
+              aria-label="App do mapa"
+              className="mt-4 inline-flex rounded-2xl border border-slate-700 bg-slate-950/80 p-1"
+            >
+              {[
+                { valor: "google", texto: "Google Maps" },
+                { valor: "waze", texto: "Waze" },
+              ].map((opcao) => (
+                <button
+                  key={opcao.valor}
+                  type="button"
+                  role="radio"
+                  aria-checked={provedor === opcao.valor}
+                  onClick={() => setProvedor(opcao.valor)}
+                  className={`rounded-xl px-4 py-2 text-sm font-semibold transition duration-300 ${
+                    provedor === opcao.valor
+                      ? "bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 text-white shadow-lg shadow-fuchsia-500/20"
+                      : "text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  {opcao.texto}
+                </button>
+              ))}
+            </div>
 
             {erro && (
               <div className="mt-4 rounded-2xl border border-red-500/40 bg-red-900/40 px-4 py-3 text-sm text-red-200">
@@ -222,14 +282,19 @@ export default function MapaEvento() {
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
                 rows={2}
-                placeholder="Cole aqui o link do Google Maps (ex.: https://maps.app.goo.gl/... ou https://www.google.com/maps/place/...)"
+                placeholder={
+                  provedor === "waze"
+                    ? "Cole aqui o link do Waze (ex.: https://waze.com/ul?ll=-23.56,-46.65 ou https://waze.com/ul/...)"
+                    : "Cole aqui o link do Google Maps (ex.: https://maps.app.goo.gl/... ou https://www.google.com/maps/place/...)"
+                }
                 className="w-full resize-none rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-500/25"
               />
               <button
                 type="submit"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95 sm:self-start"
+                disabled={enviando}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 sm:self-start"
               >
-                Adicionar
+                {enviando ? "Adicionando…" : "Adicionar"}
               </button>
             </div>
 

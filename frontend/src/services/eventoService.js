@@ -181,8 +181,11 @@ export function criarEvento(dados) {
     id: `evt-${Date.now()}`,
     ownerId: getUsuarioAtualId(),
     ...montarCamposEvento(dados),
-    // Estruturas usadas na página de detalhe (começam vazias)
-    participants: [],
+    // Participantes informados já na criação (o chat/grupo semeia a partir daqui)
+    participants: (dados.participantes || []).map((nome, i) => ({
+      id: `p-${Date.now()}-${i}`,
+      name: nome,
+    })),
     messages: [],
   };
 

@@ -14,7 +14,7 @@ const RECURSOS = [
   {
     titulo: "Eventos",
     descricao:
-      "Crie, personalize com capa e gerencie todos os seus eventos em um só lugar.",
+      "Crie, personalize com capa e gerencie todos os meus eventos em um só lugar.",
     gradiente: "from-orange-500 via-fuchsia-500 to-sky-500",
     icone:
       "M6.75 3v2.25M17.25 3v2.25M3 8.25h18M4.5 4.5h15A1.5 1.5 0 0121 6v13.5A1.5 1.5 0 0119.5 21h-15A1.5 1.5 0 013 19.5V6a1.5 1.5 0 011.5-1.5z",
@@ -216,7 +216,7 @@ export default function Home() {
 
             <Reveal delay={200}>
               <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-300">
-                Crie, organize e viva seus encontros do começo ao fim. Capa
+                Crie, organize e viva meus encontros do começo ao fim. Capa
                 personalizada, chat, galeria de fotos, playlists e mapa — tudo
                 num só lugar, com a cara do seu evento.
               </p>

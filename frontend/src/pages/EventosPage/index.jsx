@@ -32,7 +32,7 @@ export default function EventosPage() {
                     <span className="texto-gradiente-2">Lixeira</span>
                   ) : (
                     <>
-                      <span className="text-white">Seus </span>
+                      <span className="text-white">Meus </span>
                       <span className="texto-gradiente-2">eventos</span>
                     </>
                   )}

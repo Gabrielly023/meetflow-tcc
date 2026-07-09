@@ -5,11 +5,28 @@ import ImageChoiceModal from "../ImageChoiceModal";
 
 const TIPOS = [
   "Show",
+  "Festa",
   "Social",
+  "Casamento",
+  "Aniversário",
+  "Formatura",
+  "Corporativo",
+  "Networking",
+  "Workshop",
+  "Palestra",
+  "Conferência",
   "Tecnologia",
-  "Outdoor",
-  "Entretenimento",
   "Cultural",
+  "Festival",
+  "Esportivo",
+  "Gastronômico",
+  "Religioso",
+  "Beneficente",
+  "Infantil",
+  "Ao ar livre",
+  "Exposição",
+  "Meetup",
+  "Educacional",
   "Outro",
 ];
 
@@ -54,7 +71,12 @@ export default function EventoForm({
   onSubmit,
   textoBotao = "Salvar",
   cancelarHref = "/eventos",
+  permitirParticipantes = false,
 }) {
+  const [participantes, setParticipantes] = useState(
+    valorInicial.participantes || [],
+  );
+  const [novoParticipante, setNovoParticipante] = useState("");
   const [form, setForm] = useState({
     titulo: valorInicial.titulo || "",
     tipo: valorInicial.tipo || "Social",
@@ -97,6 +119,22 @@ export default function EventoForm({
   function handleChange(event) {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  // Participantes/convidados adicionados já na criação do evento.
+  function adicionarParticipanteLocal() {
+    const nome = novoParticipante.trim();
+    if (!nome) return;
+    if (participantes.some((p) => p.toLowerCase() === nome.toLowerCase())) {
+      setNovoParticipante("");
+      return;
+    }
+    setParticipantes((prev) => [...prev, nome]);
+    setNovoParticipante("");
+  }
+
+  function removerParticipanteLocal(nome) {
+    setParticipantes((prev) => prev.filter((p) => p !== nome));
   }
 
   // Processa uma imagem (vinda do seletor OU de arrastar-e-soltar): valida,
@@ -170,6 +208,7 @@ export default function EventoForm({
       capaOrig: capaErro ? "" : capaOrig,
       mapaLink: form.mapaLink.trim(),
       playlistLink: form.playlistLink.trim(),
+      participantes,
     });
   }
 
@@ -207,7 +246,7 @@ export default function EventoForm({
 
     <form
       onSubmit={handleSubmit}
-      className="space-y-6 rounded-3xl border border-slate-800/70 bg-slate-900/80 p-8 shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-fuchsia-500/20"
+      className="space-y-6 rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/40 via-slate-900/40 to-sky-500/40 p-8 shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-fuchsia-500/20"
     >
       {erro && (
         <div className="rounded-2xl border border-red-500/40 bg-red-900/40 px-4 py-3 text-sm text-red-200">
@@ -476,6 +515,64 @@ export default function EventoForm({
           </p>
         </div>
       </div>
+
+      {/* PARTICIPANTES (só na criação) */}
+      {permitirParticipantes && (
+        <div>
+          <label htmlFor="novoParticipante" className={labelClass}>
+            Participantes <span className="text-slate-500">(opcional)</span>
+          </label>
+          <p className="mb-2 text-xs text-slate-500">
+            Adicione quem você quer no evento — eles já entram no grupo do chat.
+            Você também pode adicionar mais depois.
+          </p>
+          <div className="flex gap-2">
+            <input
+              id="novoParticipante"
+              type="text"
+              value={novoParticipante}
+              onChange={(e) => setNovoParticipante(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  adicionarParticipanteLocal();
+                }
+              }}
+              className={inputClass}
+              placeholder="Nome do participante"
+            />
+            <button
+              type="button"
+              onClick={adicionarParticipanteLocal}
+              className="shrink-0 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 text-sm font-semibold text-white transition hover:opacity-90"
+            >
+              Adicionar
+            </button>
+          </div>
+          {participantes.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {participantes.map((nome) => (
+                <span
+                  key={nome}
+                  className="flex items-center gap-2 rounded-full bg-fuchsia-500/10 px-3 py-1 text-sm font-medium text-fuchsia-200"
+                >
+                  {nome}
+                  <button
+                    type="button"
+                    onClick={() => removerParticipanteLocal(nome)}
+                    title="Remover"
+                    className="text-fuchsia-300/70 transition hover:text-red-300"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="h-3.5 w-3.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
         <Link
