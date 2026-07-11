@@ -1,5 +1,6 @@
 import express from "express";
 import usuarioController from "../controllers/usuarioController.js";
+import authMiddleware from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -9,16 +10,24 @@ router.post("/", usuarioController.criar);
 // Login
 router.post("/login", usuarioController.login);
 
+// 🔒 Rota de teste do middleware — devolve os dados do usuário logado
+router.get("/perfil", authMiddleware, (req, res) => {
+  res.json({
+    mensagem: "Token válido! Você está autenticado.",
+    usuario: req.usuario,
+  });
+});
+
 // Listar usuários
 router.get("/", usuarioController.listar);
 
 // Buscar usuário por ID
 router.get("/:id", usuarioController.buscarPorId);
 
-// Atualizar usuário
-router.put("/:id", usuarioController.atualizar);
+// Atualizar usuário (agora protegida)
+router.put("/:id", authMiddleware, usuarioController.atualizar);
 
-// Deletar usuário
-router.delete("/:id", usuarioController.deletar);
+// Deletar usuário (agora protegida)
+router.delete("/:id", authMiddleware, usuarioController.deletar);
 
 export default router;

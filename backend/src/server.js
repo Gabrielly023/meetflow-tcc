@@ -6,6 +6,7 @@ import { prisma } from "./config/db.js";
 
 // IMPORTANDO AS ROTAS
 import usuarioRouter from "./routes/usuarioRouter.js";
+import eventoRouter from "./routes/eventoRoutes.js";
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use(express.json());
 
 // USANDO AS ROTAS
 app.use("/usuarios", usuarioRouter);
+app.use("/eventos", eventoRouter);
 
 const PORT = process.env.PORT || 3000;
 

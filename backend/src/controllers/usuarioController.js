@@ -152,6 +152,14 @@ const usuarioController = {
   async atualizar(req, res) {
     try {
       const { id } = req.params;
+
+      // Só o próprio usuário logado pode atualizar seu perfil
+      if (req.usuario.id_usuario !== id) {
+        return res.status(403).json({
+          mensagem: "Você não tem permissão para atualizar este usuário.",
+        });
+      }
+
       const { nome, username, email, telefone, senha } = req.body;
 
       const dadosAtualizados = { nome, username, email, telefone };
@@ -178,6 +186,13 @@ const usuarioController = {
   async deletar(req, res) {
     try {
       const { id } = req.params;
+
+      // Só o próprio usuário logado pode se deletar
+      if (req.usuario.id_usuario !== id) {
+        return res.status(403).json({
+          mensagem: "Você não tem permissão para deletar este usuário.",
+        });
+      }
 
       await prisma.usuario.delete({
         where: { id_usuario: id },

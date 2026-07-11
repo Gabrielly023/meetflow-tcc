@@ -62,8 +62,12 @@ model Evento {
   titulo         String    @db.VarChar(150)
   descricao      String?   @db.Text
   data_hora      DateTime
+  data_hora_fim  DateTime?
   localizacao    String?   @db.VarChar(255)
   senha_acesso   String    @db.VarChar(255)
+  tipo           String?   @db.VarChar(50)
+  capa_url       String?   @db.VarChar(500)
+  playlist_spotify String? @db.VarChar(500)
 
   id_usuario     String
 
