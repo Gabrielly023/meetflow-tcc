@@ -1,4 +1,5 @@
 import { prisma } from "../config/db.js";
+import galeriaController from "../controllers/galeriaController.js";
 
 const eventoController = {
 
@@ -99,6 +100,7 @@ const eventoController = {
               id_usuario,
               papel: "organizador",
               status: "confirmado",
+              admin: true,
             },
           },
         },
@@ -189,6 +191,65 @@ const eventoController = {
     } catch (error) {
       console.error(error);
       res.status(500).json({ mensagem: "Erro ao excluir evento." });
+    }
+  },
+
+  // DEFINIR/TROCAR A PLAYLIST DO EVENTO
+  async definirPlaylist(req, res) {
+    try {
+      const { id } = req.params;
+      const { id_usuario } = req.usuario;
+      const { link_spotify } = req.body;
+
+      if (!link_spotify) {
+        return res.status(400).json({ mensagem: "Envie o link_spotify." });
+      }
+
+      const evento = await prisma.evento.findUnique({ where: { id_evento: id } });
+      if (!evento) {
+        return res.status(404).json({ mensagem: "Evento não encontrado." });
+      }
+
+      if (evento.id_usuario !== id_usuario) {
+        return res.status(403).json({ mensagem: "Apenas o organizador pode definir a playlist." });
+      }
+
+      const eventoAtualizado = await prisma.evento.update({
+        where: { id_evento: id },
+        data: { playlist_spotify: link_spotify },
+      });
+
+      res.json(eventoAtualizado);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ mensagem: "Erro ao definir playlist." });
+    }
+  },
+
+  // REMOVER A PLAYLIST DO EVENTO
+  async removerPlaylist(req, res) {
+    try {
+      const { id } = req.params;
+      const { id_usuario } = req.usuario;
+
+      const evento = await prisma.evento.findUnique({ where: { id_evento: id } });
+      if (!evento) {
+        return res.status(404).json({ mensagem: "Evento não encontrado." });
+      }
+
+      if (evento.id_usuario !== id_usuario) {
+        return res.status(403).json({ mensagem: "Apenas o organizador pode remover a playlist." });
+      }
+
+      const eventoAtualizado = await prisma.evento.update({
+        where: { id_evento: id },
+        data: { playlist_spotify: null },
+      });
+
+      res.json(eventoAtualizado);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ mensagem: "Erro ao remover playlist." });
     }
   },
 };

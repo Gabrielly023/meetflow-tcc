@@ -49,6 +49,8 @@ model Usuario {
   musicas         Musica[]
   chats           Chat[]
   leiturasChat    ChatLeitura[]
+  locais          Local[]
+  votosMusica     MusicaVoto[]
   
   @@map("usuario")
 }
@@ -79,6 +81,7 @@ model Evento {
   galerias      Galeria[]
   musicas       Musica[]
   chats         Chat[]
+  locais        Local[]
 }
 
 //
@@ -91,6 +94,7 @@ model Participantes {
 
   status StatusParticipante @default(confirmado)
   papel  PapelParticipante  @default(convidado)
+  admin  Boolean            @default(false)
 
   // RELAÇÕES
   evento  Evento  @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
@@ -116,6 +120,21 @@ model Galeria {
   usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
 }
 
+model Local {
+  id_local   String   @id @default(uuid()) @db.Char(36)
+  nome       String?  @db.VarChar(150)
+  link_maps  String   @db.VarChar(500)
+  criado_em  DateTime @default(now())
+
+  id_evento  String
+  id_usuario String
+
+  evento  Evento  @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
+  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@index([id_evento])
+}
+
 //
 // MUSICA
 //
@@ -133,6 +152,7 @@ model Musica {
   // RELAÇÕES
   evento  Evento  @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
   usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  votos   MusicaVoto[]
 
   @@index([id_evento], name: "idx_musica_evento")
 }
@@ -173,4 +193,14 @@ model ChatLeitura {
   usuario  Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
 
   @@id([id_chat, id_usuario])
+}
+
+model MusicaVoto {
+  id_musica  String
+  id_usuario String
+
+  musica  Musica  @relation(fields: [id_musica], references: [id_musica], onDelete: Cascade)
+  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@id([id_musica, id_usuario])
 }

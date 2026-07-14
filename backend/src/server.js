@@ -6,7 +6,15 @@ import { prisma } from "./config/db.js";
 
 // IMPORTANDO AS ROTAS
 import usuarioRouter from "./routes/usuarioRouter.js";
+
 import eventoRouter from "./routes/eventoRoutes.js";
+
+import galeriaRouter from "./routes/galeriaRoutes.js";
+
+import localRouter from "./routes/localRoutes.js";
+
+import musicaRouter from "./routes/musicaRoutes.js";
+
 
 dotenv.config();
 
@@ -19,6 +27,12 @@ app.use(
     credentials: true,
   }),
 );
+
+app.use("/musicas", musicaRouter);
+
+app.use("/locais", localRouter);
+
+app.use("/galeria", galeriaRouter);
 
 app.use(express.json());
 
