@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import validator from "validator";
 import { prisma } from "../config/db.js";
+import { sanitizarTexto } from "../utils/sanitize.js";
 
 const usuarioController = {
 
@@ -55,11 +57,33 @@ const usuarioController = {
   // CADASTRO
   async criar(req, res) {
     try {
-      const { nome, username, email, telefone, senha } = req.body;
+      let { nome, username, email, telefone, senha } = req.body;
 
       if (!nome || !username || !email || !telefone || !senha) {
         return res.status(400).json({
           mensagem: "Preencha todos os campos obrigatórios.",
+        });
+      }
+
+      // Sanitiza campos de texto livre
+      nome = sanitizarTexto(nome);
+
+      // Valida formato de email
+      if (!validator.isEmail(email)) {
+        return res.status(400).json({ mensagem: "Email inválido." });
+      }
+
+      // Valida tamanho mínimo da senha
+      if (senha.length < 6) {
+        return res.status(400).json({
+          mensagem: "A senha deve ter no mínimo 6 caracteres.",
+        });
+      }
+
+      // Valida formato do username (sem espaços/caracteres especiais)
+      if (!/^[a-zA-Z0-9._]+$/.test(username)) {
+        return res.status(400).json({
+          mensagem: "Username deve conter apenas letras, números, pontos ou underline.",
         });
       }
 
@@ -160,7 +184,19 @@ const usuarioController = {
         });
       }
 
-      const { nome, username, email, telefone, senha } = req.body;
+      let { nome, username, email, telefone, senha } = req.body;
+
+      if (email && !validator.isEmail(email)) {
+        return res.status(400).json({ mensagem: "Email inválido." });
+      }
+
+      if (senha && senha.length < 6) {
+        return res.status(400).json({
+          mensagem: "A senha deve ter no mínimo 6 caracteres.",
+        });
+      }
+
+      if (nome) nome = sanitizarTexto(nome);
 
       const dadosAtualizados = { nome, username, email, telefone };
 

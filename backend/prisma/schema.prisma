@@ -25,6 +25,7 @@ enum PapelParticipante {
 enum TipoChat {
   mensagem
   imagem
+  audio
   sistema
 }
 
@@ -51,6 +52,7 @@ model Usuario {
   leiturasChat    ChatLeitura[]
   locais          Local[]
   votosMusica     MusicaVoto[]
+  reacoesChat     ChatReacao[]
   
   @@map("usuario")
 }
@@ -165,17 +167,40 @@ model Chat {
   id_chat      String    @id @default(uuid()) @db.Char(36)
   conteudo     String?   @db.Text
   tipo         TipoChat  @default(mensagem)
+  imagem_url   String?   @db.VarChar(500)
+  audio_url    String?   @db.VarChar(500)
+  duracao      Int?
   criado_em    DateTime  @default(now())
+  editado_em   DateTime?
+  excluido     Boolean   @default(false)
 
   id_evento    String
   id_usuario   String
+  responder_a  String?
 
-  // RELAÇÕES
-  evento   Evento        @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
-  usuario  Usuario       @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
-  leituras ChatLeitura[]
+  evento     Evento        @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
+  usuario    Usuario       @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  leituras   ChatLeitura[]
+  reacoes    ChatReacao[]
+
+  // Auto-relação: uma mensagem pode responder a outra
+  mensagemCitada Chat?  @relation("RespostaChat", fields: [responder_a], references: [id_chat], onDelete: SetNull)
+  respostas      Chat[] @relation("RespostaChat")
 
   @@index([id_evento, criado_em], name: "idx_chat_evento_data")
+}
+
+//ChatReacao
+
+model ChatReacao {
+  id_chat    String
+  id_usuario String
+  emoji      String @db.VarChar(16)
+
+  chat    Chat    @relation(fields: [id_chat], references: [id_chat], onDelete: Cascade)
+  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@id([id_chat, id_usuario, emoji])
 }
 
 //

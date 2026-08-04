@@ -5,6 +5,7 @@ import galeriaController from "../controllers/galeriaController.js";
 import localController from "../controllers/localController.js";
 import musicaController from "../controllers/musicaController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
+import chatController from "../controllers/chatController.js";
 
 
 const router = express.Router();
@@ -38,5 +39,10 @@ router.delete("/:id/playlist", eventoController.removerPlaylist);
 
 router.get("/:id/musicas", musicaController.listar);
 router.post("/:id/musicas", musicaController.adicionar);
+
+// Chat
+router.get("/:id/chat", chatController.listar);
+router.post("/:id/chat", chatController.enviar);
+router.post("/:id/chat/lido", chatController.marcarLido);
 
 export default router;

@@ -1,5 +1,6 @@
 import { prisma } from "../config/db.js";
 import galeriaController from "../controllers/galeriaController.js";
+import { sanitizarTexto } from "../utils/sanitize.js";
 
 const eventoController = {
 
@@ -66,7 +67,7 @@ const eventoController = {
   async criar(req, res) {
     try {
       const { id_usuario } = req.usuario;
-      const {
+      let {
         titulo,
         descricao,
         data_hora,
@@ -82,6 +83,17 @@ const eventoController = {
           mensagem: "Preencha os campos obrigatórios: título, data e senha de acesso.",
         });
       }
+
+      // Valida se a data enviada é válida de verdade
+      if (isNaN(new Date(data_hora).getTime())) {
+        return res.status(400).json({ mensagem: "data_hora inválida." });
+      }
+
+      // Sanitiza campos de texto livre
+      titulo = sanitizarTexto(titulo);
+      if (descricao) descricao = sanitizarTexto(descricao);
+      if (localizacao) localizacao = sanitizarTexto(localizacao);
+      if (tipo) tipo = sanitizarTexto(tipo);
 
       const evento = await prisma.evento.create({
         data: {
@@ -133,7 +145,7 @@ const eventoController = {
         });
       }
 
-      const {
+      let {
         titulo,
         descricao,
         data_hora,
@@ -143,6 +155,11 @@ const eventoController = {
         tipo,
         capa_url,
       } = req.body;
+
+      if (titulo) titulo = sanitizarTexto(titulo);
+      if (descricao) descricao = sanitizarTexto(descricao);
+      if (localizacao) localizacao = sanitizarTexto(localizacao);
+      if (tipo) tipo = sanitizarTexto(tipo);
 
       const eventoAtualizado = await prisma.evento.update({
         where: { id_evento: id },

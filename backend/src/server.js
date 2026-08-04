@@ -1,19 +1,13 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-
 import { prisma } from "./config/db.js";
-
-// IMPORTANDO AS ROTAS
 import usuarioRouter from "./routes/usuarioRouter.js";
-
 import eventoRouter from "./routes/eventoRoutes.js";
-
 import galeriaRouter from "./routes/galeriaRoutes.js";
-
 import localRouter from "./routes/localRoutes.js";
-
 import musicaRouter from "./routes/musicaRoutes.js";
+import chatRouter from "./routes/chatRoutes.js";
 
 
 dotenv.config();
@@ -29,16 +23,12 @@ app.use(
 );
 
 app.use("/musicas", musicaRouter);
-
 app.use("/locais", localRouter);
-
 app.use("/galeria", galeriaRouter);
-
 app.use(express.json());
-
-// USANDO AS ROTAS
 app.use("/usuarios", usuarioRouter);
 app.use("/eventos", eventoRouter);
+app.use("/chat", chatRouter);
 
 const PORT = process.env.PORT || 3000;
 
