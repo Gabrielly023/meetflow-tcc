@@ -10,7 +10,6 @@ const Header = ({
     { label: "Login", href: "/login" },
   ],
   user,
-  onLogout,
 }) => {
   return (
     <header className="sticky top-0 z-40">
@@ -52,15 +51,9 @@ const Header = ({
             })}
           </nav>
 
-          {/* Sair + bolinha de perfil (leva para a página de perfil) */}
+          {/* Perfil do usuário */}
           {user && (
             <div className="flex items-center gap-3">
-              <button
-                onClick={onLogout}
-                className="rounded-full border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800"
-              >
-                Sair
-              </button>
               <Link
                 to="/perfil"
                 title="Meu perfil"

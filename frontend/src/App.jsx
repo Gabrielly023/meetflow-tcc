@@ -16,6 +16,8 @@ import MinhasGalerias from "./pages/MinhasGalerias";
 import MinhasPlaylists from "./pages/MinhasPlaylists";
 import MapasGerais from "./pages/MapasGerais";
 import MeusChats from "./pages/MeusChats";
+import MeusContatos from "./pages/MeusContatos";
+import Configuracoes from "./pages/Configuracoes";
 import Perfil from "./pages/Perfil";
 import ScrollToTop from "./components/ScrollToTop";
 import AppLayout from "./components/AppLayout";
@@ -47,6 +49,8 @@ function App() {
           <Route path="/playlists" element={<MinhasPlaylists />} />
           <Route path="/mapas" element={<MapasGerais />} />
           <Route path="/chats" element={<MeusChats />} />
+          <Route path="/contatos" element={<MeusContatos />} />
+          <Route path="/configuracoes" element={<Configuracoes />} />
           <Route path="/eventos" element={<EventosPage />} />
           <Route path="/eventos/novo" element={<CriarEvento />} />
           <Route path="/eventos/:id" element={<EventoDetalhe />} />
