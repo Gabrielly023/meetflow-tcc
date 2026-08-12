@@ -53,6 +53,7 @@ model Usuario {
   locais          Local[]
   votosMusica     MusicaVoto[]
   reacoesChat     ChatReacao[]
+  refreshTokens RefreshToken[]
   
   @@map("usuario")
 }
@@ -228,4 +229,14 @@ model MusicaVoto {
   usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
 
   @@id([id_musica, id_usuario])
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid()) @db.Char(36)
+  token      String   @unique @db.VarChar(500)
+  id_usuario String
+  criado_em  DateTime @default(now())
+  expira_em  DateTime
+
+  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
 }

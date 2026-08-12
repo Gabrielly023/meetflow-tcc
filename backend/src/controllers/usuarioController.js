@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import validator from "validator";
+import crypto from "crypto";
 import { prisma } from "../config/db.js";
 import { sanitizarTexto } from "../utils/sanitize.js";
 
@@ -65,22 +66,18 @@ const usuarioController = {
         });
       }
 
-      // Sanitiza campos de texto livre
       nome = sanitizarTexto(nome);
 
-      // Valida formato de email
       if (!validator.isEmail(email)) {
         return res.status(400).json({ mensagem: "Email inválido." });
       }
 
-      // Valida tamanho mínimo da senha
       if (senha.length < 6) {
         return res.status(400).json({
           mensagem: "A senha deve ter no mínimo 6 caracteres.",
         });
       }
 
-      // Valida formato do username (sem espaços/caracteres especiais)
       if (!/^[a-zA-Z0-9._]+$/.test(username)) {
         return res.status(400).json({
           mensagem: "Username deve conter apenas letras, números, pontos ou underline.",
@@ -153,11 +150,20 @@ const usuarioController = {
         return res.status(401).json({ mensagem: "Senha incorreta." });
       }
 
+      // Access token: curto, usado nas requisições normais
       const token = jwt.sign(
         { id_usuario: usuario.id_usuario, username: usuario.username },
         process.env.JWT_SECRET,
-        { expiresIn: "7d" }
+        { expiresIn: "15m" }
       );
+
+      // Refresh token: longo, só serve para renovar o access token
+      const refreshToken = crypto.randomBytes(40).toString("hex");
+      const expiraEm = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 dias
+
+      await prisma.refreshToken.create({
+        data: { token: refreshToken, id_usuario: usuario.id_usuario, expira_em: expiraEm },
+      });
 
       const { senha: _, ...usuarioSemSenha } = usuario;
 
@@ -165,10 +171,72 @@ const usuarioController = {
         mensagem: "Login realizado com sucesso!",
         usuario: usuarioSemSenha,
         token,
+        refreshToken,
       });
     } catch (error) {
       console.error(error);
       res.status(500).json({ mensagem: "Erro ao realizar login." });
+    }
+  },
+
+  // RENOVAR O ACCESS TOKEN USANDO O REFRESH TOKEN
+  async renovarToken(req, res) {
+    try {
+      const { refreshToken } = req.body;
+
+      if (!refreshToken) {
+        return res.status(400).json({ mensagem: "Envie o refreshToken." });
+      }
+
+      const registro = await prisma.refreshToken.findUnique({
+        where: { token: refreshToken },
+      });
+
+      if (!registro) {
+        return res.status(401).json({ mensagem: "Refresh token inválido." });
+      }
+
+      if (registro.expira_em < new Date()) {
+        await prisma.refreshToken.delete({ where: { token: refreshToken } });
+        return res.status(401).json({ mensagem: "Refresh token expirado. Faça login novamente." });
+      }
+
+      const usuario = await prisma.usuario.findUnique({
+        where: { id_usuario: registro.id_usuario },
+      });
+
+      if (!usuario) {
+        return res.status(404).json({ mensagem: "Usuário não encontrado." });
+      }
+
+      const novoToken = jwt.sign(
+        { id_usuario: usuario.id_usuario, username: usuario.username },
+        process.env.JWT_SECRET,
+        { expiresIn: "15m" }
+      );
+
+      res.json({ token: novoToken });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ mensagem: "Erro ao renovar token." });
+    }
+  },
+
+  // LOGOUT (revoga o refresh token)
+  async logout(req, res) {
+    try {
+      const { refreshToken } = req.body;
+
+      if (!refreshToken) {
+        return res.status(400).json({ mensagem: "Envie o refreshToken." });
+      }
+
+      await prisma.refreshToken.deleteMany({ where: { token: refreshToken } });
+
+      res.json({ mensagem: "Logout realizado com sucesso." });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ mensagem: "Erro ao fazer logout." });
     }
   },
 
@@ -177,7 +245,6 @@ const usuarioController = {
     try {
       const { id } = req.params;
 
-      // Só o próprio usuário logado pode atualizar seu perfil
       if (req.usuario.id_usuario !== id) {
         return res.status(403).json({
           mensagem: "Você não tem permissão para atualizar este usuário.",
@@ -223,7 +290,6 @@ const usuarioController = {
     try {
       const { id } = req.params;
 
-      // Só o próprio usuário logado pode se deletar
       if (req.usuario.id_usuario !== id) {
         return res.status(403).json({
           mensagem: "Você não tem permissão para deletar este usuário.",
