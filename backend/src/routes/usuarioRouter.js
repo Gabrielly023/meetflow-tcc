@@ -30,4 +30,7 @@ router.put("/:id", authMiddleware, usuarioController.atualizar);
 // Deletar usuário (agora protegida)
 router.delete("/:id", authMiddleware, usuarioController.deletar);
 
+router.post("/refresh-token", usuarioController.renovarToken);
+router.post("/logout", usuarioController.logout);
+
 export default router;
