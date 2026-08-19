@@ -18,6 +18,10 @@ const usuarioController = {
           email: true,
           telefone: true,
           foto_perfil: true,
+          bio: true,
+          foto_capa: true,
+          localizacao: true,
+          site: true,
         },
       });
       res.json(usuarios);
@@ -41,6 +45,10 @@ const usuarioController = {
           email: true,
           telefone: true,
           foto_perfil: true,
+          bio: true,
+          foto_capa: true,
+          localizacao: true,
+          site: true,
         },
       });
 
@@ -81,6 +89,12 @@ const usuarioController = {
       if (!/^[a-zA-Z0-9._]+$/.test(username)) {
         return res.status(400).json({
           mensagem: "Username deve conter apenas letras, números, pontos ou underline.",
+        });
+      }
+
+      if (telefone && !/^\(\d{2}\)\s?\d{4,5}-\d{4}$|^\d{10,11}$/.test(telefone)) {
+        return res.status(400).json({
+          mensagem: "Telefone inválido. Use formato: (XX) XXXXX-XXXX ou 10-11 dígitos.",
         });
       }
 
@@ -251,7 +265,7 @@ const usuarioController = {
         });
       }
 
-      let { nome, username, email, telefone, senha } = req.body;
+      let { nome, username, email, telefone, senha, bio, foto_capa, localizacao, site } = req.body;
 
       if (email && !validator.isEmail(email)) {
         return res.status(400).json({ mensagem: "Email inválido." });
@@ -263,9 +277,26 @@ const usuarioController = {
         });
       }
 
-      if (nome) nome = sanitizarTexto(nome);
+      if (telefone && !/^\(\d{2}\)\s?\d{4,5}-\d{4}$|^\d{10,11}$/.test(telefone)) {
+        return res.status(400).json({
+          mensagem: "Telefone inválido. Use formato: (XX) XXXXX-XXXX ou 10-11 dígitos.",
+        });
+      }
 
-      const dadosAtualizados = { nome, username, email, telefone };
+      // Validar URLs
+      if (foto_capa && !validator.isURL(foto_capa)) {
+        return res.status(400).json({ mensagem: "foto_capa deve ser uma URL válida." });
+      }
+
+      if (site && !validator.isURL(site)) {
+        return res.status(400).json({ mensagem: "site deve ser uma URL válida." });
+      }
+
+      if (nome) nome = sanitizarTexto(nome);
+      if (bio) bio = sanitizarTexto(bio);
+      if (localizacao) localizacao = sanitizarTexto(localizacao);
+
+      const dadosAtualizados = { nome, username, email, telefone, bio, foto_capa, localizacao, site };
 
       if (senha) {
         dadosAtualizados.senha = await bcrypt.hash(senha, 10);

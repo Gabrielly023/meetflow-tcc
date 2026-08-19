@@ -1,0 +1,1225 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-08-14T18:30:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2025.1.0",
+  "resources": [
+    {
+      "_id": "wrk_meetflow",
+      "_type": "workspace",
+      "parentId": null,
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "name": "MeetFlow API",
+      "description": "API Backend MeetFlow - Gerenciamento de Eventos",
+      "scope": "workspace"
+    },
+    {
+      "_id": "env_meetflow",
+      "_type": "environment",
+      "parentId": "wrk_meetflow",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "name": "Development",
+      "data": {
+        "baseUrl": "http://localhost:3000",
+        "token": "",
+        "userId": "",
+        "eventoId": "",
+        "fotoId": "",
+        "musicaId": "",
+        "localId": "",
+        "chatId": ""
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "baseUrl",
+          "token",
+          "userId",
+          "eventoId",
+          "fotoId",
+          "musicaId",
+          "localId",
+          "chatId"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1692057600000
+    },
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_meetflow",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "name": "🔐 Autenticação",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_cadastro",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/usuarios",
+      "name": "POST - Cadastro",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"João Silva\",\n  \"username\": \"joao.silva\",\n  \"email\": \"joao@email.com\",\n  \"telefone\": \"(11) 98765-4321\",\n  \"senha\": \"senha123\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_login",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/usuarios/login",
+      "name": "POST - Login",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"login\": \"joao.silva\",\n  \"senha\": \"senha123\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_perfil",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/usuarios/perfil",
+      "name": "GET - Perfil (Teste Token)",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_refresh_token",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/usuarios/refresh-token",
+      "name": "POST - Renovar Token",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"refreshToken\": \"seu_refresh_token_aqui\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 4
+    },
+    {
+      "_id": "req_logout",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/usuarios/logout",
+      "name": "POST - Logout",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"refreshToken\": \"seu_refresh_token_aqui\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 5
+    },
+    {
+      "_id": "fld_usuarios",
+      "_type": "request_group",
+      "parentId": "wrk_meetflow",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "name": "👤 Usuários",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_listar_usuarios",
+      "_type": "request",
+      "parentId": "fld_usuarios",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/usuarios",
+      "name": "GET - Listar Usuários",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_buscar_usuario",
+      "_type": "request",
+      "parentId": "fld_usuarios",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/usuarios/{{ userId }}",
+      "name": "GET - Buscar por ID",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_atualizar_usuario",
+      "_type": "request",
+      "parentId": "fld_usuarios",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/usuarios/{{ userId }}",
+      "name": "PUT - Atualizar Usuário",
+      "description": "",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"João Silva Atualizado\",\n  \"email\": \"joao.novo@email.com\",\n  \"telefone\": \"(11) 99999-8888\",\n  \"bio\": \"Apaixonado por eventos!\",\n  \"localizacao\": \"São Paulo, SP\",\n  \"foto_capa\": \"https://exemplo.com/capa.jpg\",\n  \"site\": \"https://meusite.com\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_deletar_usuario",
+      "_type": "request",
+      "parentId": "fld_usuarios",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/usuarios/{{ userId }}",
+      "name": "DELETE - Deletar Usuário",
+      "description": "",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 4
+    },
+    {
+      "_id": "fld_eventos",
+      "_type": "request_group",
+      "parentId": "wrk_meetflow",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "name": "📅 Eventos",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_criar_evento",
+      "_type": "request",
+      "parentId": "fld_eventos",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos",
+      "name": "POST - Criar Evento",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"titulo\": \"Festa de Aniversário\",\n  \"descricao\": \"Uma festa muito legal!\",\n  \"data_hora\": \"2026-09-15T20:00:00Z\",\n  \"data_hora_fim\": \"2026-09-16T02:00:00Z\",\n  \"localizacao\": \"Rua das Flores, 123 - São Paulo\",\n  \"senha_acesso\": \"senha123\",\n  \"tipo\": \"Festa\",\n  \"capa_url\": \"https://exemplo.com/capa.jpg\",\n  \"nome_grupo\": \"Grupo da Festa\",\n  \"descricao_grupo\": \"Turma reunida para a festa\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_listar_eventos",
+      "_type": "request",
+      "parentId": "fld_eventos",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos",
+      "name": "GET - Listar Eventos",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_buscar_evento",
+      "_type": "request",
+      "parentId": "fld_eventos",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}",
+      "name": "GET - Buscar Evento por ID",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_atualizar_evento",
+      "_type": "request",
+      "parentId": "fld_eventos",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}",
+      "name": "PUT - Atualizar Evento",
+      "description": "",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"titulo\": \"Festa de Aniversário - Atualizada\",\n  \"descricao\": \"Festa ainda mais legal agora!\",\n  \"capa_url\": \"https://exemplo.com/nova-capa.jpg\",\n  \"nome_grupo\": \"Galera da Festa\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 4
+    },
+    {
+      "_id": "req_deletar_evento",
+      "_type": "request",
+      "parentId": "fld_eventos",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}",
+      "name": "DELETE - Deletar Evento",
+      "description": "",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 5
+    },
+    {
+      "_id": "fld_participantes",
+      "_type": "request_group",
+      "parentId": "fld_eventos",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "name": "👥 Participantes",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_listar_participantes",
+      "_type": "request",
+      "parentId": "fld_participantes",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/participantes",
+      "name": "GET - Listar Participantes",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_adicionar_participante",
+      "_type": "request",
+      "parentId": "fld_participantes",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/participantes",
+      "name": "POST - Adicionar Participante (Senha)",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"senha_acesso\": \"senha123\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_adicionar_participante_admin",
+      "_type": "request",
+      "parentId": "fld_participantes",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/participantes",
+      "name": "POST - Adicionar Participante (Admin)",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"username\": \"joao.silva\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_sair_evento",
+      "_type": "request",
+      "parentId": "fld_participantes",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/participantes/me",
+      "name": "DELETE - Sair do Evento",
+      "description": "",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 4
+    },
+    {
+      "_id": "req_remover_participante",
+      "_type": "request",
+      "parentId": "fld_participantes",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/participantes/{{ userId }}",
+      "name": "DELETE - Remover Participante (Admin)",
+      "description": "",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 5
+    },
+    {
+      "_id": "req_promover_admin",
+      "_type": "request",
+      "parentId": "fld_participantes",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/participantes/{{ userId }}/admin",
+      "name": "POST - Promover Admin",
+      "description": "",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 6
+    },
+    {
+      "_id": "req_rebaixar_admin",
+      "_type": "request",
+      "parentId": "fld_participantes",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/participantes/{{ userId }}/admin",
+      "name": "DELETE - Rebaixar Admin",
+      "description": "",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 7
+    },
+    {
+      "_id": "fld_galeria",
+      "_type": "request_group",
+      "parentId": "fld_eventos",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "name": "🖼️ Galeria",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_listar_galeria",
+      "_type": "request",
+      "parentId": "fld_galeria",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/galeria",
+      "name": "GET - Listar Fotos",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_adicionar_foto",
+      "_type": "request",
+      "parentId": "fld_galeria",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/galeria",
+      "name": "POST - Adicionar Foto",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"url_foto\": \"https://exemplo.com/foto1.jpg\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_curtir_foto",
+      "_type": "request",
+      "parentId": "fld_galeria",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/galeria/{{ fotoId }}/curtir",
+      "name": "POST - Curtir/Descurtir Foto",
+      "description": "",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_deletar_foto",
+      "_type": "request",
+      "parentId": "fld_galeria",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/galeria/{{ fotoId }}",
+      "name": "DELETE - Deletar Foto",
+      "description": "",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 4
+    },
+    {
+      "_id": "fld_locais",
+      "_type": "request_group",
+      "parentId": "fld_eventos",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "name": "📍 Locais/Mapas",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_listar_locais",
+      "_type": "request",
+      "parentId": "fld_locais",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/locais",
+      "name": "GET - Listar Locais",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_adicionar_local",
+      "_type": "request",
+      "parentId": "fld_locais",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/locais",
+      "name": "POST - Adicionar Local",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Entrada Principal\",\n  \"link_maps\": \"https://maps.google.com/?q=Rua+das+Flores,+123\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_deletar_local",
+      "_type": "request",
+      "parentId": "fld_locais",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/locais/{{ localId }}",
+      "name": "DELETE - Deletar Local",
+      "description": "",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 3
+    },
+    {
+      "_id": "fld_playlist",
+      "_type": "request_group",
+      "parentId": "fld_eventos",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "name": "🎵 Playlist/Músicas",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 4
+    },
+    {
+      "_id": "req_definir_playlist",
+      "_type": "request",
+      "parentId": "fld_playlist",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/playlist",
+      "name": "PUT - Definir Playlist",
+      "description": "",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"link_spotify\": \"https://open.spotify.com/playlist/123456789\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_remover_playlist",
+      "_type": "request",
+      "parentId": "fld_playlist",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/playlist",
+      "name": "DELETE - Remover Playlist",
+      "description": "",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_listar_musicas",
+      "_type": "request",
+      "parentId": "fld_playlist",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/musicas",
+      "name": "GET - Listar Músicas",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_adicionar_musica",
+      "_type": "request",
+      "parentId": "fld_playlist",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/musicas",
+      "name": "POST - Adicionar Música",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"link_spotify\": \"https://open.spotify.com/track/123456\",\n  \"titulo\": \"Música Legal\",\n  \"capa_url\": \"https://exemplo.com/capa-musica.jpg\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 4
+    },
+    {
+      "_id": "req_votar_musica",
+      "_type": "request",
+      "parentId": "fld_playlist",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/musicas/{{ musicaId }}/voto",
+      "name": "POST - Votar/Desvotar Música",
+      "description": "",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 5
+    },
+    {
+      "_id": "req_deletar_musica",
+      "_type": "request",
+      "parentId": "fld_playlist",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/musicas/{{ musicaId }}",
+      "name": "DELETE - Deletar Música",
+      "description": "",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 6
+    },
+    {
+      "_id": "fld_chat",
+      "_type": "request_group",
+      "parentId": "fld_eventos",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "name": "💬 Chat",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 5
+    },
+    {
+      "_id": "req_listar_chat",
+      "_type": "request",
+      "parentId": "fld_chat",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/chat",
+      "name": "GET - Listar Mensagens",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_enviar_mensagem",
+      "_type": "request",
+      "parentId": "fld_chat",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/chat",
+      "name": "POST - Enviar Mensagem",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"conteudo\": \"Oi galera!\",\n  \"tipo\": \"mensagem\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_enviar_imagem",
+      "_type": "request",
+      "parentId": "fld_chat",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/chat",
+      "name": "POST - Enviar Imagem",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"tipo\": \"imagem\",\n  \"imagem_url\": \"https://exemplo.com/foto.jpg\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_enviar_audio",
+      "_type": "request",
+      "parentId": "fld_chat",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/chat",
+      "name": "POST - Enviar Áudio",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"tipo\": \"audio\",\n  \"audio_url\": \"https://exemplo.com/audio.mp3\",\n  \"duracao\": 30\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 4
+    },
+    {
+      "_id": "req_editar_mensagem",
+      "_type": "request",
+      "parentId": "fld_chat",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/chat/{{ chatId }}",
+      "name": "PUT - Editar Mensagem",
+      "description": "",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"conteudo\": \"Oi galera! (editado)\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 5
+    },
+    {
+      "_id": "req_deletar_mensagem",
+      "_type": "request",
+      "parentId": "fld_chat",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/chat/{{ chatId }}",
+      "name": "DELETE - Deletar Mensagem",
+      "description": "",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 6
+    },
+    {
+      "_id": "req_reagir_mensagem",
+      "_type": "request",
+      "parentId": "fld_chat",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/chat/{{ chatId }}/reacao",
+      "name": "POST - Reagir com Emoji",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"emoji\": \"😂\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 7
+    },
+    {
+      "_id": "req_marcar_lido",
+      "_type": "request",
+      "parentId": "fld_chat",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/chat/lido",
+      "name": "POST - Marcar Chat como Lido",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"id_chat\": \"{{ chatId }}\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 8
+    },
+    {
+      "_id": "fld_grupo",
+      "_type": "request_group",
+      "parentId": "fld_eventos",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "name": "👨‍👩‍👧‍👦 Grupo do Chat",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 6
+    },
+    {
+      "_id": "req_buscar_grupo",
+      "_type": "request",
+      "parentId": "fld_grupo",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/grupo",
+      "name": "GET - Buscar Grupo",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_atualizar_grupo",
+      "_type": "request",
+      "parentId": "fld_grupo",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/grupo",
+      "name": "PUT - Atualizar Grupo (Admin)",
+      "description": "",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome_grupo\": \"Turma da Festa\",\n  \"descricao_grupo\": \"Galera reunida pra festar!\",\n  \"foto_grupo\": \"https://exemplo.com/grupo.jpg\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_atualizar_papel_parede",
+      "_type": "request",
+      "parentId": "fld_grupo",
+      "modified": 1692057600000,
+      "created": 1692057600000,
+      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/grupo/papel-parede",
+      "name": "PUT - Atualizar Papel de Parede",
+      "description": "",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"papel_parede\": \"https://exemplo.com/papel-parede.jpg\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": 3
+    }
+  ]
+}

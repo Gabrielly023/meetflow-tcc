@@ -42,6 +42,10 @@ model Usuario {
   telefone     String   @db.VarChar(20)
   senha        String   @db.VarChar(255)
   foto_perfil  String?  @db.VarChar(500)
+  bio          String?  @db.Text
+  foto_capa    String?  @db.VarChar(500)
+  localizacao  String?  @db.VarChar(150)
+  site         String?  @db.VarChar(255)
 
   // RELAÇÕES
   eventos         Evento[]
@@ -53,6 +57,7 @@ model Usuario {
   locais          Local[]
   votosMusica     MusicaVoto[]
   reacoesChat     ChatReacao[]
+  curtidas        GaleriaCurtida[]
   refreshTokens RefreshToken[]
   
   @@map("usuario")
@@ -73,6 +78,13 @@ model Evento {
   tipo           String?   @db.VarChar(50)
   capa_url       String?   @db.VarChar(500)
   playlist_spotify String? @db.VarChar(500)
+
+  // CAMPOS DO GRUPO (ADICIONE AQUI)
+  nome_grupo       String?  @db.VarChar(150)
+  descricao_grupo  String?  @db.Text
+  foto_grupo       String?  @db.VarChar(500)
+  papel_parede     String?  @db.VarChar(500)
+
 
   id_usuario     String
 
@@ -119,8 +131,24 @@ model Galeria {
   id_usuario  String
 
   // RELAÇÕES
-  evento  Evento  @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
+  evento     Evento           @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
+  usuario    Usuario          @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  curtidas   GaleriaCurtida[]
+}
+
+//
+// GALERIA CURTIDA
+//
+
+model GaleriaCurtida {
+  id_foto    String
+  id_usuario String
+  curtido_em DateTime @default(now())
+
+  galeria Galeria @relation(fields: [id_foto], references: [id_foto], onDelete: Cascade)
   usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+
+  @@id([id_foto, id_usuario])
 }
 
 model Local {

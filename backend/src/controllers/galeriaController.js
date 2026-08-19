@@ -1,3 +1,4 @@
+import validator from "validator";
 import { prisma } from "../config/db.js";
 
 const galeriaController = {
@@ -11,6 +12,23 @@ const galeriaController = {
       const evento = await prisma.evento.findUnique({ where: { id_evento: id } });
       if (!evento) {
         return res.status(404).json({ mensagem: "Evento não encontrado." });
+        const fotos = await prisma.galeria.findMany({
+  where: { id_evento: id },
+  orderBy: { postado_em: "desc" },
+  include: { curtidas: true },
+});
+
+// Formatar resposta
+const resposta = fotos.map((foto) => ({
+  id_foto: foto.id_foto,
+  url_foto: foto.url_foto,
+  postado_em: foto.postado_em,
+  id_usuario: foto.id_usuario,
+  curtidas: foto.curtidas.map((c) => c.id_usuario),
+}));
+
+res.json(resposta);
+         
       }
 
       // Só quem participa do evento (ou é o organizador) pode ver a galeria
@@ -49,6 +67,10 @@ const galeriaController = {
 
       if (!url_foto) {
         return res.status(400).json({ mensagem: "Envie a url_foto." });
+      }
+
+      if (!validator.isURL(url_foto)) {
+        return res.status(400).json({ mensagem: "url_foto deve ser uma URL válida." });
       }
 
       const evento = await prisma.evento.findUnique({ where: { id_evento: id } });
@@ -106,6 +128,41 @@ const galeriaController = {
       res.status(500).json({ mensagem: "Erro ao remover foto." });
     }
   },
+  // ALTERNAR CURTIDA (curtir/descurtir)
+async curtir(req, res) {
+  try {
+    const { idFoto } = req.params;
+    const { id_usuario } = req.usuario;
+
+    const foto = await prisma.galeria.findUnique({ where: { id_foto: idFoto } });
+    if (!foto) {
+      return res.status(404).json({ mensagem: "Foto não encontrada." });
+    }
+
+    const curtidaExistente = await prisma.galeriaCurtida.findUnique({
+      where: { id_foto_id_usuario: { id_foto: idFoto, id_usuario } },
+    });
+
+    if (curtidaExistente) {
+      // Descurtir
+      await prisma.galeriaCurtida.delete({
+        where: { id_foto_id_usuario: { id_foto: idFoto, id_usuario } },
+      });
+      res.json({ mensagem: "Foto descurtida.", curtida: false });
+    } else {
+      // Curtir
+      await prisma.galeriaCurtida.create({
+        data: { id_foto: idFoto, id_usuario },
+      });
+      res.status(201).json({ mensagem: "Foto curtida.", curtida: true });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensagem: "Erro ao curtir foto." });
+  }
+}
 };
+
+
 
 export default galeriaController;
