@@ -6,7 +6,6 @@ import { prisma } from "../config/db.js";
 import { sanitizarTexto } from "../utils/sanitize.js";
 
 const usuarioController = {
-
   // LISTAR TODOS OS USUÁRIOS
   async listar(req, res) {
     try {
@@ -17,12 +16,17 @@ const usuarioController = {
           username: true,
           email: true,
           telefone: true,
+<<<<<<< HEAD
           foto_perfil: true,
           bio: true,
           foto_capa: true,
           localizacao: true,
           site: true,
         },
+=======
+          foto_perfil: true
+        }
+>>>>>>> 507bb45f9e700d74e09425dd412e0a34e2e40da5
       });
       res.json(usuarios);
     } catch (error) {
@@ -44,12 +48,17 @@ const usuarioController = {
           username: true,
           email: true,
           telefone: true,
+<<<<<<< HEAD
           foto_perfil: true,
           bio: true,
           foto_capa: true,
           localizacao: true,
           site: true,
         },
+=======
+          foto_perfil: true
+        }
+>>>>>>> 507bb45f9e700d74e09425dd412e0a34e2e40da5
       });
 
       if (!usuario) {
@@ -66,11 +75,11 @@ const usuarioController = {
   // CADASTRO
   async criar(req, res) {
     try {
-      let { nome, username, email, telefone, senha } = req.body;
+      let { nome, username, email, telefone, senha, foto_perfil } = req.body;
 
       if (!nome || !username || !email || !telefone || !senha) {
         return res.status(400).json({
-          mensagem: "Preencha todos os campos obrigatórios.",
+          mensagem: "Preencha todos os campos obrigatórios."
         });
       }
 
@@ -82,13 +91,14 @@ const usuarioController = {
 
       if (senha.length < 6) {
         return res.status(400).json({
-          mensagem: "A senha deve ter no mínimo 6 caracteres.",
+          mensagem: "A senha deve ter no mínimo 6 caracteres."
         });
       }
 
       if (!/^[a-zA-Z0-9._]+$/.test(username)) {
         return res.status(400).json({
-          mensagem: "Username deve conter apenas letras, números, pontos ou underline.",
+          mensagem:
+            "Username deve conter apenas letras, números, pontos ou underline."
         });
       }
 
@@ -100,13 +110,13 @@ const usuarioController = {
 
       const usuarioExistente = await prisma.usuario.findFirst({
         where: {
-          OR: [{ email }, { username }],
-        },
+          OR: [{ email }, { username }]
+        }
       });
 
       if (usuarioExistente) {
         return res.status(409).json({
-          mensagem: "Email ou nome de usuário já cadastrado.",
+          mensagem: "Email ou nome de usuário já cadastrado."
         });
       }
 
@@ -118,15 +128,15 @@ const usuarioController = {
           username,
           email,
           telefone,
-          senha: senhaCriptografada,
-        },
+          senha: senhaCriptografada
+        }
       });
 
       const { senha: _, ...usuarioSemSenha } = usuario;
 
       res.status(201).json({
         mensagem: "Cadastro realizado com sucesso!",
-        usuario: usuarioSemSenha,
+        usuario: usuarioSemSenha
       });
     } catch (error) {
       console.error(error);
@@ -141,20 +151,20 @@ const usuarioController = {
 
       if (!login || !senha) {
         return res.status(400).json({
-          mensagem: "Informe email/username e senha.",
+          mensagem: "Informe email/username e senha."
         });
       }
 
       const usuario = await prisma.usuario.findFirst({
         where: {
-          OR: [{ username: login }, { email: login }],
-        },
+          OR: [{ username: login }, { email: login }]
+        }
       });
 
       if (!usuario) {
         return res.status(404).json({
           mensagem:
-            "Você ainda não possui cadastro. Faça seu cadastro para entrar no MeetFlow.",
+            "Você ainda não possui cadastro. Faça seu cadastro para entrar no MeetFlow."
         });
       }
 
@@ -176,7 +186,11 @@ const usuarioController = {
       const expiraEm = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 dias
 
       await prisma.refreshToken.create({
-        data: { token: refreshToken, id_usuario: usuario.id_usuario, expira_em: expiraEm },
+        data: {
+          token: refreshToken,
+          id_usuario: usuario.id_usuario,
+          expira_em: expiraEm
+        }
       });
 
       const { senha: _, ...usuarioSemSenha } = usuario;
@@ -185,7 +199,7 @@ const usuarioController = {
         mensagem: "Login realizado com sucesso!",
         usuario: usuarioSemSenha,
         token,
-        refreshToken,
+        refreshToken
       });
     } catch (error) {
       console.error(error);
@@ -203,7 +217,7 @@ const usuarioController = {
       }
 
       const registro = await prisma.refreshToken.findUnique({
-        where: { token: refreshToken },
+        where: { token: refreshToken }
       });
 
       if (!registro) {
@@ -212,11 +226,13 @@ const usuarioController = {
 
       if (registro.expira_em < new Date()) {
         await prisma.refreshToken.delete({ where: { token: refreshToken } });
-        return res.status(401).json({ mensagem: "Refresh token expirado. Faça login novamente." });
+        return res
+          .status(401)
+          .json({ mensagem: "Refresh token expirado. Faça login novamente." });
       }
 
       const usuario = await prisma.usuario.findUnique({
-        where: { id_usuario: registro.id_usuario },
+        where: { id_usuario: registro.id_usuario }
       });
 
       if (!usuario) {
@@ -261,7 +277,7 @@ const usuarioController = {
 
       if (req.usuario.id_usuario !== id) {
         return res.status(403).json({
-          mensagem: "Você não tem permissão para atualizar este usuário.",
+          mensagem: "Você não tem permissão para atualizar este usuário."
         });
       }
 
@@ -273,7 +289,7 @@ const usuarioController = {
 
       if (senha && senha.length < 6) {
         return res.status(400).json({
-          mensagem: "A senha deve ter no mínimo 6 caracteres.",
+          mensagem: "A senha deve ter no mínimo 6 caracteres."
         });
       }
 
@@ -304,7 +320,7 @@ const usuarioController = {
 
       const usuario = await prisma.usuario.update({
         where: { id_usuario: id },
-        data: dadosAtualizados,
+        data: dadosAtualizados
       });
 
       const { senha: _, ...usuarioSemSenha } = usuario;
@@ -323,12 +339,12 @@ const usuarioController = {
 
       if (req.usuario.id_usuario !== id) {
         return res.status(403).json({
-          mensagem: "Você não tem permissão para deletar este usuário.",
+          mensagem: "Você não tem permissão para deletar este usuário."
         });
       }
 
       await prisma.usuario.delete({
-        where: { id_usuario: id },
+        where: { id_usuario: id }
       });
 
       res.json({ mensagem: "Usuário deletado com sucesso" });
@@ -336,7 +352,7 @@ const usuarioController = {
       console.error(error);
       res.status(500).json({ mensagem: "Erro ao deletar usuário." });
     }
-  },
+  }
 };
 
 export default usuarioController;

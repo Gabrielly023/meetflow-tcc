@@ -51,13 +51,15 @@ model Usuario {
   eventos         Evento[]
   participacoes   Participantes[]
   galerias        Galeria[]
-  musicas         Musica[]
   chats           Chat[]
+<<<<<<< HEAD
   leiturasChat    ChatLeitura[]
   locais          Local[]
   votosMusica     MusicaVoto[]
   reacoesChat     ChatReacao[]
   curtidas        GaleriaCurtida[]
+=======
+>>>>>>> 507bb45f9e700d74e09425dd412e0a34e2e40da5
   refreshTokens RefreshToken[]
   
   @@map("usuario")
@@ -77,6 +79,7 @@ model Evento {
   senha_acesso   String    @db.VarChar(255)
   tipo           String?   @db.VarChar(50)
   capa_url       String?   @db.VarChar(500)
+  google_maps    String? @db.VarChar(500)
   playlist_spotify String? @db.VarChar(500)
 
   // CAMPOS DO GRUPO (ADICIONE AQUI)
@@ -94,9 +97,7 @@ model Evento {
   // RELAÇÕES
   participantes Participantes[]
   galerias      Galeria[]
-  musicas       Musica[]
   chats         Chat[]
-  locais        Local[]
 }
 
 //
@@ -151,42 +152,6 @@ model GaleriaCurtida {
   @@id([id_foto, id_usuario])
 }
 
-model Local {
-  id_local   String   @id @default(uuid()) @db.Char(36)
-  nome       String?  @db.VarChar(150)
-  link_maps  String   @db.VarChar(500)
-  criado_em  DateTime @default(now())
-
-  id_evento  String
-  id_usuario String
-
-  evento  Evento  @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
-  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
-
-  @@index([id_evento])
-}
-
-//
-// MUSICA
-//
-
-model Musica {
-  id_musica     String    @id @default(uuid()) @db.Char(36)
-  titulo        String?   @db.VarChar(150)
-  link_spotify  String    @db.VarChar(500)
-  capa_url      String?   @db.VarChar(500)
-  criado_em     DateTime  @default(now())
-
-  id_evento     String
-  id_usuario    String
-
-  // RELAÇÕES
-  evento  Evento  @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
-  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
-  votos   MusicaVoto[]
-
-  @@index([id_evento], name: "idx_musica_evento")
-}
 
 //
 // CHAT
@@ -209,54 +174,12 @@ model Chat {
 
   evento     Evento        @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
   usuario    Usuario       @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
-  leituras   ChatLeitura[]
-  reacoes    ChatReacao[]
 
   // Auto-relação: uma mensagem pode responder a outra
   mensagemCitada Chat?  @relation("RespostaChat", fields: [responder_a], references: [id_chat], onDelete: SetNull)
   respostas      Chat[] @relation("RespostaChat")
 
   @@index([id_evento, criado_em], name: "idx_chat_evento_data")
-}
-
-//ChatReacao
-
-model ChatReacao {
-  id_chat    String
-  id_usuario String
-  emoji      String @db.VarChar(16)
-
-  chat    Chat    @relation(fields: [id_chat], references: [id_chat], onDelete: Cascade)
-  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
-
-  @@id([id_chat, id_usuario, emoji])
-}
-
-//
-// CHAT LEITURA
-//
-
-model ChatLeitura {
-  id_chat      String
-  id_usuario   String
-
-  lido_em      DateTime?
-
-  // RELAÇÕES
-  chat     Chat    @relation(fields: [id_chat], references: [id_chat], onDelete: Cascade)
-  usuario  Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
-
-  @@id([id_chat, id_usuario])
-}
-
-model MusicaVoto {
-  id_musica  String
-  id_usuario String
-
-  musica  Musica  @relation(fields: [id_musica], references: [id_musica], onDelete: Cascade)
-  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
-
-  @@id([id_musica, id_usuario])
 }
 
 model RefreshToken {
