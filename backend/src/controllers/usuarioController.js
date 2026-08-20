@@ -16,17 +16,12 @@ const usuarioController = {
           username: true,
           email: true,
           telefone: true,
-<<<<<<< HEAD
           foto_perfil: true,
           bio: true,
           foto_capa: true,
           localizacao: true,
-          site: true,
-        },
-=======
-          foto_perfil: true
+          site: true
         }
->>>>>>> 507bb45f9e700d74e09425dd412e0a34e2e40da5
       });
       res.json(usuarios);
     } catch (error) {
@@ -48,17 +43,12 @@ const usuarioController = {
           username: true,
           email: true,
           telefone: true,
-<<<<<<< HEAD
           foto_perfil: true,
           bio: true,
           foto_capa: true,
           localizacao: true,
-          site: true,
-        },
-=======
-          foto_perfil: true
+          site: true
         }
->>>>>>> 507bb45f9e700d74e09425dd412e0a34e2e40da5
       });
 
       if (!usuario) {
@@ -75,7 +65,7 @@ const usuarioController = {
   // CADASTRO
   async criar(req, res) {
     try {
-      let { nome, username, email, telefone, senha, foto_perfil } = req.body;
+      let { nome, username, email, telefone, senha } = req.body;
 
       if (!nome || !username || !email || !telefone || !senha) {
         return res.status(400).json({
@@ -102,9 +92,13 @@ const usuarioController = {
         });
       }
 
-      if (telefone && !/^\(\d{2}\)\s?\d{4,5}-\d{4}$|^\d{10,11}$/.test(telefone)) {
+      if (
+        telefone &&
+        !/^\(\d{2}\)\s?\d{4,5}-\d{4}$|^\d{10,11}$/.test(telefone)
+      ) {
         return res.status(400).json({
-          mensagem: "Telefone inválido. Use formato: (XX) XXXXX-XXXX ou 10-11 dígitos.",
+          mensagem:
+            "Telefone inválido. Use formato: (XX) XXXXX-XXXX ou 10-11 dígitos."
         });
       }
 
@@ -147,17 +141,17 @@ const usuarioController = {
   // LOGIN
   async login(req, res) {
     try {
-      const { login, senha } = req.body;
+      const { username, senha } = req.body;
 
-      if (!login || !senha) {
+      if (!username || !senha) {
         return res.status(400).json({
           mensagem: "Informe email/username e senha."
         });
       }
 
-      const usuario = await prisma.usuario.findFirst({
+      const usuario = await prisma.usuario.findUnique({
         where: {
-          OR: [{ username: login }, { email: login }]
+          username: username
         }
       });
 
@@ -281,7 +275,17 @@ const usuarioController = {
         });
       }
 
-      let { nome, username, email, telefone, senha, bio, foto_capa, localizacao, site } = req.body;
+      let {
+        nome,
+        username,
+        email,
+        telefone,
+        senha,
+        bio,
+        foto_capa,
+        localizacao,
+        site
+      } = req.body;
 
       if (email && !validator.isEmail(email)) {
         return res.status(400).json({ mensagem: "Email inválido." });
@@ -293,26 +297,43 @@ const usuarioController = {
         });
       }
 
-      if (telefone && !/^\(\d{2}\)\s?\d{4,5}-\d{4}$|^\d{10,11}$/.test(telefone)) {
+      if (
+        telefone &&
+        !/^\(\d{2}\)\s?\d{4,5}-\d{4}$|^\d{10,11}$/.test(telefone)
+      ) {
         return res.status(400).json({
-          mensagem: "Telefone inválido. Use formato: (XX) XXXXX-XXXX ou 10-11 dígitos.",
+          mensagem:
+            "Telefone inválido. Use formato: (XX) XXXXX-XXXX ou 10-11 dígitos."
         });
       }
 
       // Validar URLs
       if (foto_capa && !validator.isURL(foto_capa)) {
-        return res.status(400).json({ mensagem: "foto_capa deve ser uma URL válida." });
+        return res
+          .status(400)
+          .json({ mensagem: "foto_capa deve ser uma URL válida." });
       }
 
       if (site && !validator.isURL(site)) {
-        return res.status(400).json({ mensagem: "site deve ser uma URL válida." });
+        return res
+          .status(400)
+          .json({ mensagem: "site deve ser uma URL válida." });
       }
 
       if (nome) nome = sanitizarTexto(nome);
       if (bio) bio = sanitizarTexto(bio);
       if (localizacao) localizacao = sanitizarTexto(localizacao);
 
-      const dadosAtualizados = { nome, username, email, telefone, bio, foto_capa, localizacao, site };
+      const dadosAtualizados = {
+        nome,
+        username,
+        email,
+        telefone,
+        bio,
+        foto_capa,
+        localizacao,
+        site
+      };
 
       if (senha) {
         dadosAtualizados.senha = await bcrypt.hash(senha, 10);

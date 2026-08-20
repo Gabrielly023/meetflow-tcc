@@ -99,16 +99,24 @@ const eventoController = {
 
       // Valida URLs
       if (capa_url && !validator.isURL(capa_url)) {
-        return res.status(400).json({ mensagem: "capa_url deve ser uma URL válida." });
+        return res
+          .status(400)
+          .json({ mensagem: "capa_url deve ser uma URL válida." });
       }
 
-      if (req.body.playlist_spotify && !validator.isURL(req.body.playlist_spotify)) {
-        return res.status(400).json({ mensagem: "playlist_spotify deve ser uma URL válida." });
+      if (
+        req.body.playlist_spotify &&
+        !validator.isURL(req.body.playlist_spotify)
+      ) {
+        return res
+          .status(400)
+          .json({ mensagem: "playlist_spotify deve ser uma URL válida." });
       }
-            // Sanitizar campos do grupo
+      // Sanitizar campos do grupo
       if (req.body.nome_grupo) nome_grupo = sanitizarTexto(req.body.nome_grupo);
 
-      if (req.body.descricao_grupo) descricao_grupo = sanitizarTexto(req.body.descricao_grupo);
+      if (req.body.descricao_grupo)
+        descricao_grupo = sanitizarTexto(req.body.descricao_grupo);
 
       const evento = await prisma.evento.create({
         data: {
@@ -120,17 +128,7 @@ const eventoController = {
           senha_acesso,
           tipo,
           capa_url,
-<<<<<<< HEAD
-          id_usuario,
-          nome_grupo,
-          descricao_grupo,
-          foto_grupo,
-          papel_parede,
-=======
-          google_maps,
-          playlist_spotify,
           id_usuario
->>>>>>> 507bb45f9e700d74e09425dd412e0a34e2e40da5
           // O criador já entra como participante, papel organizador
           // participantes: {
           //   create: {
@@ -178,28 +176,28 @@ const eventoController = {
         localizacao,
         senha_acesso,
         tipo,
-<<<<<<< HEAD
         capa_url,
         nome_grupo,
         descricao_grupo,
         foto_grupo,
         papel_parede
-=======
-        capa_url
->>>>>>> 507bb45f9e700d74e09425dd412e0a34e2e40da5
       } = req.body;
-      
+
       if (foto_grupo && !validator.isURL(foto_grupo)) {
-  return res.status(400).json({ mensagem: "foto_grupo deve ser uma URL válida." });
-}
+        return res
+          .status(400)
+          .json({ mensagem: "foto_grupo deve ser uma URL válida." });
+      }
 
-if (papel_parede && !validator.isURL(papel_parede)) {
-  return res.status(400).json({ mensagem: "papel_parede deve ser uma URL válida." });
-}
+      if (papel_parede && !validator.isURL(papel_parede)) {
+        return res
+          .status(400)
+          .json({ mensagem: "papel_parede deve ser uma URL válida." });
+      }
 
-// Sanitizar
-if (nome_grupo) nome_grupo = sanitizarTexto(nome_grupo);
-if (descricao_grupo) descricao_grupo = sanitizarTexto(descricao_grupo);
+      // Sanitizar
+      if (nome_grupo) nome_grupo = sanitizarTexto(nome_grupo);
+      if (descricao_grupo) descricao_grupo = sanitizarTexto(descricao_grupo);
       if (titulo) titulo = sanitizarTexto(titulo);
       if (descricao) descricao = sanitizarTexto(descricao);
       if (localizacao) localizacao = sanitizarTexto(localizacao);
@@ -207,7 +205,9 @@ if (descricao_grupo) descricao_grupo = sanitizarTexto(descricao_grupo);
 
       // Valida URL da capa, se for enviada
       if (capa_url && !validator.isURL(capa_url)) {
-        return res.status(400).json({ mensagem: "capa_url deve ser uma URL válida." });
+        return res
+          .status(400)
+          .json({ mensagem: "capa_url deve ser uma URL válida." });
       }
 
       const eventoAtualizado = await prisma.evento.update({
@@ -271,23 +271,14 @@ if (descricao_grupo) descricao_grupo = sanitizarTexto(descricao_grupo);
   //       return res.status(400).json({ mensagem: "Envie o link_spotify." });
   //     }
 
-<<<<<<< HEAD
-      if (!validator.isURL(link_spotify)) {
-        return res.status(400).json({ mensagem: "link_spotify deve ser uma URL válida." });
-      }
+  // if (!validator.isURL(link_spotify)) {
+  //   return res.status(400).json({ mensagem: "link_spotify deve ser uma URL válida." });
+  // }
 
-      const evento = await prisma.evento.findUnique({ where: { id_evento: id } });
-      if (!evento) {
-        return res.status(404).json({ mensagem: "Evento não encontrado." });
-      }
-=======
-  //     const evento = await prisma.evento.findUnique({
-  //       where: { id_evento: id }
-  //     });
-  //     if (!evento) {
-  //       return res.status(404).json({ mensagem: "Evento não encontrado." });
-  //     }
->>>>>>> 507bb45f9e700d74e09425dd412e0a34e2e40da5
+  // const evento = await prisma.evento.findUnique({ where: { id_evento: id } });
+  // if (!evento) {
+  //   return res.status(404).json({ mensagem: "Evento não encontrado." });
+  // }
 
   //     if (evento.id_usuario !== id_usuario) {
   //       return res

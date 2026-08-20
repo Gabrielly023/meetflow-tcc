@@ -52,14 +52,7 @@ model Usuario {
   participacoes   Participantes[]
   galerias        Galeria[]
   chats           Chat[]
-<<<<<<< HEAD
-  leiturasChat    ChatLeitura[]
-  locais          Local[]
-  votosMusica     MusicaVoto[]
-  reacoesChat     ChatReacao[]
   curtidas        GaleriaCurtida[]
-=======
->>>>>>> 507bb45f9e700d74e09425dd412e0a34e2e40da5
   refreshTokens RefreshToken[]
   
   @@map("usuario")
@@ -81,13 +74,6 @@ model Evento {
   capa_url       String?   @db.VarChar(500)
   google_maps    String? @db.VarChar(500)
   playlist_spotify String? @db.VarChar(500)
-
-  // CAMPOS DO GRUPO (ADICIONE AQUI)
-  nome_grupo       String?  @db.VarChar(150)
-  descricao_grupo  String?  @db.Text
-  foto_grupo       String?  @db.VarChar(500)
-  papel_parede     String?  @db.VarChar(500)
-
 
   id_usuario     String
 
