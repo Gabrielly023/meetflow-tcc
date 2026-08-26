@@ -3,27 +3,6 @@ import { usePlayer } from "../../context/PlayerContext";
 
 const menuItems = [
   {
-    title: "Criar Novo Evento",
-    to: "/eventos/novo",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth="1.5"
-        stroke="currentColor"
-        className="w-5 h-5"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M4.5 4.5h15A1.5 1.5 0 0121 6v13.5A1.5 1.5 0 0119.5 21h-15A1.5 1.5 0 013 19.5V6a1.5 1.5 0 011.5-1.5z"
-        />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 12.75v4.5M9.75 15h4.5" />
-      </svg>
-    ),
-  },
-  {
     title: "Eventos",
     to: "/eventos",
     icon: (
@@ -196,17 +175,30 @@ export default function SideBar({ usuario, onLogout }) {
 
   return (
     <aside className="sidebar-borda sidebar-scrollbar mt-6 flex w-64 shrink-0 flex-col self-stretch px-5 py-8">
-      <Link to="/usuarios" className="inline-flex items-center gap-2">
-        <span className="fonte-flow flex w-10 h-10 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 text-2xl font-bold text-white shadow-lg shadow-orange-500/20">
-          M
-        </span>
-        <span className="fonte-flow text-lg font-bold">
-          <span className="text-white">Meet</span>
-          <span className="texto-gradiente">Flow</span>
-        </span>
+      {/* Ação principal do app: ocupa o topo da sidebar (a logo fica só no header) */}
+      <Link
+        to="/eventos/novo"
+        className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/25 transition duration-300 hover:scale-[1.02] hover:opacity-90 active:scale-95"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="1.5"
+          stroke="currentColor"
+          className="w-5 h-5"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M4.5 4.5h15A1.5 1.5 0 0121 6v13.5A1.5 1.5 0 0119.5 21h-15A1.5 1.5 0 013 19.5V6a1.5 1.5 0 011.5-1.5z"
+          />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 12.75v4.5M9.75 15h4.5" />
+        </svg>
+        Criar Novo Evento
       </Link>
 
-      <div className="flex flex-col justify-between flex-1 mt-6">
+      <div className="flex flex-col justify-between flex-1 mt-5">
         <nav className="flex-1 -mx-3 space-y-3">
           <div className="relative mx-3">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">

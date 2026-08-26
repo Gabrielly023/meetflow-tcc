@@ -151,29 +151,27 @@ export default function HomePage() {
               {/* Bloco: Meus eventos */}
               <Link
                 to="/eventos"
-                className="group rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="group relative rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 shadow-lg shadow-fuchsia-500/20">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-6 w-6 text-white">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M4.5 4.5h15A1.5 1.5 0 0121 6v13.5A1.5 1.5 0 0119.5 21h-15A1.5 1.5 0 013 19.5V6a1.5 1.5 0 011.5-1.5z" />
-                      </svg>
-                    </div>
-                    <h2 className="text-xl font-semibold text-white">
-                      Meus eventos
-                    </h2>
-                    <p className="mt-2 text-sm text-slate-400">
-                      Crie, veja e gerencie todos os meus eventos.
-                    </p>
+                <span className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
+                  →
+                </span>
+                <div className="text-center">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 shadow-lg shadow-fuchsia-500/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-6 w-6 text-white">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M4.5 4.5h15A1.5 1.5 0 0121 6v13.5A1.5 1.5 0 0119.5 21h-15A1.5 1.5 0 013 19.5V6a1.5 1.5 0 011.5-1.5z" />
+                    </svg>
                   </div>
-                  <span className="text-fuchsia-400 transition group-hover:translate-x-1">
-                    →
-                  </span>
+                  <h2 className="text-xl font-semibold text-white">
+                    Meus eventos
+                  </h2>
+                  <p className="mt-2 text-sm text-slate-400">
+                    Crie, veja e gerencie todos os meus eventos.
+                  </p>
                 </div>
 
                 {capas.length > 0 && (
-                  <div className="mt-5 flex gap-2">
+                  <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
                     {capas.map((url, i) => (
                       <div
                         key={i}
@@ -193,29 +191,27 @@ export default function HomePage() {
               {/* Bloco: Minhas galerias */}
               <Link
                 to="/galerias"
-                className="group rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="group relative rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 shadow-lg shadow-fuchsia-500/20">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-6 w-6 text-white">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                      </svg>
-                    </div>
-                    <h2 className="text-xl font-semibold text-white">
-                      Minhas galerias
-                    </h2>
-                    <p className="mt-2 text-sm text-slate-400">
-                      Todas as fotos dos meus eventos, lado a lado, num só lugar.
-                    </p>
+                <span className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
+                  →
+                </span>
+                <div className="text-center">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 shadow-lg shadow-fuchsia-500/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-6 w-6 text-white">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                    </svg>
                   </div>
-                  <span className="text-fuchsia-400 transition group-hover:translate-x-1">
-                    →
-                  </span>
+                  <h2 className="text-xl font-semibold text-white">
+                    Minhas galerias
+                  </h2>
+                  <p className="mt-2 text-sm text-slate-400">
+                    Todas as fotos dos meus eventos, lado a lado, num só lugar.
+                  </p>
                 </div>
 
                 {previews.length > 0 && (
-                  <div className="mt-5 flex gap-2">
+                  <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
                     {previews.map((foto) => (
                       <div
                         key={foto.id}
@@ -239,30 +235,28 @@ export default function HomePage() {
               {/* Bloco: Minhas playlists */}
               <Link
                 to="/playlists"
-                className="group rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="group relative rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 shadow-lg shadow-fuchsia-500/20">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-6 w-6 text-white">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
-                      </svg>
-                    </div>
-                    <h2 className="text-xl font-semibold text-white">
-                      Minhas playlists
-                    </h2>
-                    <p className="mt-2 text-sm text-slate-400">
-                      A trilha sonora de cada evento, com músicas sugeridas por
-                      todo mundo.
-                    </p>
+                <span className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
+                  →
+                </span>
+                <div className="text-center">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 shadow-lg shadow-fuchsia-500/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-6 w-6 text-white">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
+                    </svg>
                   </div>
-                  <span className="text-fuchsia-400 transition group-hover:translate-x-1">
-                    →
-                  </span>
+                  <h2 className="text-xl font-semibold text-white">
+                    Minhas playlists
+                  </h2>
+                  <p className="mt-2 text-sm text-slate-400">
+                    A trilha sonora de cada evento, com músicas sugeridas por
+                    todo mundo.
+                  </p>
                 </div>
 
                 {tilesPlaylist.length > 0 && (
-                  <div className="mt-5 flex gap-2">
+                  <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
                     {tilesPlaylist.map((ev) => (
                       <div
                         key={ev.id}
@@ -292,30 +286,28 @@ export default function HomePage() {
               {/* Bloco: Meus mapas */}
               <Link
                 to="/mapas"
-                className="group rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="group relative rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 shadow-lg shadow-fuchsia-500/20">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-6 w-6 text-white">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.159.69.159 1.006 0z" />
-                      </svg>
-                    </div>
-                    <h2 className="text-xl font-semibold text-white">
-                      Meus mapas
-                    </h2>
-                    <p className="mt-2 text-sm text-slate-400">
-                      A localização de cada evento no mapa, tudo reunido num só
-                      lugar.
-                    </p>
+                <span className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
+                  →
+                </span>
+                <div className="text-center">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 shadow-lg shadow-fuchsia-500/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-6 w-6 text-white">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.159.69.159 1.006 0z" />
+                    </svg>
                   </div>
-                  <span className="text-fuchsia-400 transition group-hover:translate-x-1">
-                    →
-                  </span>
+                  <h2 className="text-xl font-semibold text-white">
+                    Meus mapas
+                  </h2>
+                  <p className="mt-2 text-sm text-slate-400">
+                    A localização de cada evento no mapa, tudo reunido num só
+                    lugar.
+                  </p>
                 </div>
 
                 {tilesMapa.length > 0 && (
-                  <div className="mt-5 flex gap-2">
+                  <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
                     {tilesMapa.map((url, i) => (
                       <div
                         key={i}
@@ -334,30 +326,28 @@ export default function HomePage() {
               {/* Bloco: Meus chats */}
               <Link
                 to="/chats"
-                className="group rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="group relative rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 shadow-lg shadow-fuchsia-500/20">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-6 w-6 text-white">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                      </svg>
-                    </div>
-                    <h2 className="text-xl font-semibold text-white">
-                      Meus chats
-                    </h2>
-                    <p className="mt-2 text-sm text-slate-400">
-                      As conversas de todos os meus eventos, reunidas num só
-                      lugar.
-                    </p>
+                <span className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
+                  →
+                </span>
+                <div className="text-center">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 shadow-lg shadow-fuchsia-500/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-6 w-6 text-white">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                    </svg>
                   </div>
-                  <span className="text-fuchsia-400 transition group-hover:translate-x-1">
-                    →
-                  </span>
+                  <h2 className="text-xl font-semibold text-white">
+                    Meus chats
+                  </h2>
+                  <p className="mt-2 text-sm text-slate-400">
+                    As conversas de todos os meus eventos, reunidas num só
+                    lugar.
+                  </p>
                 </div>
 
                 {capas.length > 0 && (
-                  <div className="mt-5 flex gap-2">
+                  <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
                     {capas.map((url, i) => (
                       <div
                         key={i}

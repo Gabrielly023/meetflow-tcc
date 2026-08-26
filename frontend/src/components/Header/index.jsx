@@ -11,13 +11,16 @@ const Header = ({
   ],
   user,
 }) => {
+  // Logado, a logo leva pra home do app; deslogado, pra página inicial do site.
+  const destinoLogo = user ? "/usuarios" : "/";
+
   return (
     <header className="sticky top-0 z-40">
       {/* Barra translúcida (glass), combinando com o fundo escuro do site */}
       <div className="border-b border-white/5 bg-slate-950/70 shadow-lg shadow-black/20 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-4 px-6 py-3.5">
           {/* Logo */}
-          <Link to="/" className="group flex items-center gap-3">
+          <Link to={destinoLogo} className="group flex items-center gap-3">
             <span className="fonte-flow flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 text-2xl font-bold text-white shadow-lg shadow-fuchsia-500/25 transition duration-300 group-hover:scale-105">
               M
             </span>

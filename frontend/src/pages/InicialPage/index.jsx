@@ -14,7 +14,7 @@ const RECURSOS = [
   {
     titulo: "Eventos",
     descricao:
-      "Crie, personalize com capa e gerencie todos os meus eventos em um só lugar.",
+      "Crie, personalize com capa e gerencie todos os seus eventos em um só lugar.",
     gradiente: "from-orange-500 via-fuchsia-500 to-sky-500",
     icone:
       "M6.75 3v2.25M17.25 3v2.25M3 8.25h18M4.5 4.5h15A1.5 1.5 0 0121 6v13.5A1.5 1.5 0 0119.5 21h-15A1.5 1.5 0 013 19.5V6a1.5 1.5 0 011.5-1.5z",

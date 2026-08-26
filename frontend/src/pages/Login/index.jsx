@@ -54,7 +54,12 @@ const Login = () => {
   };
 
   return (
-    <AuthLayout>
+    <AuthLayout
+      links={[
+        { label: "Home", href: "/" },
+        { label: "Cadastro", href: "/signup" },
+      ]}
+    >
       <div className="auth-card w-full max-w-md rounded-3xl bg-gradient-to-br from-orange-500/70 via-fuchsia-500/70 to-sky-500/70 p-[2px] shadow-2xl shadow-fuchsia-500/20">
         <div className="rounded-3xl bg-slate-900/80 p-8 backdrop-blur-xl">
           {/* Cabeçalho */}

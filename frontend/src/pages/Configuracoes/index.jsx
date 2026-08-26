@@ -41,16 +41,16 @@ const secoes = [
 
 function Bloco({ titulo, descricao, itens }) {
   return (
-    <section className="rounded-3xl border border-slate-800/70 bg-gradient-to-br from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-semibold text-white">{titulo}</h2>
-          <p className="mt-2 text-sm text-slate-400">{descricao}</p>
-        </div>
-        <span className="text-fuchsia-400 transition group-hover:translate-x-1">→</span>
+    <section className="group relative rounded-3xl border border-slate-800/70 bg-gradient-to-br from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20">
+      <span className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
+        →
+      </span>
+      <div className="text-center">
+        <h2 className="text-xl font-semibold text-white">{titulo}</h2>
+        <p className="mt-2 text-sm text-slate-400">{descricao}</p>
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-2">
+      <div className="mt-5 flex flex-wrap justify-center gap-2">
         {itens.map((item) => (
           <span
             key={item}
