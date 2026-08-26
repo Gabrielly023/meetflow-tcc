@@ -8,4 +8,6 @@ router.use(authMiddleware);
 
 router.delete("/:idFoto", galeriaController.remover);
 
+router.post("/:idFoto/curtir", galeriaController.curtir);
+
 export default router;

@@ -18,8 +18,7 @@ function authMiddleware(req, res, next) {
     return res.status(401).json({ mensagem: "Token mal formatado." });
   }
 
-  const token = partes[1];
-
+ const token = partes[1];
   try {
     // 3. Verifica se o token é válido e não expirou,
     // usando a mesma chave secreta usada para criá-lo no login
@@ -34,7 +33,7 @@ function authMiddleware(req, res, next) {
 
   } catch (error) {
     return res.status(401).json({ mensagem: "Token inválido ou expirado." });
-  }
+}
 }
 
 export default authMiddleware;

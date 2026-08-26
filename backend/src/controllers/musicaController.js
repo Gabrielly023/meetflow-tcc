@@ -1,3 +1,4 @@
+import validator from "validator";
 import { prisma } from "../config/db.js";
 
 async function temAcesso(evento, id_usuario) {
@@ -57,6 +58,14 @@ const musicaController = {
 
       if (!link_spotify) {
         return res.status(400).json({ mensagem: "Envie o link_spotify." });
+      }
+
+      if (!validator.isURL(link_spotify)) {
+        return res.status(400).json({ mensagem: "link_spotify deve ser uma URL válida." });
+      }
+
+      if (capa_url && !validator.isURL(capa_url)) {
+        return res.status(400).json({ mensagem: "capa_url deve ser uma URL válida." });
       }
 
       const evento = await prisma.evento.findUnique({ where: { id_evento: id } });

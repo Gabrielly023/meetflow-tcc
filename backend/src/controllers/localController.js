@@ -1,3 +1,4 @@
+import validator from "validator";
 import { prisma } from "../config/db.js";
 
 async function temAcesso(evento, id_usuario) {
@@ -46,6 +47,10 @@ const localController = {
 
       if (!link_maps) {
         return res.status(400).json({ mensagem: "Envie o link_maps." });
+      }
+
+      if (!validator.isURL(link_maps)) {
+        return res.status(400).json({ mensagem: "link_maps deve ser uma URL válida." });
       }
 
       const evento = await prisma.evento.findUnique({ where: { id_evento: id } });

@@ -5,7 +5,7 @@ import authMiddleware from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
 // Cadastro
-router.post("/", usuarioController.criar);
+router.post("/cadastrar", usuarioController.criar);
 
 // Login
 router.post("/login", usuarioController.login);
@@ -14,7 +14,7 @@ router.post("/login", usuarioController.login);
 router.get("/perfil", authMiddleware, (req, res) => {
   res.json({
     mensagem: "Token válido! Você está autenticado.",
-    usuario: req.usuario,
+    usuario: req.usuario
   });
 });
 
