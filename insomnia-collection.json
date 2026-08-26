@@ -65,7 +65,7 @@
       "parentId": "fld_auth",
       "modified": 1692057600000,
       "created": 1692057600000,
-      "url": "{{ baseUrl }}/usuarios",
+      "url": "{{ baseUrl }}/usuarios/cadastrar",
       "name": "POST - Cadastro",
       "description": "",
       "method": "POST",
@@ -769,55 +769,6 @@
       "environment": {},
       "environmentPropertyOrder": null,
       "metaSortKey": 4
-    },
-    {
-      "_id": "req_definir_playlist",
-      "_type": "request",
-      "parentId": "fld_playlist",
-      "modified": 1692057600000,
-      "created": 1692057600000,
-      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/playlist",
-      "name": "PUT - Definir Playlist",
-      "description": "",
-      "method": "PUT",
-      "body": {
-        "mimeType": "application/json",
-        "text": "{\n  \"link_spotify\": \"https://open.spotify.com/playlist/123456789\"\n}"
-      },
-      "parameters": [],
-      "headers": [
-        {
-          "name": "Content-Type",
-          "value": "application/json"
-        },
-        {
-          "name": "Authorization",
-          "value": "Bearer {{ token }}"
-        }
-      ],
-      "authentication": {},
-      "metaSortKey": 1
-    },
-    {
-      "_id": "req_remover_playlist",
-      "_type": "request",
-      "parentId": "fld_playlist",
-      "modified": 1692057600000,
-      "created": 1692057600000,
-      "url": "{{ baseUrl }}/eventos/{{ eventoId }}/playlist",
-      "name": "DELETE - Remover Playlist",
-      "description": "",
-      "method": "DELETE",
-      "body": {},
-      "parameters": [],
-      "headers": [
-        {
-          "name": "Authorization",
-          "value": "Bearer {{ token }}"
-        }
-      ],
-      "authentication": {},
-      "metaSortKey": 2
     },
     {
       "_id": "req_listar_musicas",

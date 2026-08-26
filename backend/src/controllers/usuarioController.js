@@ -139,112 +139,161 @@ const usuarioController = {
   },
 
   // LOGIN
-  async login(req, res) {
-    try {
-      const { username, senha } = req.body;
+async login(req, res) {
+  try {
+    const { login, senha } = req.body;
 
-      if (!username || !senha) {
-        return res.status(400).json({
-          mensagem: "Informe email/username e senha."
-        });
+    if (!login || !senha) {
+      return res.status(400).json({
+        mensagem: "Informe email/username e senha."
+      });
+    }
+
+    // Procura o usuário pelo username OU pelo email
+    const usuario = await prisma.usuario.findFirst({
+      where: {
+        OR: [
+          { username: login },
+          { email: login }
+        ]
       }
+    });
 
-      const usuario = await prisma.usuario.findUnique({
+    if (!usuario) {
+      return res.status(404).json({
+        mensagem:
+          "Você ainda não possui cadastro. Faça seu cadastro para entrar no MeetFlow."
+      });
+    }
+
+    const senhaValida = await bcrypt.compare(senha, usuario.senha);
+
+    if (!senhaValida) {
+      return res.status(401).json({
+        mensagem: "Senha incorreta."
+      });
+    }
+
+    // Access token
+    const token = jwt.sign(
+      {
+        id_usuario: usuario.id_usuario,
+        username: usuario.username
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "15m"
+      }
+    );
+
+    // Refresh token
+    const refreshToken = crypto.randomBytes(40).toString("hex");
+
+    const expiraEm = new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000
+    );
+
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        id_usuario: usuario.id_usuario,
+        expira_em: expiraEm
+      }
+    });
+
+    // Nunca retorna a senha
+    const { senha: _, ...usuarioSemSenha } = usuario;
+
+    return res.status(200).json({
+      mensagem: "Login realizado com sucesso!",
+      usuario: usuarioSemSenha,
+      token,
+      refreshToken
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      mensagem: "Erro ao realizar login."
+    });
+  }
+},
+// RENOVAR ACCESS TOKEN
+async renovarToken(req, res) {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({
+        mensagem: "Envie o refreshToken."
+      });
+    }
+
+    // Procura o refresh token no banco
+    const tokenSalvo = await prisma.refreshToken.findFirst({
+      where: {
+        token: refreshToken
+      }
+    });
+
+    if (!tokenSalvo) {
+      return res.status(401).json({
+        mensagem: "Refresh token inválido."
+      });
+    }
+
+    // Verifica se o refresh token expirou
+    if (new Date() > tokenSalvo.expira_em) {
+      await prisma.refreshToken.delete({
         where: {
-          username: username
+          id: tokenSalvo.id
         }
       });
 
-      if (!usuario) {
-        return res.status(404).json({
-          mensagem:
-            "Você ainda não possui cadastro. Faça seu cadastro para entrar no MeetFlow."
-        });
-      }
-
-      const senhaValida = await bcrypt.compare(senha, usuario.senha);
-
-      if (!senhaValida) {
-        return res.status(401).json({ mensagem: "Senha incorreta." });
-      }
-
-      // Access token: curto, usado nas requisições normais
-      const token = jwt.sign(
-        { id_usuario: usuario.id_usuario, username: usuario.username },
-        process.env.JWT_SECRET,
-        { expiresIn: "15m" }
-      );
-
-      // Refresh token: longo, só serve para renovar o access token
-      const refreshToken = crypto.randomBytes(40).toString("hex");
-      const expiraEm = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 dias
-
-      await prisma.refreshToken.create({
-        data: {
-          token: refreshToken,
-          id_usuario: usuario.id_usuario,
-          expira_em: expiraEm
-        }
+      return res.status(401).json({
+        mensagem: "Refresh token expirado. Faça login novamente."
       });
-
-      const { senha: _, ...usuarioSemSenha } = usuario;
-
-      return res.status(200).json({
-        mensagem: "Login realizado com sucesso!",
-        usuario: usuarioSemSenha,
-        token,
-        refreshToken
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ mensagem: "Erro ao realizar login." });
     }
-  },
 
-  // RENOVAR O ACCESS TOKEN USANDO O REFRESH TOKEN
-  async renovarToken(req, res) {
-    try {
-      const { refreshToken } = req.body;
-
-      if (!refreshToken) {
-        return res.status(400).json({ mensagem: "Envie o refreshToken." });
+    // Busca o usuário
+    const usuario = await prisma.usuario.findUnique({
+      where: {
+        id_usuario: tokenSalvo.id_usuario
       }
+    });
 
-      const registro = await prisma.refreshToken.findUnique({
-        where: { token: refreshToken }
+    if (!usuario) {
+      return res.status(404).json({
+        mensagem: "Usuário não encontrado."
       });
-
-      if (!registro) {
-        return res.status(401).json({ mensagem: "Refresh token inválido." });
-      }
-
-      if (registro.expira_em < new Date()) {
-        await prisma.refreshToken.delete({ where: { token: refreshToken } });
-        return res
-          .status(401)
-          .json({ mensagem: "Refresh token expirado. Faça login novamente." });
-      }
-
-      const usuario = await prisma.usuario.findUnique({
-        where: { id_usuario: registro.id_usuario }
-      });
-
-      if (!usuario) {
-        return res.status(404).json({ mensagem: "Usuário não encontrado." });
-      }
-
-      const novoToken = jwt.sign(
-        { id_usuario: usuario.id_usuario, username: usuario.username },
-        process.env.JWT_SECRET,
-        { expiresIn: "15m" }
-      );
-
-      res.json({ token: novoToken });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ mensagem: "Erro ao renovar token." });
     }
-  },
+
+    // Cria um novo access token
+    const token = jwt.sign(
+      {
+        id_usuario: usuario.id_usuario,
+        username: usuario.username
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "15m"
+      }
+    );
+
+    return res.status(200).json({
+      mensagem: "Token renovado com sucesso!",
+      token
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      mensagem: "Erro ao renovar token."
+    });
+  }
+},
 
   // LOGOUT (revoga o refresh token)
   async logout(req, res) {
