@@ -8,7 +8,7 @@
 
 **Erro na página de Login e Cadastro**
 
-O botão/link "Home" não funciona quando o usuário está na página de Login ou na página de Cadastro — ele não navega de volta para a Home. Provavelmente um problema de rota no React Router DOM nessas duas telas específicas.
+O botão/link "Home" não funciona quando o usuário está na página de Login ou na página de Cadastro — ele não navega de volta para a Home. Provavelmente um problema de rota no React Router DOM nessas duas telas específicas. - CORRIGIDO
 
 ---
 
