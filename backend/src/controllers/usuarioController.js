@@ -316,12 +316,14 @@ async renovarToken(req, res) {
   // ATUALIZAR USUÁRIO
   async atualizar(req, res) {
     try {
-      const { id } = req.params;
+      // No usuarioController.js:
+const atualizar = async (req, res) => {
+  const idLogado = req.usuario.id_usuario; // Use id_usuario aqui
+  const idUrl = req.params.id;
 
-      if (req.usuario.id_usuario !== id) {
-        return res.status(403).json({
-          mensagem: "Você não tem permissão para atualizar este usuário."
-        });
+  if (idLogado !== idUrl) {
+    return res.status(403).json({ mensagem: "Você não tem permissão para atualizar este usuário." });
+  }
       }
 
       let {

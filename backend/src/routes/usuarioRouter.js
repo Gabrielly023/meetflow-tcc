@@ -25,7 +25,7 @@ router.get("/", usuarioController.listar);
 router.get("/:id", usuarioController.buscarPorId);
 
 // Atualizar usuário (agora protegida)
-router.put("/:id", authMiddleware, usuarioController.atualizar);
+router.patch("/:id", authMiddleware, usuarioController.atualizar);
 
 // Deletar usuário (agora protegida)
 router.delete("/:id", authMiddleware, usuarioController.deletar);
