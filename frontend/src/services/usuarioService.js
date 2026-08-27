@@ -68,7 +68,7 @@ export function logout() {
 // POST /usuarios — cadastro.
 // `dados`: { nome, username, email, telefone, senha }
 export const cadastrar = async (dados) => {
-  const { data } = await api.post("/usuarios", dados);
+  const { data } = await api.post("/usuarios/cadastrar", dados);
   return data; // { mensagem, usuario }
 };
 

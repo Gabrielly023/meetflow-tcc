@@ -23,10 +23,10 @@ app.use(
   }),
 );
 
+app.use(express.json());
 app.use("/musicas", musicaRouter);
 app.use("/locais", localRouter);
 app.use("/galeria", galeriaRouter);
-app.use(express.json());
 app.use("/usuarios", usuarioRouter);
 app.use("/eventos", eventoRouter);
 app.use("/chat", chatRouter);
