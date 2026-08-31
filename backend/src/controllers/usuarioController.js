@@ -314,95 +314,109 @@ async renovarToken(req, res) {
   },
 
   // ATUALIZAR USUÁRIO
-  async atualizar(req, res) {
-    try {
-      // No usuarioController.js:
-const atualizar = async (req, res) => {
-  const idLogado = req.usuario.id_usuario; // Use id_usuario aqui
-  const idUrl = req.params.id;
+  // ATUALIZAR USUÁRIO
+async atualizar(req, res) {
+  try {
+    const { id } = req.params;
 
-  if (idLogado !== idUrl) {
-    return res.status(403).json({ mensagem: "Você não tem permissão para atualizar este usuário." });
-  }
-      }
-
-      let {
-        nome,
-        username,
-        email,
-        telefone,
-        senha,
-        bio,
-        foto_capa,
-        localizacao,
-        site
-      } = req.body;
-
-      if (email && !validator.isEmail(email)) {
-        return res.status(400).json({ mensagem: "Email inválido." });
-      }
-
-      if (senha && senha.length < 6) {
-        return res.status(400).json({
-          mensagem: "A senha deve ter no mínimo 6 caracteres."
-        });
-      }
-
-      if (
-        telefone &&
-        !/^\(\d{2}\)\s?\d{4,5}-\d{4}$|^\d{10,11}$/.test(telefone)
-      ) {
-        return res.status(400).json({
-          mensagem:
-            "Telefone inválido. Use formato: (XX) XXXXX-XXXX ou 10-11 dígitos."
-        });
-      }
-
-      // Validar URLs
-      if (foto_capa && !validator.isURL(foto_capa)) {
-        return res
-          .status(400)
-          .json({ mensagem: "foto_capa deve ser uma URL válida." });
-      }
-
-      if (site && !validator.isURL(site)) {
-        return res
-          .status(400)
-          .json({ mensagem: "site deve ser uma URL válida." });
-      }
-
-      if (nome) nome = sanitizarTexto(nome);
-      if (bio) bio = sanitizarTexto(bio);
-      if (localizacao) localizacao = sanitizarTexto(localizacao);
-
-      const dadosAtualizados = {
-        nome,
-        username,
-        email,
-        telefone,
-        bio,
-        foto_capa,
-        localizacao,
-        site
-      };
-
-      if (senha) {
-        dadosAtualizados.senha = await bcrypt.hash(senha, 10);
-      }
-
-      const usuario = await prisma.usuario.update({
-        where: { id_usuario: id },
-        data: dadosAtualizados
+    // Verifica se o usuário logado é o dono da conta
+    if (req.usuario.id_usuario !== id) {
+      return res.status(403).json({
+        mensagem: "Você não tem permissão para atualizar este usuário."
       });
-
-      const { senha: _, ...usuarioSemSenha } = usuario;
-
-      res.json(usuarioSemSenha);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ mensagem: "Erro ao atualizar usuário." });
     }
-  },
+
+    let {
+      nome,
+      username,
+      email,
+      telefone,
+      senha,
+      bio,
+      foto_capa,
+      localizacao,
+      site
+    } = req.body;
+
+    // Validar email
+    if (email && !validator.isEmail(email)) {
+      return res.status(400).json({
+        mensagem: "Email inválido."
+      });
+    }
+
+    // Validar senha
+    if (senha && senha.length < 6) {
+      return res.status(400).json({
+        mensagem: "A senha deve ter no mínimo 6 caracteres."
+      });
+    }
+
+    // Validar telefone
+    if (
+      telefone &&
+      !/^\(\d{2}\)\s?\d{4,5}-\d{4}$|^\d{10,11}$/.test(telefone)
+    ) {
+      return res.status(400).json({
+        mensagem:
+          "Telefone inválido. Use formato: (XX) XXXXX-XXXX ou 10-11 dígitos."
+      });
+    }
+
+    // Validar URLs
+    if (foto_capa && !validator.isURL(foto_capa)) {
+      return res.status(400).json({
+        mensagem: "foto_capa deve ser uma URL válida."
+      });
+    }
+
+    if (site && !validator.isURL(site)) {
+      return res.status(400).json({
+        mensagem: "site deve ser uma URL válida."
+      });
+    }
+
+    // Sanitização
+    if (nome) nome = sanitizarTexto(nome);
+    if (bio) bio = sanitizarTexto(bio);
+    if (localizacao) localizacao = sanitizarTexto(localizacao);
+
+    const dadosAtualizados = {
+      nome,
+      username,
+      email,
+      telefone,
+      bio,
+      foto_capa,
+      localizacao,
+      site
+    };
+
+    // Se enviou nova senha, gera o hash
+    if (senha) {
+      dadosAtualizados.senha = await bcrypt.hash(senha, 10);
+    }
+
+    const usuario = await prisma.usuario.update({
+      where: {
+        id_usuario: id
+      },
+      data: dadosAtualizados
+    });
+
+    // Nunca retorna a senha
+    const { senha: _, ...usuarioSemSenha } = usuario;
+
+    res.json(usuarioSemSenha);
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      mensagem: "Erro ao atualizar usuário."
+    });
+  }
+},
 
   // DELETAR USUÁRIO
   async deletar(req, res) {
