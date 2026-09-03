@@ -55,8 +55,8 @@ const Login = () => {
 
   return (
     <AuthLayout
+      aviso="Ainda não tem uma conta?"
       links={[
-        { label: "Home", href: "/" },
         { label: "Cadastro", href: "/signup" },
       ]}
     >

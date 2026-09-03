@@ -129,7 +129,6 @@ const Signup = () => {
   return (
     <AuthLayout
       links={[
-        { label: "Home", href: "/" },
         { label: "Login", href: "/login" },
       ]}
     >

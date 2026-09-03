@@ -10,6 +10,7 @@ const Header = ({
     { label: "Login", href: "/login" },
   ],
   user,
+  aviso,
 }) => {
   // Logado, a logo leva pra home do app; deslogado, pra página inicial do site.
   const destinoLogo = user ? "/usuarios" : "/";
@@ -30,8 +31,30 @@ const Header = ({
             </span>
           </Link>
 
+          {aviso && (
+            <div className="header-aviso ml-auto" aria-hidden="true">
+              <span>{aviso}</span>
+              <svg
+                viewBox="0 0 28 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="header-aviso-seta"
+              >
+                <path
+                  d="M1 8h24m-6-6 6 6-6 6"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+          )}
+
           {/* Navegação */}
-          <nav className="ml-auto flex flex-wrap items-center justify-center gap-3">
+          <nav
+            className={`${aviso ? "ml-0" : "ml-auto"} flex flex-wrap items-center justify-center gap-3`}
+          >
             {links.map((link, index) => {
               const ehAcaoPrincipal = index === links.length - 1;
               return ehAcaoPrincipal ? (
@@ -46,7 +69,11 @@ const Header = ({
                 <Link
                   key={index}
                   to={link.href}
-                  className="rounded-full px-4 py-2 text-sm font-medium text-slate-300 transition duration-200 hover:bg-white/5 hover:text-white"
+                  className={
+                    link.variante === "pill"
+                      ? "rounded-full border border-fuchsia-400/40 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-100 shadow-md shadow-fuchsia-500/10 transition duration-300 hover:-translate-y-0.5 hover:border-fuchsia-300/70 hover:bg-fuchsia-500/10 hover:text-white hover:shadow-lg hover:shadow-fuchsia-500/20 active:translate-y-0"
+                      : "rounded-full px-4 py-2 text-sm font-medium text-slate-300 transition duration-200 hover:bg-white/5 hover:text-white"
+                  }
                 >
                   {link.label}
                 </Link>

@@ -5,9 +5,8 @@ import Reveal from "../../components/Reveal";
 import "./Home.css";
 
 const LINKS_HEADER = [
-  { label: "Recursos", href: "#recursos" },
+  { label: "Criar conta", href: "/signup", variante: "pill" },
   { label: "Entrar", href: "/login" },
-  { label: "Criar conta", href: "/signup" },
 ];
 
 const RECURSOS = [
