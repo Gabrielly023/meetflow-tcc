@@ -6,7 +6,6 @@ import usuarioRouter from "./routes/usuarioRouter.js";
 import eventoRouter from "./routes/eventoRoutes.js";
 import galeriaRouter from "./routes/galeriaRoutes.js";
 import localRouter from "./routes/localRoutes.js";
-import musicaRouter from "./routes/musicaRoutes.js";
 import chatRouter from "./routes/chatRoutes.js";
 import grupoRoutes from "./routes/grupoRoutes.js";
 
@@ -24,7 +23,6 @@ app.use(
 );
 
 app.use(express.json());
-app.use("/musicas", musicaRouter);
 app.use("/locais", localRouter);
 app.use("/galeria", galeriaRouter);
 app.use("/usuarios", usuarioRouter);
