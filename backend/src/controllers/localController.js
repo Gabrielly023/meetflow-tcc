@@ -26,6 +26,13 @@ const localController = {
         return res.status(403).json({ mensagem: "Você não tem acesso a este evento." });
       }
 
+      // A tabela `local` ainda não existe no banco (o model Local não está
+      // no schema.prisma atual). Retornamos aqui para não quebrar com um
+      // 500 genérico. Remover este bloco quando a tabela existir.
+      return res.status(501).json({
+        mensagem: "Funcionalidade de locais ainda não disponível (tabela pendente no banco).",
+      });
+
       const locais = await prisma.local.findMany({
         where: { id_evento: id },
         orderBy: { criado_em: "asc" },
@@ -62,6 +69,13 @@ const localController = {
         return res.status(403).json({ mensagem: "Você não tem acesso a este evento." });
       }
 
+      // A tabela `local` ainda não existe no banco (o model Local não está
+      // no schema.prisma atual). Retornamos aqui para não quebrar com um
+      // 500 genérico. Remover este bloco quando a tabela existir.
+      return res.status(501).json({
+        mensagem: "Funcionalidade de locais ainda não disponível (tabela pendente no banco).",
+      });
+
       const local = await prisma.local.create({
         data: { nome, link_maps, id_evento: id, id_usuario },
       });
@@ -78,6 +92,13 @@ const localController = {
     try {
       const { idLocal } = req.params;
       const { id_usuario } = req.usuario;
+
+      // A tabela `local` ainda não existe no banco (o model Local não está
+      // no schema.prisma atual). Retornamos aqui para não quebrar com um
+      // 500 genérico. Remover este bloco quando a tabela existir.
+      return res.status(501).json({
+        mensagem: "Funcionalidade de locais ainda não disponível (tabela pendente no banco).",
+      });
 
       const local = await prisma.local.findUnique({ where: { id_local: idLocal } });
       if (!local) {

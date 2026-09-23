@@ -26,6 +26,14 @@ const musicaController = {
         return res.status(403).json({ mensagem: "Você não tem acesso a este evento." });
       }
 
+      // As tabelas `musica` e `musicavoto` ainda não existem no banco (os
+      // models Musica e MusicaVoto não estão no schema.prisma atual).
+      // Retornamos aqui para não quebrar com um 500 genérico. Remover este
+      // bloco quando as tabelas existirem.
+      return res.status(501).json({
+        mensagem: "Funcionalidade de músicas ainda não disponível (tabela pendente no banco).",
+      });
+
       const musicas = await prisma.musica.findMany({
         where: { id_evento: id },
         include: { votos: true },
@@ -77,6 +85,13 @@ const musicaController = {
         return res.status(403).json({ mensagem: "Você não tem acesso a este evento." });
       }
 
+      // A tabela `musica` ainda não existe no banco (o model Musica não
+      // está no schema.prisma atual). Retornamos aqui para não quebrar com
+      // um 500 genérico. Remover este bloco quando a tabela existir.
+      return res.status(501).json({
+        mensagem: "Funcionalidade de músicas ainda não disponível (tabela pendente no banco).",
+      });
+
       const musica = await prisma.musica.create({
         data: { link_spotify, titulo, capa_url, id_evento: id, id_usuario },
       });
@@ -93,6 +108,13 @@ const musicaController = {
     try {
       const { idMusica } = req.params;
       const { id_usuario } = req.usuario;
+
+      // A tabela `musica` ainda não existe no banco (o model Musica não
+      // está no schema.prisma atual). Retornamos aqui para não quebrar com
+      // um 500 genérico. Remover este bloco quando a tabela existir.
+      return res.status(501).json({
+        mensagem: "Funcionalidade de músicas ainda não disponível (tabela pendente no banco).",
+      });
 
       const musica = await prisma.musica.findUnique({ where: { id_musica: idMusica } });
       if (!musica) {
@@ -117,6 +139,14 @@ const musicaController = {
     try {
       const { idMusica } = req.params;
       const { id_usuario } = req.usuario;
+
+      // As tabelas `musica` e `musicavoto` ainda não existem no banco (os
+      // models Musica e MusicaVoto não estão no schema.prisma atual).
+      // Retornamos aqui para não quebrar com um 500 genérico. Remover este
+      // bloco quando as tabelas existirem.
+      return res.status(501).json({
+        mensagem: "Funcionalidade de músicas ainda não disponível (tabela pendente no banco).",
+      });
 
       const musica = await prisma.musica.findUnique({ where: { id_musica: idMusica } });
       if (!musica) {
