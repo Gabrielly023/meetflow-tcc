@@ -40,7 +40,16 @@ export default function HomePage() {
     };
   }, [chaveCapas]);
 
-  const proximo = eventos[0];
+  const [agora] = useState(() => Date.now());
+  const eventosFuturos = eventos
+    .filter((ev) => {
+      const timestamp = ev.dataHora ? new Date(ev.dataHora).getTime() : NaN;
+      return Number.isFinite(timestamp) && timestamp > agora;
+    })
+    .sort(
+      (a, b) => new Date(a.dataHora).getTime() - new Date(b.dataHora).getTime(),
+    );
+  const proximo = eventosFuturos[0];
   const capaProximo = proximo?.capa || proximo?.images?.[0];
 
   // Mapas: eventos com um local marcado (para as miniaturas) e total de locais
@@ -85,7 +94,7 @@ export default function HomePage() {
                 </p>
               </div>
 
-              {proximo && (
+              {proximo ? (
                 <Link
                   to={`/eventos/${proximo.id}`}
                   className="hover-degrade group flex items-center gap-4 rounded-3xl border-2 border-slate-800/70 bg-slate-900/70 p-4 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 lg:w-80"
@@ -119,6 +128,25 @@ export default function HomePage() {
                     →
                   </span>
                 </Link>
+              ) : (
+                <div className="hover-degrade group flex items-center gap-4 rounded-3xl border-2 border-slate-800/70 bg-slate-900/70 p-4 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 lg:w-80">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500/30 via-fuchsia-500/30 to-sky-500/30 text-white">
+                    <span className="text-2xl" aria-hidden="true">
+                      ♪
+                    </span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] uppercase tracking-[0.25em] text-fuchsia-400">
+                      Próximo evento
+                    </p>
+                    <h2 className="text-lg font-semibold text-white">
+                      Nenhum evento próximo
+                    </h2>
+                    <p className="mt-0.5 truncate text-sm text-slate-400">
+                      Crie um novo evento para vê-lo aqui.
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
 
