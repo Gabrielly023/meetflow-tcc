@@ -2,8 +2,8 @@ import express from "express";
 import eventoController from "../controllers/eventoController.js";
 import participanteController from "../controllers/participanteController.js";
 import galeriaController from "../controllers/galeriaController.js";
-import localController from "../controllers/localController.js";
-import musicaController from "../controllers/musicaController.js";
+//import localController from "../controllers/localController.js";
+//import musicaController from "../controllers/musicaController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 import chatController from "../controllers/chatController.js";
 
@@ -36,8 +36,6 @@ router.get("/:id/galeria", galeriaController.listar);
 router.post("/:id/galeria", galeriaController.adicionar);
 
 // Locais / Mapas
-router.get("/:id/locais", localController.listar);
-router.post("/:id/locais", localController.adicionar);
 
 // Chat
 router.get("/:id/chat", chatController.listar);
