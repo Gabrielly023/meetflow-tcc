@@ -6,7 +6,13 @@ const router = express.Router();
 
 router.use(authMiddleware);
 
-router.delete("/:idMusica", musicaController.remover);
-router.post("/:idMusica/voto", musicaController.votar);
+// Listar os links da playlist de um evento
+router.get("/:idEvento", musicaController.listar);
+
+// Adicionar um link na playlist (body: { link_spotify })
+router.post("/:idEvento", musicaController.adicionar);
+
+// Remover um link da playlist (body: { link_spotify })
+router.delete("/:idEvento", musicaController.remover);
 
 export default router;

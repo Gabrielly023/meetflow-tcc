@@ -9,15 +9,26 @@ async function temAcesso(evento, id_usuario) {
   return !!participacao;
 }
 
-const musicaController = {
+// O campo playlist_spotify guarda um JSON stringificado de um array de links.
+// Se estiver vazio/nulo, ou não for um JSON válido, tratamos como lista vazia.
+function parsePlaylist(playlist_spotify) {
+  if (!playlist_spotify) return [];
+  try {
+    const parsed = JSON.parse(playlist_spotify);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
 
-  // LISTAR MÚSICAS DO EVENTO (ordenadas por votos)
+const musicaController = {
+  // LISTAR OS LINKS DA PLAYLIST DO EVENTO
   async listar(req, res) {
     try {
-      const { id } = req.params; // id_evento
+      const { idEvento } = req.params;
       const { id_usuario } = req.usuario;
 
-      const evento = await prisma.evento.findUnique({ where: { id_evento: id } });
+      const evento = await prisma.evento.findUnique({ where: { id_evento: idEvento } });
       if (!evento) {
         return res.status(404).json({ mensagem: "Evento não encontrado." });
       }
@@ -26,43 +37,19 @@ const musicaController = {
         return res.status(403).json({ mensagem: "Você não tem acesso a este evento." });
       }
 
-      // As tabelas `musica` e `musicavoto` ainda não existem no banco (os
-      // models Musica e MusicaVoto não estão no schema.prisma atual).
-      // Retornamos aqui para não quebrar com um 500 genérico. Remover este
-      // bloco quando as tabelas existirem.
-      return res.status(501).json({
-        mensagem: "Funcionalidade de músicas ainda não disponível (tabela pendente no banco).",
-      });
-
-      const musicas = await prisma.musica.findMany({
-        where: { id_evento: id },
-        include: { votos: true },
-      });
-
-      // Monta a resposta com "votos" como lista de ids, ordenada por quantidade
-      const resposta = musicas
-        .map((m) => ({
-          id_musica: m.id_musica,
-          link_spotify: m.link_spotify,
-          capa_url: m.capa_url,
-          id_usuario: m.id_usuario,
-          votos: m.votos.map((v) => v.id_usuario),
-        }))
-        .sort((a, b) => b.votos.length - a.votos.length);
-
-      res.json(resposta);
+      res.json(parsePlaylist(evento.playlist_spotify));
     } catch (error) {
       console.error(error);
-      res.status(500).json({ mensagem: "Erro ao listar músicas." });
+      res.status(500).json({ mensagem: "Erro ao listar playlist." });
     }
   },
 
-  // ADICIONAR MÚSICA (dono = logado)
+  // ADICIONAR UM LINK NA PLAYLIST DO EVENTO
   async adicionar(req, res) {
     try {
-      const { id } = req.params;
+      const { idEvento } = req.params;
       const { id_usuario } = req.usuario;
-      const { link_spotify, titulo, capa_url } = req.body;
+      const { link_spotify } = req.body;
 
       if (!link_spotify) {
         return res.status(400).json({ mensagem: "Envie o link_spotify." });
@@ -72,11 +59,7 @@ const musicaController = {
         return res.status(400).json({ mensagem: "link_spotify deve ser uma URL válida." });
       }
 
-      if (capa_url && !validator.isURL(capa_url)) {
-        return res.status(400).json({ mensagem: "capa_url deve ser uma URL válida." });
-      }
-
-      const evento = await prisma.evento.findUnique({ where: { id_evento: id } });
+      const evento = await prisma.evento.findUnique({ where: { id_evento: idEvento } });
       if (!evento) {
         return res.status(404).json({ mensagem: "Evento não encontrado." });
       }
@@ -85,98 +68,62 @@ const musicaController = {
         return res.status(403).json({ mensagem: "Você não tem acesso a este evento." });
       }
 
-      // A tabela `musica` ainda não existe no banco (o model Musica não
-      // está no schema.prisma atual). Retornamos aqui para não quebrar com
-      // um 500 genérico. Remover este bloco quando a tabela existir.
-      return res.status(501).json({
-        mensagem: "Funcionalidade de músicas ainda não disponível (tabela pendente no banco).",
+      const links = parsePlaylist(evento.playlist_spotify);
+
+      if (links.includes(link_spotify)) {
+        return res.status(409).json({ mensagem: "Esse link já está na playlist." });
+      }
+
+      links.push(link_spotify);
+
+      await prisma.evento.update({
+        where: { id_evento: idEvento },
+        data: { playlist_spotify: JSON.stringify(links) },
       });
 
-      const musica = await prisma.musica.create({
-        data: { link_spotify, titulo, capa_url, id_evento: id, id_usuario },
-      });
-
-      res.status(201).json({ ...musica, votos: [] });
+      res.status(201).json(links);
     } catch (error) {
       console.error(error);
-      res.status(500).json({ mensagem: "Erro ao adicionar música." });
+      res.status(500).json({ mensagem: "Erro ao adicionar link na playlist." });
     }
   },
 
-  // REMOVER MÚSICA (só o dono)
+  // REMOVER UM LINK DA PLAYLIST DO EVENTO (pelo link exato)
   async remover(req, res) {
     try {
-      const { idMusica } = req.params;
+      const { idEvento } = req.params;
       const { id_usuario } = req.usuario;
+      const { link_spotify } = req.body;
 
-      // A tabela `musica` ainda não existe no banco (o model Musica não
-      // está no schema.prisma atual). Retornamos aqui para não quebrar com
-      // um 500 genérico. Remover este bloco quando a tabela existir.
-      return res.status(501).json({
-        mensagem: "Funcionalidade de músicas ainda não disponível (tabela pendente no banco).",
+      if (!link_spotify) {
+        return res.status(400).json({ mensagem: "Envie o link_spotify a remover." });
+      }
+
+      const evento = await prisma.evento.findUnique({ where: { id_evento: idEvento } });
+      if (!evento) {
+        return res.status(404).json({ mensagem: "Evento não encontrado." });
+      }
+
+      if (!(await temAcesso(evento, id_usuario))) {
+        return res.status(403).json({ mensagem: "Você não tem acesso a este evento." });
+      }
+
+      const links = parsePlaylist(evento.playlist_spotify);
+      const novaLista = links.filter((link) => link !== link_spotify);
+
+      if (novaLista.length === links.length) {
+        return res.status(404).json({ mensagem: "Esse link não está na playlist." });
+      }
+
+      await prisma.evento.update({
+        where: { id_evento: idEvento },
+        data: { playlist_spotify: JSON.stringify(novaLista) },
       });
 
-      const musica = await prisma.musica.findUnique({ where: { id_musica: idMusica } });
-      if (!musica) {
-        return res.status(404).json({ mensagem: "Música não encontrada." });
-      }
-
-      if (musica.id_usuario !== id_usuario) {
-        return res.status(403).json({ mensagem: "Você só pode remover suas próprias músicas." });
-      }
-
-      await prisma.musica.delete({ where: { id_musica: idMusica } });
-
-      res.json({ mensagem: "Música removida com sucesso." });
+      res.json(novaLista);
     } catch (error) {
       console.error(error);
-      res.status(500).json({ mensagem: "Erro ao remover música." });
-    }
-  },
-
-  // ALTERNAR VOTO (curtir/descurtir)
-  async votar(req, res) {
-    try {
-      const { idMusica } = req.params;
-      const { id_usuario } = req.usuario;
-
-      // As tabelas `musica` e `musicavoto` ainda não existem no banco (os
-      // models Musica e MusicaVoto não estão no schema.prisma atual).
-      // Retornamos aqui para não quebrar com um 500 genérico. Remover este
-      // bloco quando as tabelas existirem.
-      return res.status(501).json({
-        mensagem: "Funcionalidade de músicas ainda não disponível (tabela pendente no banco).",
-      });
-
-      const musica = await prisma.musica.findUnique({ where: { id_musica: idMusica } });
-      if (!musica) {
-        return res.status(404).json({ mensagem: "Música não encontrada." });
-      }
-
-      const votoExistente = await prisma.musicaVoto.findUnique({
-        where: { id_musica_id_usuario: { id_musica: idMusica, id_usuario } },
-      });
-
-      if (votoExistente) {
-        // Já tinha votado -> remove o voto (descurtir)
-        await prisma.musicaVoto.delete({
-          where: { id_musica_id_usuario: { id_musica: idMusica, id_usuario } },
-        });
-      } else {
-        // Não tinha votado -> cria o voto (curtir)
-        await prisma.musicaVoto.create({
-          data: { id_musica: idMusica, id_usuario },
-        });
-      }
-
-      const votosAtualizados = await prisma.musicaVoto.findMany({
-        where: { id_musica: idMusica },
-      });
-
-      res.json({ votos: votosAtualizados.map((v) => v.id_usuario) });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ mensagem: "Erro ao votar na música." });
+      res.status(500).json({ mensagem: "Erro ao remover link da playlist." });
     }
   },
 };
