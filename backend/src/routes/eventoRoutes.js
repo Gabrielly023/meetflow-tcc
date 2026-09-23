@@ -3,7 +3,6 @@ import eventoController from "../controllers/eventoController.js";
 import participanteController from "../controllers/participanteController.js";
 import galeriaController from "../controllers/galeriaController.js";
 import localController from "../controllers/localController.js";
-import musicaController from "../controllers/musicaController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 import chatController from "../controllers/chatController.js";
 
@@ -17,6 +16,8 @@ router.get("/:id", eventoController.buscarPorId);
 router.post("/", eventoController.criar);
 router.put("/:id", eventoController.atualizar);
 router.delete("/:id", eventoController.deletar);
+router.put("/:id/playlist", eventoController.definirPlaylist);
+router.delete("/:id/playlist", eventoController.removerPlaylist);
 
 router.get("/:id/participantes", participanteController.listar);
 router.post("/:id/participantes", participanteController.adicionar);
