@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import EventoForm from "../../components/EventoForm";
 import TituloDegrade from "../../components/TituloDegrade";
@@ -18,11 +19,21 @@ import {
 } from "../../services/playlistService";
 
 export default function EditarEvento() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const evento = buscarEventoPorId(id);
+ const { id } = useParams();
+const navigate = useNavigate();
 
-  if (!evento) {
+const [evento, setEvento] = useState(null);
+
+useEffect(() => {
+  buscarEventoPorId(id)
+    .then((dados) => setEvento(dados))
+    .catch((erro) => {
+      console.error("Erro ao carregar evento:", erro);
+      setEvento(null);
+    });
+}, [id]);
+
+if (!evento) {
     return (
       <main className="flex flex-1 items-center justify-center px-6 py-10">
           <div className="rounded-3xl border border-red-500/40 bg-slate-900/90 p-10 text-center shadow-2xl shadow-black/30">
@@ -46,8 +57,8 @@ export default function EditarEvento() {
   const embedAtual = getPlaylistEmbed(evento.id);
   const playlistLinkAtual = embedAtual ? embedParaSpotify(embedAtual) : "";
 
-  function handleSalvar(dados) {
-    atualizarEvento(evento.id, dados);
+  async function handleSalvar(dados) {
+  await atualizarEvento(evento.id, dados);
 
     // Mapa: mantém o local principal em sincronia com o campo (troca/remove).
     if (dados.mapaLink !== mapaLinkAtual) {

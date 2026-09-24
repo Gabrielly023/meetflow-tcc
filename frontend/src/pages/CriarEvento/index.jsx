@@ -7,17 +7,20 @@ import { definirPlaylist } from "../../services/playlistService";
 export default function CriarEvento() {
   const navigate = useNavigate();
 
-  function handleCriar(dados) {
-    const novoEvento = criarEvento(dados);
-    // Extras opcionais informados na criação
-    if (dados.mapaLink) {
-      adicionarLocal(novoEvento.id, dados.mapaLink, "Local do evento");
-    }
-    if (dados.playlistLink) {
-      definirPlaylist(novoEvento.id, dados.playlistLink);
-    }
-    navigate(`/eventos/${novoEvento.id}`);
+  async function handleCriar(dados) {
+  const novoEvento = await criarEvento(dados);
+
+  // Extras opcionais informados na criação
+  if (dados.mapaLink) {
+    adicionarLocal(novoEvento.id, dados.mapaLink, "Local do evento");
   }
+
+  if (dados.playlistLink) {
+    definirPlaylist(novoEvento.id, dados.playlistLink);
+  }
+
+  navigate(`/eventos/${novoEvento.id}`);
+}
 
   return (
     <main className="flex-1 px-6 py-8 lg:px-10">

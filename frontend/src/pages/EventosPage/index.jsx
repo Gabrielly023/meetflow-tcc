@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import EventCover from "../../components/EventCover";
 import {
@@ -12,11 +12,20 @@ export default function EventosPage() {
   const [verLixeira, setVerLixeira] = useState(false);
   const [, setAtualizar] = useState(0);
 
-  // Sempre listados pela proximidade da data (mais próximos primeiro),
-  // independentemente da ordem de criação.
-  const eventos = ordenarPorData(listarEventos());
-  const lixeira = ordenarPorData(listarLixeiraEventos());
+const [eventos, setEventos] = useState([]);
 
+useEffect(() => {
+  listarEventos()
+    .then((dados) => {
+      setEventos(ordenarPorData(dados));
+    })
+    .catch((erro) => {
+      console.error("Erro ao carregar eventos:", erro);
+      setEventos([]);
+    });
+}, []);
+
+const lixeira = ordenarPorData(listarLixeiraEventos());
   function handleRestaurar(id) {
     restaurarEvento(id);
     setAtualizar((v) => v + 1);

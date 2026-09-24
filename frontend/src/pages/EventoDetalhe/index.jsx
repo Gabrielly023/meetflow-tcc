@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import EventChat from "../../components/EventChat";
 import EventGallery from "../../components/EventGallery";
@@ -38,10 +38,19 @@ function calcularContagem(dataHora) {
 
 export default function EventoDetalhe() {
   const { id } = useParams();
-  const navigate = useNavigate();
-  const evento = buscarEventoPorId(id);
-  const [modal, setModal] = useState(null);
+const navigate = useNavigate();
 
+const [evento, setEvento] = useState(null);
+const [modal, setModal] = useState(null);
+
+useEffect(() => {
+  buscarEventoPorId(id)
+    .then((dados) => setEvento(dados))
+    .catch((erro) => {
+      console.error("Erro ao carregar evento:", erro);
+      setEvento(null);
+    });
+}, [id]);
   if (!evento) {
     return (
       <main className="flex flex-1 items-center justify-center px-6 py-10">

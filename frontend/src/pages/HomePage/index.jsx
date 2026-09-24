@@ -10,7 +10,18 @@ import { getLocalPrincipal, listarLocais } from "../../services/mapaService";
 import { contarNaoLidas } from "../../services/chatService";
 
 export default function HomePage() {
-  const eventos = listarEventos();
+  const [eventos, setEventos] = useState([]);
+
+useEffect(() => {
+  listarEventos()
+    .then((dados) => {
+      setEventos(dados);
+    })
+    .catch((erro) => {
+      console.error("Erro ao carregar eventos:", erro);
+      setEventos([]);
+    });
+}, []);
   const previews = eventos.flatMap((ev) => listarFotos(ev.id)).slice(0, 4);
   const capas = eventos
     .map((ev) => ev.capa || ev.images?.[0])

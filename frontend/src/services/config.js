@@ -18,7 +18,7 @@ import axios from "axios";
 // ────────────────────────────────────────────────────────────────────────
 export const USE_API = {
   usuarios: true, // já tem backend real (/usuarios): cadastro e login
-  eventos: false, // CRUD de eventos
+  eventos: true, // CRUD de eventos
   playlists: false, // playlist do evento + lista colaborativa de músicas
   galeria: false, // fotos do evento
   chat: false, // mensagens do evento
