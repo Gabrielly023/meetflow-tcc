@@ -12,6 +12,20 @@ async function temAcesso(evento, id_usuario) {
   return !!participacao;
 }
 
+// Lê o campo playlist_spotify (JSON) e sempre devolve um array,
+// mesmo se estiver null, vazio ou vier como string (compatibilidade)
+function obterPlaylist(evento) {
+  const valor = evento.playlist_spotify;
+  if (!valor) return [];
+  if (Array.isArray(valor)) return valor;
+  try {
+    const parsed = JSON.parse(valor);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 const eventoController = {
   // LISTAR EVENTOS DO USUÁRIO LOGADO (criados ou que participa)
   async listar(req, res) {
@@ -83,9 +97,7 @@ const eventoController = {
         data_hora_fim,
         localizacao,
         senha_acesso,
-        descricao,
-        google_maps,
-        playlist_spotify
+        descricao
       } = req.body;
 
       if (!titulo || !data_hora) {
@@ -111,15 +123,6 @@ const eventoController = {
         return res
           .status(400)
           .json({ mensagem: "capa_url deve ser uma URL válida." });
-      }
-
-      if (
-        req.body.playlist_spotify &&
-        !validator.isURL(req.body.playlist_spotify)
-      ) {
-        return res
-          .status(400)
-          .json({ mensagem: "playlist_spotify deve ser uma URL válida." });
       }
 
       let nome_grupo, descricao_grupo;
@@ -299,14 +302,14 @@ const eventoController = {
     try {
       const { id } = req.params;
       const { id_usuario } = req.usuario;
-      const { link_maps } = req.body;
+      const { google_maps } = req.body;
 
-      if (!link_maps) {
-        return res.status(400).json({ mensagem: "Envie o link_maps." });
+      if (!google_maps) {
+        return res.status(400).json({ mensagem: "Envie o google_maps." });
       }
 
-      if (!validator.isURL(link_maps)) {
-        return res.status(400).json({ mensagem: "link_maps deve ser uma URL válida." });
+      if (!validator.isURL(google_maps)) {
+        return res.status(400).json({ mensagem: "google_maps deve ser uma URL válida." });
       }
 
       const evento = await prisma.evento.findUnique({ where: { id_evento: id } });
@@ -322,7 +325,7 @@ const eventoController = {
 
       const eventoAtualizado = await prisma.evento.update({
         where: { id_evento: id },
-        data: { google_maps: link_maps }
+        data: { google_maps: google_maps }
       });
 
       res.json({ google_maps: eventoAtualizado.google_maps });
@@ -359,76 +362,177 @@ const eventoController = {
       console.error(error);
       res.status(500).json({ mensagem: "Erro ao remover o local do evento." });
     }
+  },
+
+  // LISTAR OS LINKS DA PLAYLIST DO EVENTO (organizador ou qualquer participante)
+  async listarPlaylist(req, res) {
+    try {
+      const { id } = req.params;
+      const { id_usuario } = req.usuario;
+
+      const evento = await prisma.evento.findUnique({ where: { id_evento: id } });
+      if (!evento) {
+        return res.status(404).json({ mensagem: "Evento não encontrado." });
+      }
+
+      if (!(await temAcesso(evento, id_usuario))) {
+        return res.status(403).json({ mensagem: "Você não tem acesso a este evento." });
+      }
+
+      res.json({ playlist_spotify: obterPlaylist(evento) });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ mensagem: "Erro ao buscar a playlist do evento." });
+    }
+  },
+
+  // ADICIONAR UM LINK NA PLAYLIST (qualquer participante do evento)
+  async adicionarPlaylist(req, res) {
+    try {
+      const { id } = req.params;
+      const { id_usuario } = req.usuario;
+      const { link_spotify } = req.body;
+
+      if (!link_spotify) {
+        return res.status(400).json({ mensagem: "Envie o link_spotify." });
+      }
+
+      if (!validator.isURL(link_spotify)) {
+        return res.status(400).json({ mensagem: "link_spotify deve ser uma URL válida." });
+      }
+
+      const evento = await prisma.evento.findUnique({ where: { id_evento: id } });
+      if (!evento) {
+        return res.status(404).json({ mensagem: "Evento não encontrado." });
+      }
+
+      if (!(await temAcesso(evento, id_usuario))) {
+        return res.status(403).json({ mensagem: "Você não tem acesso a este evento." });
+      }
+
+      const playlistAtual = obterPlaylist(evento);
+
+      if (playlistAtual.includes(link_spotify)) {
+        return res.status(400).json({ mensagem: "Esse link já está na playlist." });
+      }
+
+      const novaPlaylist = [...playlistAtual, link_spotify];
+      const novaPlaylistString = JSON.stringify(novaPlaylist);
+
+      if (novaPlaylistString.length > 500) {
+        return res.status(400).json({
+          mensagem: "Limite de tamanho da playlist atingido. Remova algum link antes de adicionar outro."
+        });
+      }
+
+      const eventoAtualizado = await prisma.evento.update({
+        where: { id_evento: id },
+        data: { playlist_spotify: novaPlaylistString }
+      });
+
+      res.status(201).json({ playlist_spotify: obterPlaylist(eventoAtualizado) });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ mensagem: "Erro ao adicionar link na playlist." });
+    }
+  },
+
+  // ATUALIZAR (TROCAR) UM LINK JÁ EXISTENTE NA PLAYLIST (qualquer participante do evento)
+  async atualizarPlaylist(req, res) {
+    try {
+      const { id } = req.params;
+      const { id_usuario } = req.usuario;
+      const { link_antigo, link_novo } = req.body;
+
+      if (!link_antigo || !link_novo) {
+        return res.status(400).json({ mensagem: "Envie o link_antigo e o link_novo." });
+      }
+
+      if (!validator.isURL(link_novo)) {
+        return res.status(400).json({ mensagem: "link_novo deve ser uma URL válida." });
+      }
+
+      const evento = await prisma.evento.findUnique({ where: { id_evento: id } });
+      if (!evento) {
+        return res.status(404).json({ mensagem: "Evento não encontrado." });
+      }
+
+      if (!(await temAcesso(evento, id_usuario))) {
+        return res.status(403).json({ mensagem: "Você não tem acesso a este evento." });
+      }
+
+      const playlistAtual = obterPlaylist(evento);
+      const indice = playlistAtual.indexOf(link_antigo);
+
+      if (indice === -1) {
+        return res.status(404).json({ mensagem: "Link não encontrado na playlist." });
+      }
+
+      if (playlistAtual.includes(link_novo)) {
+        return res.status(400).json({ mensagem: "Esse link já está na playlist." });
+      }
+
+      const novaPlaylist = [...playlistAtual];
+      novaPlaylist[indice] = link_novo;
+      const novaPlaylistString = JSON.stringify(novaPlaylist);
+
+      if (novaPlaylistString.length > 500) {
+        return res.status(400).json({
+          mensagem: "Limite de tamanho da playlist atingido."
+        });
+      }
+
+      const eventoAtualizado = await prisma.evento.update({
+        where: { id_evento: id },
+        data: { playlist_spotify: novaPlaylistString }
+      });
+
+      res.json({ playlist_spotify: obterPlaylist(eventoAtualizado) });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ mensagem: "Erro ao atualizar link da playlist." });
+    }
+  },
+
+  // REMOVER UM LINK DA PLAYLIST PELO VALOR EXATO (qualquer participante do evento)
+  async removerPlaylist(req, res) {
+    try {
+      const { id } = req.params;
+      const { id_usuario } = req.usuario;
+      const { link_spotify } = req.body;
+
+      if (!link_spotify) {
+        return res.status(400).json({ mensagem: "Envie o link_spotify." });
+      }
+
+      const evento = await prisma.evento.findUnique({ where: { id_evento: id } });
+      if (!evento) {
+        return res.status(404).json({ mensagem: "Evento não encontrado." });
+      }
+
+      if (!(await temAcesso(evento, id_usuario))) {
+        return res.status(403).json({ mensagem: "Você não tem acesso a este evento." });
+      }
+
+      const playlistAtual = obterPlaylist(evento);
+
+      if (!playlistAtual.includes(link_spotify)) {
+        return res.status(404).json({ mensagem: "Link não encontrado na playlist." });
+      }
+
+      const novaPlaylist = playlistAtual.filter((link) => link !== link_spotify);
+
+      const eventoAtualizado = await prisma.evento.update({
+        where: { id_evento: id },
+        data: { playlist_spotify: JSON.stringify(novaPlaylist) }
+      });
+
+      res.json({ playlist_spotify: obterPlaylist(eventoAtualizado) });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ mensagem: "Erro ao remover link da playlist." });
+    }
   }
-
-  // DEFINIR/TROCAR A PLAYLIST DO EVENTO
-  // async definirPlaylist(req, res) {
-  //   try {
-  //     const { id } = req.params;
-  //     const { id_usuario } = req.usuario;
-  //     const { link_spotify } = req.body;
-
-  //     if (!link_spotify) {
-  //       return res.status(400).json({ mensagem: "Envie o link_spotify." });
-  //     }
-
-  // if (!validator.isURL(link_spotify)) {
-  //   return res.status(400).json({ mensagem: "link_spotify deve ser uma URL válida." });
-  // }
-
-  // const evento = await prisma.evento.findUnique({ where: { id_evento: id } });
-  // if (!evento) {
-  //   return res.status(404).json({ mensagem: "Evento não encontrado." });
-  // }
-
-  //     if (evento.id_usuario !== id_usuario) {
-  //       return res
-  //         .status(403)
-  //         .json({ mensagem: "Apenas o organizador pode definir a playlist." });
-  //     }
-
-  //     const eventoAtualizado = await prisma.evento.update({
-  //       where: { id_evento: id },
-  //       data: { playlist_spotify: link_spotify }
-  //     });
-
-  //     res.json(eventoAtualizado);
-  //   } catch (error) {
-  //     console.error(error);
-  //     res.status(500).json({ mensagem: "Erro ao definir playlist." });
-  //   }
-  // },
-
-  // // REMOVER A PLAYLIST DO EVENTO
-  // async removerPlaylist(req, res) {
-  //   try {
-  //     const { id } = req.params;
-  //     const { id_usuario } = req.usuario;
-
-  //     const evento = await prisma.evento.findUnique({
-  //       where: { id_evento: id }
-  //     });
-  //     if (!evento) {
-  //       return res.status(404).json({ mensagem: "Evento não encontrado." });
-  //     }
-
-  //     if (evento.id_usuario !== id_usuario) {
-  //       return res
-  //         .status(403)
-  //         .json({ mensagem: "Apenas o organizador pode remover a playlist." });
-  //     }
-
-  //     const eventoAtualizado = await prisma.evento.update({
-  //       where: { id_evento: id },
-  //       data: { playlist_spotify: null }
-  //     });
-
-  //     res.json(eventoAtualizado);
-  //   } catch (error) {
-  //     console.error(error);
-  //     res.status(500).json({ mensagem: "Erro ao remover playlist." });
-  //   }
-  // }
 };
 
 export default eventoController;

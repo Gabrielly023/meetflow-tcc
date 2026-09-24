@@ -17,8 +17,6 @@ router.get("/:id", eventoController.buscarPorId);
 router.post("/", eventoController.criar);
 router.put("/:id", eventoController.atualizar);
 router.delete("/:id", eventoController.deletar);
-//router.put("/:id/playlist", eventoController.definirPlaylist);
-//router.delete("/:id/playlist", eventoController.removerPlaylist);
 
 router.get("/:id/participantes", participanteController.listar);
 router.post("/:id/participantes", participanteController.adicionar);
@@ -41,6 +39,12 @@ router.post("/:id/galeria", galeriaController.adicionar);
 router.get("/:id/local", eventoController.verLocal);
 router.post("/:id/local", eventoController.definirLocal);
 router.delete("/:id/local", eventoController.removerLocal);
+
+// Playlist
+router.get("/:id/playlist", eventoController.listarPlaylist);
+router.post("/:id/playlist", eventoController.adicionarPlaylist);
+router.put("/:id/playlist", eventoController.atualizarPlaylist);
+router.delete("/:id/playlist", eventoController.removerPlaylist);
 
 // Chat
 router.get("/:id/chat", chatController.listar);
