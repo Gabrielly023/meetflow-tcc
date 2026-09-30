@@ -2,8 +2,6 @@ import express from "express";
 import eventoController from "../controllers/eventoController.js";
 import participanteController from "../controllers/participanteController.js";
 import galeriaController from "../controllers/galeriaController.js";
-//import localController from "../controllers/localController.js";
-//import musicaController from "../controllers/musicaController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 import chatController from "../controllers/chatController.js";
 
@@ -49,6 +47,7 @@ router.delete("/:id/playlist", eventoController.removerPlaylist);
 // Chat
 router.get("/:id/chat", chatController.listar);
 router.post("/:id/chat", chatController.enviar);
-router.post("/:id/chat/lido", chatController.marcarLido);
+router.put("/chat/mensagens/:idChat", chatController.editar);
+router.delete("/chat/mensagens/:idChat", chatController.apagar);
 
 export default router;
