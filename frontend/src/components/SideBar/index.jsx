@@ -175,51 +175,53 @@ export default function SideBar({ usuario, onLogout }) {
 
   return (
     <aside className="sidebar-borda sidebar-scrollbar mt-6 flex w-64 shrink-0 flex-col self-stretch px-5 py-8">
-      {/* Ação principal do app: ocupa o topo da sidebar (a logo fica só no header) */}
-      <Link
-        to="/eventos/novo"
-        className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/25 transition duration-300 hover:scale-[1.02] hover:opacity-90 active:scale-95"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="1.5"
-          stroke="currentColor"
-          className="w-5 h-5"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M4.5 4.5h15A1.5 1.5 0 0121 6v13.5A1.5 1.5 0 0119.5 21h-15A1.5 1.5 0 013 19.5V6a1.5 1.5 0 011.5-1.5z"
+      <div className="-mx-3 flex flex-col gap-3">
+        <div className="relative mx-3">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+
+          <input
+            type="text"
+            className="borda-degrade-fixa hover-degrade w-full rounded-xl py-2 pl-10 pr-4 text-slate-100 placeholder:text-slate-500 transition duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-violet-500/25 focus:outline-none focus:ring-2 focus:ring-sky-400/30"
+            placeholder="Search"
           />
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 12.75v4.5M9.75 15h4.5" />
-        </svg>
-        Criar Novo Evento
-      </Link>
+        </div>
+
+        {/* Ação principal do app: ocupa o topo da sidebar (a logo fica só no header) */}
+        <Link
+          to="/eventos/novo"
+          className="mx-3 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/25 transition duration-300 hover:scale-[1.02] hover:opacity-90 active:scale-95"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            className="w-5 h-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6.75 3v2.25M17.25 3v2.25M3 8.25h18M4.5 4.5h15A1.5 1.5 0 0121 6v13.5A1.5 1.5 0 0119.5 21h-15A1.5 1.5 0 013 19.5V6a1.5 1.5 0 011.5-1.5z"
+            />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 12.75v4.5M9.75 15h4.5" />
+          </svg>
+          Criar Novo Evento
+        </Link>
+      </div>
 
       <div className="flex flex-col justify-between flex-1 mt-5">
         <nav className="flex-1 -mx-3 space-y-3">
-          <div className="relative mx-3">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
-
-            <input
-              type="text"
-              className="hover-degrade w-full py-2 pl-10 pr-4 text-slate-100 bg-slate-900 border-2 border-slate-700 rounded-xl placeholder:text-slate-500 transition duration-300 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/25"
-              placeholder="Search"
-            />
-          </div>
-
           {menuItems.map((item) =>
             item.to ? (
               <Link key={item.title} to={item.to} className={menuItemClass}>

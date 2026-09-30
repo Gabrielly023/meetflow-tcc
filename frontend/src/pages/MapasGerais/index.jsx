@@ -1,9 +1,21 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listarEventos, ordenarPorData } from "../../services/eventoService";
 import { getLocalPrincipal, listarLocais } from "../../services/mapaService";
 
 export default function MapasGerais() {
-  const eventos = ordenarPorData(listarEventos());
+  const [eventos, setEventos] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  useEffect(() => {
+    listarEventos()
+      .then((dados) => setEventos(ordenarPorData(dados)))
+      .catch((erro) => {
+        console.error("Erro ao carregar eventos dos mapas:", erro);
+        setEventos([]);
+      })
+      .finally(() => setCarregando(false));
+  }, []);
+
   const totalLocais = eventos.reduce(
     (soma, ev) => soma + listarLocais(ev.id).length,
     0,
@@ -40,7 +52,11 @@ export default function MapasGerais() {
           </div>
         </div>
 
-        {eventos.length === 0 ? (
+        {carregando ? (
+          <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-900/40 p-16 text-center text-slate-300">
+            Carregando mapas...
+          </div>
+        ) : eventos.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-900/40 p-16 text-center text-slate-300">
             Você ainda não tem eventos.
           </div>

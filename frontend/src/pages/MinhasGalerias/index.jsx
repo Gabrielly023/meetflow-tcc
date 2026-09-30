@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Lightbox from "../../components/Lightbox";
 import { listarEventos, ordenarPorData } from "../../services/eventoService";
@@ -10,7 +10,18 @@ import {
 } from "../../services/galeriaService";
 
 export default function MinhasGalerias() {
-  const eventos = ordenarPorData(listarEventos());
+  const [eventos, setEventos] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  useEffect(() => {
+    listarEventos()
+      .then((dados) => setEventos(ordenarPorData(dados)))
+      .catch((erro) => {
+        console.error("Erro ao carregar eventos da galeria:", erro);
+        setEventos([]);
+      })
+      .finally(() => setCarregando(false));
+  }, []);
+
   const todasFotos = eventos.flatMap((ev) =>
     listarFotos(ev.id).map((foto) => ({
       ...foto,
@@ -64,7 +75,11 @@ export default function MinhasGalerias() {
               </div>
             </div>
 
-            {eventos.length === 0 ? (
+            {carregando ? (
+              <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-900/40 p-16 text-center text-slate-300">
+                Carregando galerias...
+              </div>
+            ) : eventos.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-900/40 p-16 text-center text-slate-300">
                 Você ainda não tem eventos.
               </div>
