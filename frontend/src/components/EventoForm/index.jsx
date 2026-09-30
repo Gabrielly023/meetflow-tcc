@@ -97,6 +97,7 @@ export default function EventoForm({
   const [escolhaCapa, setEscolhaCapa] = useState(false); // modal "ajustar/outra"
   const [arrastando, setArrastando] = useState(false); // feedback de drag-and-drop
   const [erro, setErro] = useState("");
+  const [salvando, setSalvando] = useState(false);
   const inputCapaRef = useRef(null);
 
   // A capa atual só é ajustável se for uma imagem enviada (data URL); links
@@ -175,7 +176,7 @@ export default function EventoForm({
     setArrastando(false);
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     setErro("");
 
@@ -196,20 +197,31 @@ export default function EventoForm({
       return;
     }
 
-    onSubmit({
-      titulo: form.titulo.trim(),
-      tipo: form.tipo,
-      dataHora: form.dataHora,
-      dataHoraFim: form.dataHoraFim,
-      local: form.local.trim(),
-      senhaAcesso: form.senhaAcesso,
-      descricao: form.descricao.trim(),
-      capa: capaErro ? "" : capa,
-      capaOrig: capaErro ? "" : capaOrig,
-      mapaLink: form.mapaLink.trim(),
-      playlistLink: form.playlistLink.trim(),
-      participantes,
-    });
+    setSalvando(true);
+    try {
+      await onSubmit({
+        titulo: form.titulo.trim(),
+        tipo: form.tipo,
+        dataHora: form.dataHora,
+        dataHoraFim: form.dataHoraFim,
+        local: form.local.trim(),
+        senhaAcesso: form.senhaAcesso,
+        descricao: form.descricao.trim(),
+        capa: capaErro ? "" : capa,
+        capaOrig: capaErro ? "" : capaOrig,
+        mapaLink: form.mapaLink.trim(),
+        playlistLink: form.playlistLink.trim(),
+        participantes,
+      });
+    } catch (err) {
+      console.error("Erro ao salvar evento:", err);
+      setErro(
+        err?.response?.data?.mensagem ||
+          "Não foi possível salvar o evento. Tente novamente.",
+      );
+    } finally {
+      setSalvando(false);
+    }
   }
 
   return (
@@ -583,9 +595,10 @@ export default function EventoForm({
         </Link>
         <button
           type="submit"
-          className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition hover:opacity-90"
+          disabled={salvando}
+          className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {textoBotao}
+          {salvando ? "Salvando..." : textoBotao}
         </button>
       </div>
     </form>

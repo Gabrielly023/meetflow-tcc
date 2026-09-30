@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import Header from "../Header";
 import SideBar from "../SideBar";
-import { getUsuarioLogado, logout } from "../../services/usuarioService";
+import {
+  EVENTO_SESSAO_ATUALIZADA,
+  getUsuarioLogado,
+  logout,
+} from "../../services/usuarioService";
 import ModalConfirmacao from "../ModalConfirmacao";
 
 // Casca comum das páginas internas do app.
@@ -10,8 +14,18 @@ import ModalConfirmacao from "../ModalConfirmacao";
 // recriados ao navegar — é o que permite o player da sidebar seguir tocando.
 export default function AppLayout() {
   const navigate = useNavigate();
-  const usuario = getUsuarioLogado();
+  const [usuario, setUsuario] = useState(() => getUsuarioLogado());
   const [confirmarSair, setConfirmarSair] = useState(false);
+
+  useEffect(() => {
+    function atualizarUsuario() {
+      setUsuario(getUsuarioLogado());
+    }
+
+    window.addEventListener(EVENTO_SESSAO_ATUALIZADA, atualizarUsuario);
+    return () =>
+      window.removeEventListener(EVENTO_SESSAO_ATUALIZADA, atualizarUsuario);
+  }, []);
 
   const handleLogout = () => {
     logout();
