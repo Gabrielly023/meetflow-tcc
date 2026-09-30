@@ -4,10 +4,15 @@ import authMiddleware from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
+// Aplica a autenticação a todas as rotas
 router.use(authMiddleware);
 
-router.put("/:idChat", chatController.editar);
-router.delete("/:idChat", chatController.apagar);
-router.post("/:idChat/reacao", chatController.reagir);
+// Mensagens no contexto do evento
+router.get("/eventos/:id", chatController.listar);
+router.post("/eventos/:id", chatController.enviar);
+
+// Ações em mensagens individuais
+router.put("/mensagens/:idChat", chatController.editar);
+router.delete("/mensagens/:idChat", chatController.apagar);
 
 export default router;
