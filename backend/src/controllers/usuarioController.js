@@ -126,21 +126,28 @@ const usuarioController = {
         }
       });
 
+     // Nunca retorna a senha no JSON
       const { senha: _, ...usuarioSemSenha } = usuario;
 
-      res.status(201).json({
-        mensagem: "Cadastro realizado com sucesso!",
-        usuario: usuarioSemSenha
+      // 🟢 CORRIGIDO: Retorno HTTP 200 completo com dados e tokens
+      return res.status(200).json({
+        mensagem: "Login realizado com sucesso!",
+        usuario: usuarioSemSenha,
+        token,
+        refreshToken
       });
+
     } catch (error) {
       console.error(error);
-      res.status(500).json({ mensagem: "Erro ao cadastrar usuário." });
+      return res.status(500).json({
+        mensagem: "Erro ao realizar login."
+      });
     }
   },
 
   // LOGIN
 async login(req, res) {
-  try {
+  try { 
     const { login, senha } = req.body;
 
     if (!login || !senha) {
@@ -220,80 +227,74 @@ async login(req, res) {
   }
 },
 // RENOVAR ACCESS TOKEN
-async renovarToken(req, res) {
-  try {
-    const { refreshToken } = req.body;
+  async renovarToken(req, res) {
+    try {
+      const { refreshToken } = req.body;
 
-    if (!refreshToken) {
-      return res.status(400).json({
-        mensagem: "Envie o refreshToken."
-      });
-    }
-
-    // Procura o refresh token no banco
-    const tokenSalvo = await prisma.refreshToken.findFirst({
-      where: {
-        token: refreshToken
+      if (!refreshToken) {
+        return res.status(400).json({
+          mensagem: "Envie o refreshToken."
+        });
       }
-    });
 
-    if (!tokenSalvo) {
-      return res.status(401).json({
-        mensagem: "Refresh token inválido."
-      });
-    }
-
-    // Verifica se o refresh token expirou
-    if (new Date() > tokenSalvo.expira_em) {
-      await prisma.refreshToken.delete({
+      // Procura o refresh token no banco
+      const tokenSalvo = await prisma.refreshToken.findFirst({
         where: {
-          id: tokenSalvo.id
+          token: refreshToken
         }
       });
 
-      return res.status(401).json({
-        mensagem: "Refresh token expirado. Faça login novamente."
-      });
-    }
-
-    // Busca o usuário
-    const usuario = await prisma.usuario.findUnique({
-      where: {
-        id_usuario: tokenSalvo.id_usuario
+      if (!tokenSalvo) {
+        return res.status(401).json({
+          mensagem: "Refresh token inválido."
+        });
       }
-    });
 
-    if (!usuario) {
-      return res.status(404).json({
-        mensagem: "Usuário não encontrado."
-      });
-    }
+      // Verifica se o refresh token expirou
+      if (new Date() > tokenSalvo.expira_em) {
+        await prisma.refreshToken.delete({
+          where: {
+            id: tokenSalvo.id
+          }
+        });
 
-    // Cria um novo access token
-    const token = jwt.sign(
-      {
-        id_usuario: usuario.id_usuario,
-        username: usuario.username
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "15m"
+        return res.status(401).json({
+          mensagem: "Refresh token expirado. Faça login novamente."
+        });
       }
-    );
 
-    return res.status(200).json({
-      mensagem: "Token renovado com sucesso!",
-      token
-    });
+      // 🟢 ADICIONADO: Busca dados do usuário para assinar novo JWT
+      const usuario = await prisma.usuario.findUnique({
+        where: { id_usuario: tokenSalvo.id_usuario }
+      });
 
-  } catch (error) {
-    console.error(error);
+      if (!usuario) {
+        return res.status(404).json({ mensagem: "Usuário não encontrado." });
+      }
 
-    return res.status(500).json({
-      mensagem: "Erro ao renovar token."
-    });
-  }
-},
+      // 🟢 ADICIONADO: Gera novo Access Token
+      const novoToken = jwt.sign(
+        {
+          id_usuario: usuario.id_usuario,
+          username: usuario.username
+        },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: "15m"
+        }
+      );
+
+      // 🟢 ADICIONADO: Envia o novo token de volta ao frontend
+      return res.status(200).json({
+        mensagem: "Token renovado com sucesso!",
+        token: novoToken
+      });
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ mensagem: "Erro ao renovar token." });
+    }
+  },
 
   // LOGOUT (revoga o refresh token)
   async logout(req, res) {

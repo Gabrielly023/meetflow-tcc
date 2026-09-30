@@ -1,31 +1,37 @@
 import { api, TOKEN_KEY } from "./config";
 
-// Serviço de usuários: cadastro, login, sessão (token JWT) e CRUD.
-// Usa a instância compartilhada do Axios (config.js), que já anexa o token
-// automaticamente nas requisições. Rotas: ver CONTRATO_API_FRONTEND.md.
-
-// Onde guardamos o usuário logado (o token fica em TOKEN_KEY, ver config.js).
+// Chaves usadas no localStorage
 const USUARIO_KEY = "meetflow.usuario";
+const REFRESH_TOKEN_KEY = "meetflow.refreshToken"; // ➕ NOVA CHAVE ADICIONADA
 
-// Extrai a mensagem de erro que o backend envia ({ mensagem: "..." }),
-// caindo para um texto padrão se não houver resposta (ex.: backend offline).
+// Extrai a mensagem de erro que o backend envia
 export function mensagemDoErro(erro, padrao = "Algo deu errado. Tente novamente.") {
   return erro?.response?.data?.mensagem || padrao;
 }
 
 // ─────────────────────── SESSÃO (token + usuário) ───────────────────────
 
-// Guarda o token JWT e o usuário logado no localStorage.
-export function salvarSessao(usuario, token) {
+// Guarda o Access Token, Refresh Token e o Usuário no localStorage
+export function salvarSessao(usuario, token, refreshToken) {
   try {
     if (token) localStorage.setItem(TOKEN_KEY, token);
+    if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken); // ➕ SALVA REFRESH TOKEN
     if (usuario) localStorage.setItem(USUARIO_KEY, JSON.stringify(usuario));
   } catch (erro) {
     console.error("Erro ao salvar a sessão:", erro);
   }
 }
 
-// Retorna o usuário logado (ou null se não houver).
+// Retorna o Refresh Token salvo
+export function getRefreshToken() {
+  try {
+    return localStorage.getItem(REFRESH_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+// Retorna o usuário logado (ou null se não houver)
 export function getUsuarioLogado() {
   try {
     const bruto = localStorage.getItem(USUARIO_KEY);
@@ -35,7 +41,7 @@ export function getUsuarioLogado() {
   }
 }
 
-// Diz se há alguém logado (existe token guardado).
+// Diz se há alguém logado (existe token guardado)
 export function estaLogado() {
   try {
     return Boolean(localStorage.getItem(TOKEN_KEY));
@@ -44,7 +50,7 @@ export function estaLogado() {
   }
 }
 
-// Diz se a sessão atual é a de demonstração (botão "Entrar com Google" offline).
+// Diz se a sessão atual é a de demonstração
 export function ehModoDemo() {
   try {
     return localStorage.getItem(TOKEN_KEY) === "demo";
@@ -53,48 +59,61 @@ export function ehModoDemo() {
   }
 }
 
-// Encerra a sessão: remove token e usuário.
+// Encerra a sessão: remove tokens e usuário
 export function logout() {
   try {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY); // ➕ LIMPA O REFRESH TOKEN
     localStorage.removeItem(USUARIO_KEY);
   } catch {
     // sem localStorage: nada a fazer
   }
 }
 
-// ─────────────────────── CADASTRO E LOGIN ───────────────────────
+// ─────────────────────── CADASTRO, LOGIN E RENOVAÇÃO ───────────────────────
 
-// POST /usuarios — cadastro.
-// `dados`: { nome, username, email, telefone, senha }
+// POST /usuarios/cadastrar — cadastro
 export const cadastrar = async (dados) => {
   const { data } = await api.post("/usuarios/cadastrar", dados);
   return data; // { mensagem, usuario }
 };
 
-// POST /usuarios/login — `login` pode ser o email OU o username.
-// Em caso de sucesso, já guarda o token e o usuário na sessão.
+// POST /usuarios/login — login
 export const login = async (loginOuEmail, senha) => {
   const { data } = await api.post("/usuarios/login", {
     login: loginOuEmail,
     senha,
   });
-  salvarSessao(data.usuario, data.token);
-  return data; // { mensagem, usuario, token }
+  
+  // ➕ Passa o refreshToken para a função salvarSessao
+  salvarSessao(data.usuario, data.token, data.refreshToken);
+  return data; // { mensagem, usuario, token, refreshToken }
 };
 
-// Sessão de DEMONSTRAÇÃO (sem backend): usada pelos botões "Entrar com Google"
-// enquanto o login social não existe. Permite navegar no app offline (a parte
-// de eventos/galeria/playlist roda em localStorage). Quando houver login real
-// com Google, é só trocar isto por uma chamada de verdade ao backend.
+// ➕ NOVA FUNÇÃO: Renova o Access Token expirado usando o Refresh Token
+export const renovarSessao = async () => {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) throw new Error("Sem refresh token disponível");
+
+  const { data } = await api.post("/usuarios/refresh-token", { refreshToken });
+  
+  // Atualiza o novo Access Token no localStorage
+  if (data.token) {
+    localStorage.setItem(TOKEN_KEY, data.token);
+  }
+  return data; // { mensagem, token }
+};
+
+// Sessão de DEMONSTRAÇÃO (offline)
 export function entrarModoDemo() {
   salvarSessao(
     { nome: "Convidado", username: "convidado", email: "", telefone: "" },
     "demo",
+    "demo"
   );
 }
 
-// ─────────────────────── CRUD (usado no futuro) ───────────────────────
+// ─────────────────────── CRUD ───────────────────────
 
 export const listarUsuarios = async () => {
   const { data } = await api.get("/usuarios");
