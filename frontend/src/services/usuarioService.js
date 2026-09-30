@@ -3,6 +3,7 @@ import { api, TOKEN_KEY } from "./config";
 // Chaves usadas no localStorage
 const USUARIO_KEY = "meetflow.usuario";
 const REFRESH_TOKEN_KEY = "meetflow.refreshToken"; // ➕ NOVA CHAVE ADICIONADA
+export const EVENTO_SESSAO_ATUALIZADA = "meetflow:sessao-atualizada";
 
 // Extrai a mensagem de erro que o backend envia
 export function mensagemDoErro(erro, padrao = "Algo deu errado. Tente novamente.") {
@@ -17,6 +18,9 @@ export function salvarSessao(usuario, token, refreshToken) {
     if (token) localStorage.setItem(TOKEN_KEY, token);
     if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken); // ➕ SALVA REFRESH TOKEN
     if (usuario) localStorage.setItem(USUARIO_KEY, JSON.stringify(usuario));
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event(EVENTO_SESSAO_ATUALIZADA));
+    }
   } catch (erro) {
     console.error("Erro ao salvar a sessão:", erro);
   }

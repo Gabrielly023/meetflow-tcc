@@ -78,7 +78,7 @@ export default function Configuracoes() {
     email: usuario?.email || "",
     telefone: usuario?.telefone || "",
   });
-  const [prefs, setPrefs] = useState(() => {
+  const [prefs] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("meetflow.config.prefs")) || {
         notificacoesChat: true,
@@ -93,15 +93,6 @@ export default function Configuracoes() {
       };
     }
   });
-
-  useEffect(() => {
-    setForm({
-      nome: usuario?.nome || "",
-      username: usuario?.username || "",
-      email: usuario?.email || "",
-      telefone: usuario?.telefone || "",
-    });
-  }, [usuario]);
 
   useEffect(() => {
     try {
