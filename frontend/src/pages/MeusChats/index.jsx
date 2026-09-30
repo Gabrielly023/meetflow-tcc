@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listarEventos, ordenarPorData } from "../../services/eventoService";
 import {
@@ -43,7 +44,17 @@ function textoBalao(m) {
 }
 
 export default function MeusChats() {
-  const eventos = ordenarPorData(listarEventos());
+  const [eventos, setEventos] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  useEffect(() => {
+    listarEventos()
+      .then((dados) => setEventos(ordenarPorData(dados)))
+      .catch((erro) => {
+        console.error("Erro ao carregar eventos dos chats:", erro);
+        setEventos([]);
+      })
+      .finally(() => setCarregando(false));
+  }, []);
 
   const linhas = eventos.map((ev) => {
     const ultima = ultimaMensagem(ev.id);
@@ -92,7 +103,11 @@ export default function MeusChats() {
           </div>
         </div>
 
-        {linhas.length === 0 ? (
+        {carregando ? (
+          <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-900/40 p-16 text-center text-slate-300">
+            Carregando chats...
+          </div>
+        ) : linhas.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-slate-700 bg-gradient-to-br from-violet-500/40 via-slate-900/40 to-sky-500/40 p-16 text-center text-slate-300">
             Você ainda não tem eventos.
           </div>

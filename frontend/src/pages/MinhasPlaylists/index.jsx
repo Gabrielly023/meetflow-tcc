@@ -13,7 +13,17 @@ import { usePlayer } from "../../context/PlayerContext";
 export default function MinhasPlaylists() {
   // Ordena por proximidade da data; a "ouvida por último" ainda é puxada
   // para o topo depois (ver `ordenadas` abaixo).
-  const eventos = ordenarPorData(listarEventos());
+  const [eventos, setEventos] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  useEffect(() => {
+    listarEventos()
+      .then((dados) => setEventos(ordenarPorData(dados)))
+      .catch((erro) => {
+        console.error("Erro ao carregar eventos das playlists:", erro);
+        setEventos([]);
+      })
+      .finally(() => setCarregando(false));
+  }, []);
 
   // Junta os dados de playlist de cada evento (embed do Spotify + músicas sugeridas)
   const playlists = eventos.map((evento) => ({
@@ -82,7 +92,11 @@ export default function MinhasPlaylists() {
               </div>
             </div>
 
-            {eventos.length === 0 ? (
+            {carregando ? (
+              <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-900/40 p-16 text-center text-slate-300">
+                Carregando playlists...
+              </div>
+            ) : eventos.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-slate-700 bg-slate-900/40 p-16 text-center text-slate-300">
                 Você ainda não tem eventos.
               </div>
