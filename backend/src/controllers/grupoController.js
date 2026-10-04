@@ -4,48 +4,49 @@ import { sanitizarTexto } from "../utils/sanitize.js";
 
 const grupoController = {
 
-  // GET /eventos/:id/grupo
-  async buscar(req, res) {
-    try {
-      const { id } = req.params;
-      const { id_usuario } = req.usuario;
+ // GET /eventos/:id/grupo
+async buscar(req, res) {
+  try {
+    const { id } = req.params;
+    const { id_usuario } = req.usuario;
 
-      const evento = await prisma.evento.findUnique({
-        where: { id_evento: id },
-      });
+    const evento = await prisma.evento.findUnique({
+      where: { id_evento: id },
+    });
 
-      if (!evento) {
-        return res.status(404).json({ mensagem: "Evento não encontrado." });
-      }
-
-      // Só quem participa pode ver o grupo
-      const souOrganizador = evento.id_usuario === id_usuario;
-      let souParticipante = false;
-
-      if (!souOrganizador) {
-        const participacao = await prisma.participantes.findUnique({
-          where: { id_evento_id_usuario: { id_evento: id, id_usuario } },
-        });
-        souParticipante = !!participacao;
-      }
-
-      if (!souOrganizador && !souParticipante) {
-        return res.status(403).json({ mensagem: "Você não tem acesso a este evento." });
-      }
-
-      const grupo = {
-        nome_grupo: evento.nome_grupo,
-        descricao_grupo: evento.descricao_grupo,
-        foto_grupo: evento.foto_grupo,
-        papel_parede: evento.papel_parede,
-      };
-
-      res.json(grupo);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ mensagem: "Erro ao buscar grupo." });
+    if (!evento) {
+      return res.status(404).json({ mensagem: "Evento não encontrado." });
     }
-  },
+
+    // Só quem participa pode ver o grupo
+    const souOrganizador = evento.id_usuario === id_usuario;
+    let souParticipante = false;
+
+    if (!souOrganizador) {
+      const participacao = await prisma.participantes.findUnique({
+        where: { id_evento_id_usuario: { id_evento: id, id_usuario } },
+      });
+      souParticipante = !!participacao;
+    }
+
+    if (!souOrganizador && !souParticipante) {
+      return res.status(403).json({ mensagem: "Você não tem acesso a este evento." });
+    }
+
+    // Mapeia para as colunas reais do evento: titulo, descricao e capa_url
+    const grupo = {
+      nome_grupo: evento.titulo,
+      descricao_grupo: evento.descricao,
+      foto_grupo: evento.capa_url,
+      papel_parede: evento.capa_url,
+    };
+
+    res.json(grupo);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensagem: "Erro ao buscar grupo." });
+  }
+},
 
   // PUT /eventos/:id/grupo
   async atualizar(req, res) {
@@ -86,19 +87,19 @@ const grupoController = {
       const eventoAtualizado = await prisma.evento.update({
         where: { id_evento: id },
         data: {
-          nome_grupo,
-          descricao_grupo,
-          foto_grupo,
-        },
+          titulo: nome_grupo,        // usa 'titulo' em vez de 'nome_grupo'
+          descricao: descricao_grupo, // usa 'descricao' em vez de 'descricao_grupo'
+          capa_url: foto_grupo,
+           },
       });
 
       const grupo = {
-        nome_grupo: eventoAtualizado.nome_grupo,
-        descricao_grupo: eventoAtualizado.descricao_grupo,
-        foto_grupo: eventoAtualizado.foto_grupo,
-      };
+          nome_grupo: eventoAtualizado.titulo,
+          descricao_grupo: eventoAtualizado.descricao,
+          foto_grupo: eventoAtualizado.capa_url,
+};
 
-      res.json(grupo);
+res.json(grupo);
     } catch (error) {
       console.error(error);
       res.status(500).json({ mensagem: "Erro ao atualizar grupo." });
@@ -143,12 +144,12 @@ const grupoController = {
         return res.status(403).json({ mensagem: "Você não tem acesso a este evento." });
       }
 
-      const eventoAtualizado = await prisma.evento.update({
-        where: { id_evento: id },
-        data: { papel_parede },
-      });
+     const eventoAtualizado = await prisma.evento.update({
+         where: { id_evento: id },
+         data: { capa_url: papel_parede }, // Usa capa_url em vez de papel_parede
+});
 
-      res.json({ papel_parede: eventoAtualizado.papel_parede });
+      res.json({ papel_parede: eventoAtualizado.capa_url });
     } catch (error) {
       console.error(error);
       res.status(500).json({ mensagem: "Erro ao atualizar papel de parede." });

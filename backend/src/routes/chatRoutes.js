@@ -15,4 +15,6 @@ router.post("/eventos/:id", chatController.enviar);
 router.put("/mensagens/:idChat", chatController.editar);
 router.delete("/mensagens/:idChat", chatController.apagar);
 
+router.post("/eventos/:id/lido", chatController.marcarLido);
+router.post("/mensagens/:idChat/reagir", chatController.reagirEmoji);
 export default router;
