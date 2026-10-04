@@ -418,7 +418,59 @@ async atualizar(req, res) {
     });
   }
 },
+async googleLogin(req, res) {
+  try {
+    const { email, nome, foto } = req.body;
 
+    if (!email) {
+      return res.status(400).json({ mensagem: "E-mail é obrigatório." });
+    }
+
+    let usuario = await prisma.usuario.findUnique({
+      where: { email },
+    });
+
+    if (!usuario) {
+      const baseUsername = email.split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "");
+      const sufixo = Math.floor(1000 + Math.random() * 9000);
+      const usernameGerado = `${baseUsername}_${sufixo}`;
+
+      usuario = await prisma.usuario.create({
+        data: {
+          email,
+          nome: nome || "Usuário Google",
+          username: usernameGerado,
+          senha: "", // Senha vazia para login social
+          telefone: "", // <--- Campo obrigatório preenchido com string vazia
+          foto_perfil: foto || null,
+        },
+      });
+    }
+
+    const token = jwt.sign(
+      { id_usuario: usuario.id_usuario },
+      process.env.JWT_SECRET || "seusesegredo",
+      { expiresIn: "7d" }
+    );
+
+    res.json({
+      token,
+      usuario: {
+        id_usuario: usuario.id_usuario,
+        nome: usuario.nome,
+        email: usuario.email,
+        username: usuario.username,
+        telefone: usuario.telefone,
+      },
+    });
+  } catch (error) {
+    console.error("Erro detalhado do Google Login:", error);
+    res.status(500).json({ 
+      mensagem: "Erro ao autenticar com o Google.", 
+      detalhe: error.message 
+    });
+  }
+},
   // DELETAR USUÁRIO
   async deletar(req, res) {
     try {
@@ -441,5 +493,6 @@ async atualizar(req, res) {
     }
   }
 };
+
 
 export default usuarioController;

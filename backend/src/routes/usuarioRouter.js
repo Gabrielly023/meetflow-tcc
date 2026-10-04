@@ -10,6 +10,9 @@ router.post("/cadastrar", usuarioController.criar);
 // Login
 router.post("/login", usuarioController.login);
 
+// Login via Google OAuth
+router.post("/google-login", usuarioController.googleLogin);
+
 // 🔒 Rota de teste do middleware — devolve os dados do usuário logado
 router.get("/perfil", authMiddleware, (req, res) => {
   res.json({

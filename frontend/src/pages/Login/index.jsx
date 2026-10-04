@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useGoogleLogin } from "@react-oauth/google";
 import AuthLayout from "../../components/AuthLayout";
 import AuthField from "../../components/AuthField";
 import GoogleButton from "../../components/GoogleButton";
 import {
   login as fazerLogin,
-  entrarModoDemo,
+  salvarSessao,
   mensagemDoErro,
 } from "../../services/usuarioService";
 
@@ -32,10 +33,7 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setError("");
-
     try {
-      // `login` pode ser o email OU o nome de usuário. O serviço já guarda
-      // o token JWT e o usuário no localStorage em caso de sucesso.
       await fazerLogin(login.trim(), password);
       navigate("/usuarios");
     } catch (err) {
@@ -46,23 +44,58 @@ const Login = () => {
     }
   };
 
-  const handleGoogle = () => {
-    // Login social ainda não existe no backend: cria uma sessão de
-    // demonstração local para navegar no app (ver entrarModoDemo).
-    entrarModoDemo();
-    navigate("/usuarios");
-  };
+  const handleGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setLoading(true);
+      setError("");
+      try {
+        // 1. Pega os dados do Google
+        const googleRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        });
+        const googleUser = await googleRes.json();
+
+        // 2. Envia para o backend criar/autenticar
+        const backRes = await fetch("http://localhost:3000/usuarios/google-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: googleUser.email,
+            nome: googleUser.name,
+            foto: googleUser.picture,
+          }),
+        });
+
+        const data = await backRes.json();
+
+        if (!backRes.ok) {
+          throw new Error(data.mensagem || "Erro ao realizar login no servidor.");
+        }
+
+        // 3. Salva a sessão usando a função oficial da aplicação
+        salvarSessao(data.usuario, data.token, data.refreshToken);
+
+        // 4. Navega para o painel de usuários
+        navigate("/usuarios");
+      } catch (err) {
+        console.error("Erro no fluxo do Google Login:", err);
+        setError(err.message || "Não foi possível completar o login com o Google.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    onError: () => {
+      setError("A autenticação do Google foi cancelada ou falhou.");
+    },
+  });
 
   return (
     <AuthLayout
       aviso="Ainda não tem uma conta?"
-      links={[
-        { label: "Cadastro", href: "/signup" },
-      ]}
+      links={[{ label: "Cadastro", href: "/signup" }]}
     >
       <div className="auth-card w-full max-w-md rounded-3xl bg-gradient-to-br from-orange-500/70 via-fuchsia-500/70 to-sky-500/70 p-[2px] shadow-2xl shadow-fuchsia-500/20">
         <div className="rounded-3xl bg-slate-900/80 p-8 backdrop-blur-xl">
-          {/* Cabeçalho */}
           <div className="mb-8 text-center">
             <span className="fonte-flow mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 text-3xl font-bold text-white shadow-lg shadow-fuchsia-500/25">
               M
@@ -92,7 +125,6 @@ const Login = () => {
               icon={iconeEmail}
               required
             />
-
             <AuthField
               id="password"
               label="Senha"
@@ -103,7 +135,6 @@ const Login = () => {
               icon={iconeSenha}
               required
             />
-
             <button
               type="submit"
               disabled={loading}
@@ -121,7 +152,7 @@ const Login = () => {
             <span className="h-px flex-1 bg-slate-700/60" />
           </div>
 
-          <GoogleButton onClick={handleGoogle} texto="Entrar com o Google" />
+          <GoogleButton onClick={() => handleGoogle()} texto="Entrar com o Google" />
 
           <p className="mt-6 text-center text-sm text-slate-400">
             Não tem conta?{" "}
@@ -132,7 +163,6 @@ const Login = () => {
               Cadastre-se
             </Link>
           </p>
-
           <Link
             to="/"
             className="mt-4 block text-center text-sm text-slate-500 transition hover:text-slate-300"

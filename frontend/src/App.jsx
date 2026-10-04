@@ -24,6 +24,7 @@ import AppLayout from "./components/AppLayout";
 import RequireAuth from "./components/RequireAuth";
 import { PlayerProvider } from "./context/PlayerContext";
 
+
 function App() {
   return (
     <Router>
