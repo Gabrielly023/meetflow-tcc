@@ -10,6 +10,10 @@ router.post("/cadastrar", usuarioController.criar);
 // Login
 router.post("/login", usuarioController.login);
 
+// Recuperação de senha
+router.post("/esqueci-senha", usuarioController.solicitarResetSenha);
+router.post("/redefinir-senha", usuarioController.redefinirSenha);
+
 // Login via Google OAuth
 router.post("/google-login", usuarioController.googleLogin);
 

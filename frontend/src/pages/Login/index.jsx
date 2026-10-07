@@ -22,13 +22,14 @@ const iconeSenha = (
   </svg>
 );
 
+const RECUPERACAO_LOGIN_KEY = "meetflow.recuperacao.login";
+
 const Login = () => {
   const navigate = useNavigate();
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -120,7 +121,13 @@ const Login = () => {
               label="Email ou nome de usuário"
               type="text"
               value={login}
-              onChange={(e) => setLogin(e.target.value)}
+              onChange={(e) => {
+                const valor = e.target.value;
+                setLogin(valor);
+                if (typeof window !== "undefined") {
+                  sessionStorage.setItem(RECUPERACAO_LOGIN_KEY, valor);
+                }
+              }}
               placeholder="seu@email.com ou seu_usuario"
               icon={iconeEmail}
               required
@@ -135,6 +142,16 @@ const Login = () => {
               icon={iconeSenha}
               required
             />
+            <div className="flex justify-end">
+              <Link
+                to="/recuperar-senha"
+                state={{ login: login.trim() }}
+                className="text-sm font-medium text-slate-300 transition hover:text-white"
+              >
+                Esqueci minha senha
+              </Link>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
@@ -171,6 +188,7 @@ const Login = () => {
           </Link>
         </div>
       </div>
+
     </AuthLayout>
   );
 };

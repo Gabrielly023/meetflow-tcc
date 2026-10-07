@@ -94,6 +94,25 @@ export const login = async (loginOuEmail, senha) => {
   return data; // { mensagem, usuario, token, refreshToken }
 };
 
+// POST /usuarios/esqueci-senha — solicita código por e-mail
+export const solicitarRecuperacaoSenha = async (loginOuEmail) => {
+  const { data } = await api.post("/usuarios/esqueci-senha", {
+    login: loginOuEmail,
+    email: loginOuEmail,
+  });
+  return data;
+};
+
+// POST /usuarios/redefinir-senha — confirma código e altera a senha
+export const redefinirSenha = async (email, codigo, novaSenha) => {
+  const { data } = await api.post("/usuarios/redefinir-senha", {
+    email,
+    codigo,
+    novaSenha,
+  });
+  return data;
+};
+
 // ➕ NOVA FUNÇÃO: Renova o Access Token expirado usando o Refresh Token
 export const renovarSessao = async () => {
   const refreshToken = getRefreshToken();

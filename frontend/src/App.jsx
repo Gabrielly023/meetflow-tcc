@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import InicialPage from "./pages/InicialPage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import RecuperarSenha from "./pages/RecuperarSenha";
 import HomePage from "./pages/HomePage";
 import EventosPage from "./pages/EventosPage";
 import CriarEvento from "./pages/CriarEvento";
@@ -34,6 +35,7 @@ function App() {
         <Route path="/" element={<InicialPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/recuperar-senha" element={<RecuperarSenha />} />
 
         {/* Páginas internas: exigem login (RequireAuth) e compartilham a
             casca (Header + SideBar) única e persistente */}
