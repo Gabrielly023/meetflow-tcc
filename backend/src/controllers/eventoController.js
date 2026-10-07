@@ -1,6 +1,5 @@
 import { prisma } from "../config/db.js";
 import validator from "validator";
-import galeriaController from "../controllers/galeriaController.js";
 import { sanitizarTexto } from "../utils/sanitize.js";
 
 // Organizador OU participante do evento
@@ -100,7 +99,7 @@ const eventoController = {
         descricao
       } = req.body;
 
-      if (!titulo || !data_hora) {
+      if (!titulo || !data_hora || !senha_acesso) {
         return res.status(400).json({
           mensagem:
             "Preencha os campos obrigatórios: título, data e senha de acesso."
@@ -124,14 +123,6 @@ const eventoController = {
           .status(400)
           .json({ mensagem: "capa_url deve ser uma URL válida." });
       }
-
-      let nome_grupo, descricao_grupo;
-
-      // Sanitizar campos do grupo
-      if (req.body.nome_grupo) nome_grupo = sanitizarTexto(req.body.nome_grupo);
-
-      if (req.body.descricao_grupo)
-        descricao_grupo = sanitizarTexto(req.body.descricao_grupo);
 
       const evento = await prisma.evento.create({
         data: {
@@ -191,28 +182,10 @@ const eventoController = {
         localizacao,
         senha_acesso,
         tipo,
-        capa_url,
-        nome_grupo,
-        descricao_grupo,
-        foto_grupo,
-        papel_parede
+        capa_url
       } = req.body;
 
-      if (foto_grupo && !validator.isURL(foto_grupo)) {
-        return res
-          .status(400)
-          .json({ mensagem: "foto_grupo deve ser uma URL válida." });
-      }
-
-      if (papel_parede && !validator.isURL(papel_parede)) {
-        return res
-          .status(400)
-          .json({ mensagem: "papel_parede deve ser uma URL válida." });
-      }
-
       // Sanitizar
-      if (nome_grupo) nome_grupo = sanitizarTexto(nome_grupo);
-      if (descricao_grupo) descricao_grupo = sanitizarTexto(descricao_grupo);
       if (titulo) titulo = sanitizarTexto(titulo);
       if (descricao) descricao = sanitizarTexto(descricao);
       if (localizacao) localizacao = sanitizarTexto(localizacao);

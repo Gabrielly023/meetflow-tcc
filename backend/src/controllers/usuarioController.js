@@ -69,10 +69,10 @@ const usuarioController = {
           site: true
         }
       });
-      res.json(usuarios);
+      return res.json(usuarios);
     } catch (error) {
       console.error(error);
-      res.status(500).json({ mensagem: "Erro ao listar usuários." });
+      return res.status(500).json({ mensagem: "Erro ao listar usuários." });
     }
   },
 
@@ -80,7 +80,6 @@ const usuarioController = {
   async buscarPorId(req, res) {
     try {
       const { id } = req.params;
-
       const usuario = await prisma.usuario.findUnique({
         where: { id_usuario: id },
         select: {
@@ -101,10 +100,10 @@ const usuarioController = {
         return res.status(404).json({ mensagem: "Usuário não encontrado." });
       }
 
-      res.json(usuario);
+      return res.json(usuario);
     } catch (error) {
       console.error(error);
-      res.status(500).json({ mensagem: "Erro ao buscar usuário." });
+      return res.status(500).json({ mensagem: "Erro ao buscar usuário." });
     }
   },
 
@@ -133,18 +132,16 @@ const usuarioController = {
 
       if (!/^[a-zA-Z0-9._]+$/.test(username)) {
         return res.status(400).json({
-          mensagem:
-            "Username deve conter apenas letras, números, pontos ou underline."
+          mensagem: "Username deve conter apenas letras, números, pontos ou underline."
         });
       }
 
       if (
         telefone &&
-        !/^\(\d{2}\)\s?\d{4,5}-\d{4}$|^\d{10,11}$/.test(telefone)
+        !/^\(\d{2}\)\s?\d{4,5}-\d{4}$\vert{}^\d{10,11}$/.test(telefone)
       ) {
         return res.status(400).json({
-          mensagem:
-            "Telefone inválido. Use formato: (XX) XXXXX-XXXX ou 10-11 dígitos."
+          mensagem: "Telefone inválido. Use formato: (XX) XXXXX-XXXX ou 10-11 dígitos."
         });
       }
 
@@ -172,21 +169,37 @@ const usuarioController = {
         }
       });
 
-     // Nunca retorna a senha no JSON
+      // GERAÇÃO DOS TOKENS JWT PARA O NOVO USUÁRIO
+      const token = jwt.sign(
+        { id_usuario: usuario.id_usuario, username: usuario.username },
+        process.env.JWT_SECRET || "seusesegredo",
+        { expiresIn: "15m" }
+      );
+
+      const refreshToken = crypto.randomBytes(40).toString("hex");
+      const expiraEm = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+      await prisma.refreshToken.create({
+        data: {
+          token: refreshToken,
+          id_usuario: usuario.id_usuario,
+          expira_em: expiraEm
+        }
+      });
+
+      // Remover senha da resposta
       const { senha: _, ...usuarioSemSenha } = usuario;
 
-      // 🟢 CORRIGIDO: Retorno HTTP 200 completo com dados e tokens
-      return res.status(200).json({
-        mensagem: "Login realizado com sucesso!",
+      return res.status(201).json({
+        mensagem: "Cadastro realizado com sucesso!",
         usuario: usuarioSemSenha,
         token,
         refreshToken
       });
-
     } catch (error) {
       console.error(error);
       return res.status(500).json({
-        mensagem: "Erro ao realizar login."
+        mensagem: "Erro ao cadastrar usuário."
       });
     }
   },
@@ -276,124 +289,94 @@ const usuarioController = {
   },
 
   // LOGIN
-async login(req, res) {
-  try { 
-    const { login, senha } = req.body;
+  async login(req, res) {
+    try {
+      const { login, senha } = req.body;
 
-    if (!login || !senha) {
-      return res.status(400).json({
-        mensagem: "Informe email/username e senha."
+      if (!login || !senha) {
+        return res.status(400).json({
+          mensagem: "Informe email/username e senha."
+        });
+      }
+
+      const usuario = await prisma.usuario.findFirst({
+        where: {
+          OR: [{ username: login }, { email: login }]
+        }
+      });
+
+      if (!usuario) {
+        return res.status(404).json({
+          mensagem: "Você ainda não possui cadastro. Faça seu cadastro para entrar no MeetFlow."
+        });
+      }
+
+      const senhaValida = await bcrypt.compare(senha, usuario.senha);
+      if (!senhaValida) {
+        return res.status(401).json({
+          mensagem: "Senha incorreta."
+        });
+      }
+
+      // Access token
+      const token = jwt.sign(
+        { id_usuario: usuario.id_usuario, username: usuario.username },
+        process.env.JWT_SECRET || "seusesegredo",
+        { expiresIn: "15m" }
+      );
+
+      // Refresh token
+      const refreshToken = crypto.randomBytes(40).toString("hex");
+      const expiraEm = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+      await prisma.refreshToken.create({
+        data: {
+          token: refreshToken,
+          id_usuario: usuario.id_usuario,
+          expira_em: expiraEm
+        }
+      });
+
+      const { senha: _, ...usuarioSemSenha } = usuario;
+
+      return res.status(200).json({
+        mensagem: "Login realizado com sucesso!",
+        usuario: usuarioSemSenha,
+        token,
+        refreshToken
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        mensagem: "Erro ao realizar login."
       });
     }
+  },
 
-    // Procura o usuário pelo username OU pelo email
-    const usuario = await prisma.usuario.findFirst({
-      where: {
-        OR: [
-          { username: login },
-          { email: login }
-        ]
-      }
-    });
-
-    if (!usuario) {
-      return res.status(404).json({
-        mensagem:
-          "Você ainda não possui cadastro. Faça seu cadastro para entrar no MeetFlow."
-      });
-    }
-
-    const senhaValida = await bcrypt.compare(senha, usuario.senha);
-
-    if (!senhaValida) {
-      return res.status(401).json({
-        mensagem: "Senha incorreta."
-      });
-    }
-
-    // Access token
-    const token = jwt.sign(
-      {
-        id_usuario: usuario.id_usuario,
-        username: usuario.username
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "15m"
-      }
-    );
-
-    // Refresh token
-    const refreshToken = crypto.randomBytes(40).toString("hex");
-
-    const expiraEm = new Date(
-      Date.now() + 30 * 24 * 60 * 60 * 1000
-    );
-
-    await prisma.refreshToken.create({
-      data: {
-        token: refreshToken,
-        id_usuario: usuario.id_usuario,
-        expira_em: expiraEm
-      }
-    });
-
-    // Nunca retorna a senha
-    const { senha: _, ...usuarioSemSenha } = usuario;
-
-    return res.status(200).json({
-      mensagem: "Login realizado com sucesso!",
-      usuario: usuarioSemSenha,
-      token,
-      refreshToken
-    });
-
-  } catch (error) {
-    console.error(error);
-
-    return res.status(500).json({
-      mensagem: "Erro ao realizar login."
-    });
-  }
-},
-// RENOVAR ACCESS TOKEN
+  // RENOVAR ACCESS TOKEN
   async renovarToken(req, res) {
     try {
       const { refreshToken } = req.body;
 
       if (!refreshToken) {
-        return res.status(400).json({
-          mensagem: "Envie o refreshToken."
-        });
+        return res.status(400).json({ mensagem: "Envie o refreshToken." });
       }
 
-      // Procura o refresh token no banco
       const tokenSalvo = await prisma.refreshToken.findFirst({
-        where: {
-          token: refreshToken
-        }
+        where: { token: refreshToken }
       });
 
       if (!tokenSalvo) {
-        return res.status(401).json({
-          mensagem: "Refresh token inválido."
-        });
+        return res.status(401).json({ mensagem: "Refresh token inválido." });
       }
 
-      // Verifica se o refresh token expirou
       if (new Date() > tokenSalvo.expira_em) {
-        await prisma.refreshToken.delete({
-          where: {
-            id: tokenSalvo.id
-          }
-        });
-
+        await prisma.refreshToken.delete({ where: { id: tokenSalvo.id } });
         return res.status(401).json({
           mensagem: "Refresh token expirado. Faça login novamente."
         });
       }
 
-      // 🟢 ADICIONADO: Busca dados do usuário para assinar novo JWT
       const usuario = await prisma.usuario.findUnique({
         where: { id_usuario: tokenSalvo.id_usuario }
       });
@@ -402,31 +385,23 @@ async login(req, res) {
         return res.status(404).json({ mensagem: "Usuário não encontrado." });
       }
 
-      // 🟢 ADICIONADO: Gera novo Access Token
       const novoToken = jwt.sign(
-        {
-          id_usuario: usuario.id_usuario,
-          username: usuario.username
-        },
-        process.env.JWT_SECRET,
-        {
-          expiresIn: "15m"
-        }
+        { id_usuario: usuario.id_usuario, username: usuario.username },
+        process.env.JWT_SECRET || "seusesegredo",
+        { expiresIn: "15m" }
       );
 
-      // 🟢 ADICIONADO: Envia o novo token de volta ao frontend
       return res.status(200).json({
         mensagem: "Token renovado com sucesso!",
         token: novoToken
       });
-
     } catch (error) {
       console.error(error);
       return res.status(500).json({ mensagem: "Erro ao renovar token." });
     }
   },
 
-  // LOGOUT (revoga o refresh token)
+  // LOGOUT
   async logout(req, res) {
     try {
       const { refreshToken } = req.body;
@@ -436,171 +411,138 @@ async login(req, res) {
       }
 
       await prisma.refreshToken.deleteMany({ where: { token: refreshToken } });
-
-      res.json({ mensagem: "Logout realizado com sucesso." });
+      return res.json({ mensagem: "Logout realizado com sucesso." });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ mensagem: "Erro ao fazer logout." });
+      return res.status(500).json({ mensagem: "Erro ao fazer logout." });
     }
   },
 
   // ATUALIZAR USUÁRIO
-  // ATUALIZAR USUÁRIO
-async atualizar(req, res) {
-  try {
-    const { id } = req.params;
+  async atualizar(req, res) {
+    try {
+      const { id } = req.params;
 
-    // Verifica se o usuário logado é o dono da conta
-    if (req.usuario.id_usuario !== id) {
-      return res.status(403).json({
-        mensagem: "Você não tem permissão para atualizar este usuário."
+      if (req.usuario.id_usuario !== id) {
+        return res.status(403).json({
+          mensagem: "Você não tem permissão para atualizar este usuário."
+        });
+      }
+
+      let { nome, username, email, telefone, senha, bio, foto_capa, localizacao, site } = req.body;
+
+      if (email && !validator.isEmail(email)) {
+        return res.status(400).json({ mensagem: "Email inválido." });
+      }
+
+      if (senha && senha.length < 6) {
+        return res.status(400).json({ mensagem: "A senha deve ter no mínimo 6 caracteres." });
+      }
+
+      if (
+        telefone &&
+        !/^\(\d{2}\)\s?\d{4,5}-\d{4}$\vert{}^\d{10,11}$/.test(telefone)
+      ) {
+        return res.status(400).json({
+          mensagem: "Telefone inválido. Use formato: (XX) XXXXX-XXXX ou 10-11 dígitos."
+        });
+      }
+
+      if (foto_capa && !validator.isURL(foto_capa)) {
+        return res.status(400).json({ mensagem: "foto_capa deve ser uma URL válida." });
+      }
+
+      if (site && !validator.isURL(site)) {
+        return res.status(400).json({ mensagem: "site deve ser uma URL válida." });
+      }
+
+      if (nome) nome = sanitizarTexto(nome);
+      if (bio) bio = sanitizarTexto(bio);
+      if (localizacao) localizacao = sanitizarTexto(localizacao);
+
+      const dadosAtualizados = {
+        nome,
+        username,
+        email,
+        telefone,
+        bio,
+        foto_capa,
+        localizacao,
+        site
+      };
+
+      if (senha) {
+        dadosAtualizados.senha = await bcrypt.hash(senha, 10);
+      }
+
+      const usuario = await prisma.usuario.update({
+        where: { id_usuario: id },
+        data: dadosAtualizados
+      });
+
+      const { senha: _, ...usuarioSemSenha } = usuario;
+      return res.json(usuarioSemSenha);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ mensagem: "Erro ao atualizar usuário." });
+    }
+  },
+
+  // GOOGLE LOGIN
+  async googleLogin(req, res) {
+    try {
+      const { email, nome, foto } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ mensagem: "E-mail é obrigatório." });
+      }
+
+      let usuario = await prisma.usuario.findUnique({
+        where: { email }
+      });
+
+      if (!usuario) {
+        const baseUsername = email.split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "");
+        const sufixo = Math.floor(1000 + Math.random() * 9000);
+        const usernameGerado = `${baseUsername}_${sufixo}`;
+
+        usuario = await prisma.usuario.create({
+          data: {
+            email,
+            nome: nome || "Usuário Google",
+            username: usernameGerado,
+            senha: "",
+            telefone: "",
+            foto_perfil: foto || null
+          }
+        });
+      }
+
+      const token = jwt.sign(
+        { id_usuario: usuario.id_usuario },
+        process.env.JWT_SECRET || "seusesegredo",
+        { expiresIn: "7d" }
+      );
+
+      return res.json({
+        token,
+        usuario: {
+          id_usuario: usuario.id_usuario,
+          nome: usuario.nome,
+          email: usuario.email,
+          username: usuario.username,
+          telefone: usuario.telefone
+        }
+      });
+    } catch (error) {
+      console.error("Erro detalhado do Google Login:", error);
+      return res.status(500).json({
+        mensagem: "Erro ao autenticar com o Google.",
+        detalhe: error.message
       });
     }
+  },
 
-    let {
-      nome,
-      username,
-      email,
-      telefone,
-      senha,
-      bio,
-      foto_capa,
-      localizacao,
-      site
-    } = req.body;
-
-    // Validar email
-    if (email && !validator.isEmail(email)) {
-      return res.status(400).json({
-        mensagem: "Email inválido."
-      });
-    }
-
-    // Validar senha
-    if (senha && senha.length < 6) {
-      return res.status(400).json({
-        mensagem: "A senha deve ter no mínimo 6 caracteres."
-      });
-    }
-
-    // Validar telefone
-    if (
-      telefone &&
-      !/^\(\d{2}\)\s?\d{4,5}-\d{4}$|^\d{10,11}$/.test(telefone)
-    ) {
-      return res.status(400).json({
-        mensagem:
-          "Telefone inválido. Use formato: (XX) XXXXX-XXXX ou 10-11 dígitos."
-      });
-    }
-
-    // Validar URLs
-    if (foto_capa && !validator.isURL(foto_capa)) {
-      return res.status(400).json({
-        mensagem: "foto_capa deve ser uma URL válida."
-      });
-    }
-
-    if (site && !validator.isURL(site)) {
-      return res.status(400).json({
-        mensagem: "site deve ser uma URL válida."
-      });
-    }
-
-    // Sanitização
-    if (nome) nome = sanitizarTexto(nome);
-    if (bio) bio = sanitizarTexto(bio);
-    if (localizacao) localizacao = sanitizarTexto(localizacao);
-
-    const dadosAtualizados = {
-      nome,
-      username,
-      email,
-      telefone,
-      bio,
-      foto_capa,
-      localizacao,
-      site
-    };
-
-    // Se enviou nova senha, gera o hash
-    if (senha) {
-      dadosAtualizados.senha = await bcrypt.hash(senha, 10);
-    }
-
-    const usuario = await prisma.usuario.update({
-      where: {
-        id_usuario: id
-      },
-      data: dadosAtualizados
-    });
-
-    // Nunca retorna a senha
-    const { senha: _, ...usuarioSemSenha } = usuario;
-
-    res.json(usuarioSemSenha);
-
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      mensagem: "Erro ao atualizar usuário."
-    });
-  }
-},
-async googleLogin(req, res) {
-  try {
-    const { email, nome, foto } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ mensagem: "E-mail é obrigatório." });
-    }
-
-    let usuario = await prisma.usuario.findUnique({
-      where: { email },
-    });
-
-    if (!usuario) {
-      const baseUsername = email.split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "");
-      const sufixo = Math.floor(1000 + Math.random() * 9000);
-      const usernameGerado = `${baseUsername}_${sufixo}`;
-
-      usuario = await prisma.usuario.create({
-        data: {
-          email,
-          nome: nome || "Usuário Google",
-          username: usernameGerado,
-          senha: "", // Senha vazia para login social
-          telefone: "", // <--- Campo obrigatório preenchido com string vazia
-          foto_perfil: foto || null,
-        },
-      });
-    }
-
-    const token = jwt.sign(
-      { id_usuario: usuario.id_usuario },
-      process.env.JWT_SECRET || "seusesegredo",
-      { expiresIn: "7d" }
-    );
-
-    res.json({
-      token,
-      usuario: {
-        id_usuario: usuario.id_usuario,
-        nome: usuario.nome,
-        email: usuario.email,
-        username: usuario.username,
-        telefone: usuario.telefone,
-      },
-    });
-  } catch (error) {
-    console.error("Erro detalhado do Google Login:", error);
-    res.status(500).json({ 
-      mensagem: "Erro ao autenticar com o Google.", 
-      detalhe: error.message 
-    });
-  }
-},
   // DELETAR USUÁRIO
   async deletar(req, res) {
     try {
@@ -616,13 +558,12 @@ async googleLogin(req, res) {
         where: { id_usuario: id }
       });
 
-      res.json({ mensagem: "Usuário deletado com sucesso" });
+      return res.json({ mensagem: "Usuário deletado com sucesso" });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ mensagem: "Erro ao deletar usuário." });
+      return res.status(500).json({ mensagem: "Erro ao deletar usuário." });
     }
   }
 };
-
 
 export default usuarioController;
