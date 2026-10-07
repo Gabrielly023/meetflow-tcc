@@ -39,6 +39,23 @@ const iconeSenha = (
   </svg>
 );
 
+// Formatação automática do telefone com máscara
+const formatarTelefone = (valor) => {
+  if (!valor) return "";
+  const apenasNumeros = valor.replace(/\D/g, "").slice(0, 11);
+
+  if (apenasNumeros.length <= 2) {
+    return apenasNumeros.length ? `(${apenasNumeros}` : "";
+  }
+  if (apenasNumeros.length <= 6) {
+    return `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2)}`;
+  }
+  if (apenasNumeros.length <= 10) {
+    return `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2, 6)}-${apenasNumeros.slice(6)}`;
+  }
+  return `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2, 7)}-${apenasNumeros.slice(7, 11)}`;
+};
+
 const Signup = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -49,21 +66,22 @@ const Signup = () => {
     senha: "",
     senhaConfirma: "",
   });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, id, value } = e.target;
+    const key = name || id; // garante compatibilidade caso name ou id sejam usados
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [key]: key === "telefone" ? formatarTelefone(value) : value,
     }));
   };
 
   const handleGoogle = () => {
-    // Cadastro social ainda não existe no backend: cria uma sessão de
-    // demonstração local para navegar no app (ver entrarModoDemo).
     entrarModoDemo();
     navigate("/usuarios");
   };
@@ -75,13 +93,12 @@ const Signup = () => {
     setSuccess("");
 
     const username = formData.username.trim();
-    // Telefone vai só com números para o backend (ex.: "11987654321").
+    // Telefone vai limpo só com dígitos para o backend
     const telefoneNumeros = formData.telefone.replace(/\D/g, "");
 
-    // username: sem espaços e sem caracteres especiais (só letras, números, . e _)
     if (!/^[a-zA-Z0-9._]+$/.test(username)) {
       setError(
-        "Nome de usuário inválido: use apenas letras, números, ponto (.) e underline (_), sem espaços.",
+        "Nome de usuário inválido: use apenas letras, números, ponto (.) e underline (_), sem espaços."
       );
       setLoading(false);
       return;
@@ -114,9 +131,7 @@ const Signup = () => {
         senha: formData.senha,
       });
 
-      setSuccess(
-        "Cadastro realizado com sucesso! Redirecionando para login...",
-      );
+      setSuccess("Cadastro realizado com sucesso! Redirecionando para login...");
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
       setError(mensagemDoErro(err, "Erro ao fazer cadastro. Tente novamente."));
@@ -127,11 +142,7 @@ const Signup = () => {
   };
 
   return (
-    <AuthLayout
-      links={[
-        { label: "Login", href: "/login" },
-      ]}
-    >
+    <AuthLayout links={[{ label: "Login", href: "/login" }]}>
       <div className="auth-card w-full max-w-md rounded-3xl bg-gradient-to-br from-orange-500/70 via-fuchsia-500/70 to-sky-500/70 p-[2px] shadow-2xl shadow-fuchsia-500/20">
         <div className="rounded-3xl bg-slate-900/80 p-8 backdrop-blur-xl">
           {/* Cabeçalho */}
@@ -160,6 +171,7 @@ const Signup = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <AuthField
               id="nome"
+              name="nome"
               label="Nome"
               value={formData.nome}
               onChange={handleChange}
@@ -170,6 +182,7 @@ const Signup = () => {
 
             <AuthField
               id="username"
+              name="username"
               label="Nome de usuário"
               value={formData.username}
               onChange={handleChange}
@@ -180,6 +193,7 @@ const Signup = () => {
 
             <AuthField
               id="email"
+              name="email"
               label="Email"
               type="email"
               value={formData.email}
@@ -191,6 +205,7 @@ const Signup = () => {
 
             <AuthField
               id="telefone"
+              name="telefone"
               label="Telefone"
               type="tel"
               value={formData.telefone}
@@ -202,6 +217,7 @@ const Signup = () => {
 
             <AuthField
               id="senha"
+              name="senha"
               label="Senha"
               type="password"
               value={formData.senha}
@@ -213,6 +229,7 @@ const Signup = () => {
 
             <AuthField
               id="senhaConfirma"
+              name="senhaConfirma"
               label="Confirmar Senha"
               type="password"
               value={formData.senhaConfirma}

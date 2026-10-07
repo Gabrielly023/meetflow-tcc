@@ -90,15 +90,15 @@ const usuarioController = {
         });
       }
 
-      if (
-        telefone &&
-        !/^\(\d{2}\)\s?\d{4,5}-\d{4}$\vert{}^\d{10,11}$/.test(telefone)
-      ) {
+      // Limpa qualquer caractere não numérico do telefone para validar os dígitos
+      const telefoneLimpo = telefone ? telefone.replace(/\D/g, "") : "";
+      if (telefone && (telefoneLimpo.length < 10 || telefoneLimpo.length > 11)) {
         return res.status(400).json({
-          mensagem: "Telefone inválido. Use formato: (XX) XXXXX-XXXX ou 10-11 dígitos."
+          mensagem: "Telefone inválido. Deve conter DDD + número (10 ou 11 dígitos)."
         });
       }
 
+      // Verifica se e-mail ou username já existem
       const usuarioExistente = await prisma.usuario.findFirst({
         where: {
           OR: [{ email }, { username }]
@@ -113,17 +113,18 @@ const usuarioController = {
 
       const senhaCriptografada = await bcrypt.hash(senha, 10);
 
+      // Salva no banco de dados
       const usuario = await prisma.usuario.create({
         data: {
           nome,
           username,
           email,
-          telefone,
+          telefone: telefoneLimpo,
           senha: senhaCriptografada
         }
       });
 
-      // GERAÇÃO DOS TOKENS JWT PARA O NOVO USUÁRIO
+      // Gera os tokens para o novo usuário
       const token = jwt.sign(
         { id_usuario: usuario.id_usuario, username: usuario.username },
         process.env.JWT_SECRET || "seusesegredo",
@@ -141,7 +142,7 @@ const usuarioController = {
         }
       });
 
-      // Remover senha da resposta
+      // Remove a senha do objeto de retorno
       const { senha: _, ...usuarioSemSenha } = usuario;
 
       return res.status(201).json({
@@ -151,13 +152,13 @@ const usuarioController = {
         refreshToken
       });
     } catch (error) {
-      console.error(error);
+      console.error("Erro no criar usuário:", error);
       return res.status(500).json({
         mensagem: "Erro ao cadastrar usuário."
       });
     }
   },
-
+  
   // LOGIN
   async login(req, res) {
     try {
@@ -192,7 +193,7 @@ const usuarioController = {
       const token = jwt.sign(
         { id_usuario: usuario.id_usuario, username: usuario.username },
         process.env.JWT_SECRET || "seusesegredo",
-        { expiresIn: "15m" }
+        { expiresIn: "30m" }
       );
 
       // Refresh token
@@ -258,7 +259,7 @@ const usuarioController = {
       const novoToken = jwt.sign(
         { id_usuario: usuario.id_usuario, username: usuario.username },
         process.env.JWT_SECRET || "seusesegredo",
-        { expiresIn: "15m" }
+        { expiresIn: "30m" }
       );
 
       return res.status(200).json({
@@ -309,14 +310,16 @@ const usuarioController = {
         return res.status(400).json({ mensagem: "A senha deve ter no mínimo 6 caracteres." });
       }
 
-      if (
-        telefone &&
-        !/^\(\d{2}\)\s?\d{4,5}-\d{4}$\vert{}^\d{10,11}$/.test(telefone)
-      ) {
-        return res.status(400).json({
-          mensagem: "Telefone inválido. Use formato: (XX) XXXXX-XXXX ou 10-11 dígitos."
-        });
-      }
+      // Remove caracteres comuns de formatação (espaços, traços, parênteses e barras)
+      // Remove parênteses, traços, espaços e barras antes de validar
+    // Remove qualquer caractere que não seja número caso chegue algo formatado
+const telefoneLimpo = telefone ? telefone.replace(/\D/g, "") : "";
+
+if (telefone && (telefoneLimpo.length < 10 || telefoneLimpo.length > 11)) {
+  return res.status(400).json({
+    mensagem: "Telefone inválido. Deve conter DDD + número (10 ou 11 dígitos)."
+  });
+}
 
       if (foto_capa && !validator.isURL(foto_capa)) {
         return res.status(400).json({ mensagem: "foto_capa deve ser uma URL válida." });
