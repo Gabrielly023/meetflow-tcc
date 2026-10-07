@@ -2,8 +2,54 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import validator from "validator";
 import crypto from "crypto";
+import nodemailer from "nodemailer";
 import { prisma } from "../config/db.js";
 import { sanitizarTexto } from "../utils/sanitize.js";
+import {
+  gerarCodigoRecuperacao,
+  validarCodigoRecuperacao,
+} from "../utils/recuperacaoSenha.js";
+
+const recuperacoesPendentes = new Map();
+
+async function enviarCodigoRecuperacaoPorEmail(email, codigo) {
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT || 587);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  const from = process.env.SMTP_FROM || 'MeetFlow <noreply@meetflow.com>';
+
+  if (!host || !user || !pass) {
+    console.warn(
+      `[RECUPERACAO SENHA] SMTP não configurado. Código para ${email}: ${codigo}`
+    );
+    return;
+  }
+
+  const transporte = nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: {
+      user,
+      pass,
+    },
+  });
+
+  await transporte.sendMail({
+    from,
+    to: email,
+    subject: "Código para redefinir sua senha - MeetFlow",
+    html: `
+      <div style="font-family: Arial, sans-serif; background: #0f172a; color: #e2e8f0; padding: 24px; border-radius: 18px; max-width: 520px; margin: 0 auto;">
+        <h2 style="margin: 0 0 16px; color: #f8fafc;">Recuperação de senha</h2>
+        <p style="margin: 0 0 12px; color: #cbd5e1;">Seu código de verificação é:</p>
+        <div style="background: linear-gradient(135deg, #f97316, #d946ef, #38bdf8); color: white; font-size: 28px; font-weight: 700; border-radius: 12px; padding: 18px; text-align: center; letter-spacing: 6px; margin: 20px 0;">${codigo}</div>
+        <p style="margin: 0; color: #cbd5e1;">Use esse código para redefinir sua senha dentro de 10 minutos.</p>
+      </div>
+    `,
+  });
+}
 
 const usuarioController = {
   // LISTAR TODOS OS USUÁRIOS
@@ -158,7 +204,91 @@ const usuarioController = {
       });
     }
   },
-  
+
+  async solicitarResetSenha(req, res) {
+    try {
+      const identificador = String(req.body.login || req.body.email || "").trim();
+
+      if (!identificador) {
+        return res.status(400).json({ mensagem: "Informe o e-mail ou usuário cadastrado." });
+      }
+
+      const usuario = await prisma.usuario.findFirst({
+        where: {
+          OR: [
+            { email: identificador.toLowerCase() },
+            { username: identificador }
+          ]
+        }
+      });
+
+      if (!usuario) {
+        return res.status(404).json({ mensagem: "Nenhum usuário encontrado com esse e-mail ou nome de usuário." });
+      }
+
+      const codigo = gerarCodigoRecuperacao();
+      const expiraEm = new Date(Date.now() + 10 * 60 * 1000);
+
+      recuperacoesPendentes.set(usuario.email, {
+        codigo,
+        expiraEm,
+        id_usuario: usuario.id_usuario,
+      });
+
+      await enviarCodigoRecuperacaoPorEmail(usuario.email, codigo);
+
+      return res.status(200).json({
+        mensagem: "Código de recuperação enviado para o seu e-mail.",
+        email: usuario.email
+      });
+    } catch (error) {
+      console.error("Erro ao solicitar recuperação de senha:", error);
+      return res.status(500).json({ mensagem: "Não foi possível enviar o código. Tente novamente." });
+    }
+  },
+
+  async redefinirSenha(req, res) {
+    try {
+      const email = String(req.body.email || "").trim().toLowerCase();
+      const codigo = String(req.body.codigo || "").trim();
+      const novaSenha = String(req.body.novaSenha || "").trim();
+
+      if (!email || !codigo || !novaSenha) {
+        return res.status(400).json({ mensagem: "Preencha o e-mail, o código e a nova senha." });
+      }
+
+      const registro = recuperacoesPendentes.get(email);
+
+      if (!registro) {
+        return res.status(400).json({ mensagem: "Código de recuperação inválido ou expirado." });
+      }
+
+      if (!validarCodigoRecuperacao(registro, codigo)) {
+        return res.status(401).json({ mensagem: "Código incorreto ou expirado." });
+      }
+
+      if (novaSenha.length < 6) {
+        return res.status(400).json({ mensagem: "A nova senha deve ter no mínimo 6 caracteres." });
+      }
+
+      const senhaCriptografada = await bcrypt.hash(novaSenha, 10);
+
+      await prisma.usuario.update({
+        where: { id_usuario: registro.id_usuario },
+        data: { senha: senhaCriptografada }
+      });
+
+      recuperacoesPendentes.delete(email);
+
+      return res.status(200).json({
+        mensagem: "Senha redefinida com sucesso!"
+      });
+    } catch (error) {
+      console.error("Erro ao redefinir senha:", error);
+      return res.status(500).json({ mensagem: "Não foi possível redefinir a senha." });
+    }
+  },
+
   // LOGIN
   async login(req, res) {
     try {
