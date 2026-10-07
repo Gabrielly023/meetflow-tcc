@@ -1,18 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { buscarEventoPorId } from "../../services/eventoService";
 import {
-  getPlaylistEmbed,
+  listarPlaylist,
+  adicionarPlaylist,
+  removerPlaylist,
+  atualizarPlaylist,
   embedParaSpotify,
   embedParaUri,
-  definirPlaylist,
-  removerPlaylist,
-  listarMusicas,
-  adicionarMusica,
-  removerMusica,
-  isDonoMusica,
-  curtirMusica,
-  usuarioVotou,
+  normalizarParaEmbed,
   setUltimaPlaylist,
 } from "../../services/playlistService";
 import { usePlayer } from "../../context/PlayerContext";
@@ -23,17 +19,31 @@ export default function PlaylistEvento() {
   const evento = buscarEventoPorId(id);
   const { tocar } = usePlayer();
 
-  const [embed, setEmbed] = useState(() => getPlaylistEmbed(id));
+  const [playlists, setPlaylists] = useState([]);
+  const [carregando, setCarregando] = useState(true);
   const [editando, setEditando] = useState(false);
   const [link, setLink] = useState("");
   const [erro, setErro] = useState("");
   const [aviso, setAviso] = useState(false);
 
-  // Lista de músicas colaborativa do evento
-  const [musicas, setMusicas] = useState(() => listarMusicas(id));
-  const [addMusica, setAddMusica] = useState(false);
-  const [linkMusica, setLinkMusica] = useState("");
-  const [erroMusica, setErroMusica] = useState("");
+useEffect(() => {
+  async function carregarPlaylist() {
+    try {
+      setCarregando(true);
+
+      const dados = await listarPlaylist(id);
+
+      setPlaylists(dados);
+    } catch (erro) {
+      console.error("Erro ao carregar playlist:", erro);
+      setPlaylists([]);
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  carregarPlaylist();
+}, [id]);
 
   if (!evento) {
     return (
@@ -57,24 +67,41 @@ export default function PlaylistEvento() {
     setEditando(true);
   }
 
-  function salvar(e) {
-    e.preventDefault();
-    const novo = definirPlaylist(id, link);
-    if (!novo) {
-      setErro("Não reconhecemos esse link. Copie o link da playlist no Spotify (Compartilhar → Copiar link).");
-      return;
+  async function salvar(e) {
+  e.preventDefault();
+
+  const resultado = await adicionarPlaylist(id, link);
+
+  if (resultado.erro) {
+    if (resultado.erro === "invalido") {
+      setErro(
+        "Não reconhecemos esse link. Copie o link da playlist no Spotify (Compartilhar → Copiar link)."
+      );
+    } else {
+      setErro(resultado.erro);
     }
-    setEmbed(novo);
-    setEditando(false);
-    setLink("");
-    setErro("");
+
+    return;
   }
 
-  function remover() {
-    removerPlaylist(id);
-    setEmbed(getPlaylistEmbed(id));
-    setEditando(false);
+  setPlaylists(resultado.playlist);
+  setEditando(false);
+  setLink("");
+  setErro("");
+}
+  async function remover() {
+  if (playlists.length === 0) return;
+
+  const resultado = await removerPlaylist(id, playlists[0]);
+
+  if (resultado.erro) {
+    setErro(resultado.erro);
+    return;
   }
+
+  setPlaylists(resultado.playlist);
+  setEditando(false);
+}
 
   function abrirAddMusica() {
     setLinkMusica("");
@@ -110,8 +137,9 @@ export default function PlaylistEvento() {
   }
 
   // Contador: total de músicas e quantas pessoas diferentes sugeriram
-  const totalMusicas = musicas.length;
-  const totalSugestores = new Set(musicas.map((m) => m.ownerId)).size;
+  const embed = playlists.length > 0
+  ? normalizarParaEmbed(playlists[0])
+  : null;
 
   return (
     <main className="flex-1 px-6 py-8 lg:px-10">
