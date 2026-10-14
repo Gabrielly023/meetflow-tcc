@@ -1,38 +1,32 @@
 import { api } from "./config";
+import { musicaDaApi } from "./adapters";
 
-// Lista as playlists do evento
-export async function listarPlaylist(eventId) {
-  const { data } = await api.get(`/eventos/${eventId}/playlist`);
-
-  return data?.playlist_spotify || [];
+export async function listarMusicas(eventId) {
+  const { data } = await api.get(`/eventos/${eventId}/musicas`);
+  return (data || []).map(musicaDaApi);
 }
 
-// Adiciona uma playlist/link ao evento
-export async function adicionarPlaylist(eventId, linkSpotify) {
-  const { data } = await api.post(`/eventos/${eventId}/playlist`, {
-    link_spotify: linkSpotify,
-  });
-
-  return data?.playlist_spotify || [];
+export async function adicionarMusica(eventId, entrada) {
+  try {
+    const { data } = await api.post(`/eventos/${eventId}/musicas`, {
+      link_spotify: String(entrada || "").trim(),
+    });
+    return { musica: musicaDaApi(data) };
+  } catch (erro) {
+    if (erro?.response?.status === 409) return { erro: "duplicada" };
+    return { erro: "invalido" };
+  }
 }
 
-// Atualiza um link existente
-export async function atualizarPlaylist(eventId, linkAntigo, linkNovo) {
-  const { data } = await api.put(`/eventos/${eventId}/playlist`, {
-    link_antigo: linkAntigo,
-    link_novo: linkNovo,
-  });
-
-  return data?.playlist_spotify || [];
+export async function curtirMusica(_eventId, musicaId) {
+  await api.post(`/musicas/${musicaId}/voto`);
 }
 
-// Remove um link da playlist
-export async function removerPlaylist(eventId, linkSpotify) {
-  const { data } = await api.delete(`/eventos/${eventId}/playlist`, {
-    data: {
-      link_spotify: linkSpotify,
-    },
-  });
-
-  return data?.playlist_spotify || [];
+export async function removerMusica(_eventId, musicaId) {
+  try {
+    await api.delete(`/musicas/${musicaId}`);
+    return true;
+  } catch {
+    return false;
+  }
 }
