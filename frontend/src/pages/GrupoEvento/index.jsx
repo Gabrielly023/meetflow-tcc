@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { buscarEventoPorId, sairDoEvento } from "../../services/eventoService";
 import { getUsuarioLogado } from "../../services/usuarioService";
@@ -81,7 +81,7 @@ function Badge({ children, cor = "fuchsia" }) {
 export default function GrupoEvento() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const evento = buscarEventoPorId(id);
+  const [evento, setEvento] = useState(null);
   const usuario = getUsuarioLogado();
 
   const fotoRef = useRef(null);
@@ -97,6 +97,21 @@ export default function GrupoEvento() {
   const [aRemover, setARemover] = useState(null);
   const [sairAberto, setSairAberto] = useState(false);
   const [ajustarFotoSrc, setAjustarFotoSrc] = useState(null);
+
+  useEffect(() => {
+    let ativo = true;
+    buscarEventoPorId(id)
+      .then((dados) => {
+        if (ativo) setEvento(dados);
+      })
+      .catch((erro) => {
+        console.error("Erro ao carregar evento do grupo:", erro);
+        if (ativo) setEvento(null);
+      });
+    return () => {
+      ativo = false;
+    };
+  }, [id]);
 
   if (!evento) {
     return (
@@ -236,7 +251,7 @@ export default function GrupoEvento() {
               </h1>
             </div>
             <Link
-              to={`/eventos/${evento.id}/chat`}
+              to={`/eventos/${id}/chat`}
               className="group inline-flex shrink-0 items-center justify-center gap-1 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95"
             >
               <span className="inline-block transition-transform duration-300 group-hover:-translate-x-1">

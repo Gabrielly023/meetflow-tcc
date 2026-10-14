@@ -738,7 +738,7 @@ export default function ChatEvento() {
               </p>
             </div>
             <Link
-              to={`/eventos/${evento.id}`}
+              to={`/eventos/${id}`}
               className="group inline-flex shrink-0 items-center justify-center gap-1 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95"
             >
               <span className="inline-block transition-transform duration-300 group-hover:-translate-x-1">
@@ -753,7 +753,7 @@ export default function ChatEvento() {
             {/* Barra superior: clicar leva ao gerenciamento do grupo */}
             <div className="flex items-center justify-between gap-3 border-b border-slate-800/70 px-5 py-3">
               <Link
-                to={`/eventos/${evento.id}/grupo`}
+                to={`/eventos/${id}/grupo`}
                 className="group flex min-w-0 items-center gap-3 rounded-2xl px-2 py-1 transition hover:bg-white/5"
                 title="Gerenciar grupo"
               >

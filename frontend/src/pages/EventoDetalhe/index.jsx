@@ -42,6 +42,7 @@ const navigate = useNavigate();
 
 const [evento, setEvento] = useState(null);
 const [modal, setModal] = useState(null);
+const [erroAcao, setErroAcao] = useState("");
 
 useEffect(() => {
   buscarEventoPorId(id)
@@ -69,15 +70,25 @@ useEffect(() => {
   const contagem = calcularContagem(evento.dataHora);
   const numParticipantes = listarParticipantes(evento.id).length;
 
-  function confirmarModal() {
-    if (modal === "excluir") {
-      excluirEvento(evento.id);
-      navigate("/eventos");
-    } else if (modal === "sair") {
-      sairDoEvento(evento.id);
-      navigate("/eventos");
+  async function confirmarModal() {
+    try {
+      if (modal === "excluir") {
+        await excluirEvento(evento.id);
+        navigate("/eventos");
+      } else if (modal === "sair") {
+        await sairDoEvento(evento.id);
+        navigate("/eventos");
+      }
+      setErroAcao("");
+    } catch (erro) {
+      console.error("Erro ao atualizar evento:", erro);
+      setErroAcao(
+        erro?.response?.data?.mensagem ||
+          "Não foi possível concluir esta ação.",
+      );
+    } finally {
+      setModal(null);
     }
-    setModal(null);
   }
 
   return (
@@ -87,7 +98,7 @@ useEffect(() => {
         titulo={modal === "excluir" ? "Excluir evento" : "Sair do evento"}
         mensagem={
           modal === "excluir"
-            ? `Tem certeza que deseja excluir "${evento.titulo}"? Essa ação não pode ser desfeita.`
+            ? `Tem certeza que deseja mover "${evento.titulo}" para a lixeira? Você poderá restaurá-lo depois.`
             : `Deseja sair de "${evento.titulo}"? Ele deixará de aparecer na sua conta.`
         }
         textoConfirmar={modal === "excluir" ? "Excluir" : "Sair"}
@@ -95,6 +106,11 @@ useEffect(() => {
         onConfirmar={confirmarModal}
         onCancelar={() => setModal(null)}
       />
+      {erroAcao && (
+        <p role="alert" className="mx-auto mt-4 max-w-7xl rounded-2xl border border-red-500/40 bg-red-900/40 px-4 py-3 text-sm text-red-200">
+          {erroAcao}
+        </p>
+      )}
 
       <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="max-w-7xl mx-auto space-y-8">

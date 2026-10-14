@@ -226,7 +226,7 @@ export default function GaleriaEvento() {
                 )}
 
                 <Link
-                  to={`/eventos/${evento.id}`}
+                  to={`/eventos/${id}`}
                   className="inline-flex items-center justify-center rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-200 transition duration-300 hover:scale-105 hover:bg-slate-800 active:scale-95"
                 >
                   Voltar ao evento

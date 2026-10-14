@@ -65,27 +65,7 @@ const participanteController = {
         return res.status(404).json({ mensagem: "Evento não encontrado." });
       }
 
-      // --- Caso 1: o próprio usuário está entrando com a senha de acesso ---
-      if (senha_acesso) {
-        if (senha_acesso !== evento.senha_acesso) {
-          return res.status(401).json({ mensagem: "Senha de acesso incorreta." });
-        }
-
-        const jaParticipa = await prisma.participantes.findUnique({
-          where: { id_evento_id_usuario: { id_evento: id, id_usuario } },
-        });
-        if (jaParticipa) {
-          return res.status(409).json({ mensagem: "Você já participa deste evento." });
-        }
-
-        const novoParticipante = await prisma.participantes.create({
-          data: { id_evento: id, id_usuario, papel: "convidado", status: "confirmado" },
-        });
-
-        return res.status(201).json(novoParticipante);
-      }
-
-      // --- Caso 2: um admin está adicionando alguém pelo username ---
+      // Um admin pode adicionar outra pessoa pelo username.
       if (username) {
         const souAdmin = await ehAdmin(id, id_usuario);
         if (!souAdmin) {
@@ -116,7 +96,23 @@ const participanteController = {
         return res.status(201).json(novoParticipante);
       }
 
-      return res.status(400).json({ mensagem: "Informe senha_acesso ou username." });
+      // Eventos sem senha são abertos; os demais exigem a senha correta.
+      if (evento.senha_acesso && senha_acesso !== evento.senha_acesso) {
+        return res.status(401).json({ mensagem: "Senha de acesso incorreta." });
+      }
+
+      const jaParticipa = await prisma.participantes.findUnique({
+        where: { id_evento_id_usuario: { id_evento: id, id_usuario } },
+      });
+      if (jaParticipa) {
+        return res.status(409).json({ mensagem: "Você já participa deste evento." });
+      }
+
+      const novoParticipante = await prisma.participantes.create({
+        data: { id_evento: id, id_usuario, papel: "convidado", status: "confirmado" },
+      });
+
+      return res.status(201).json(novoParticipante);
     } catch (error) {
       console.error(error);
       res.status(500).json({ mensagem: "Erro ao adicionar participante." });

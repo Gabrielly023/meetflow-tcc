@@ -17,6 +17,11 @@ import {
   definirPlaylist,
   removerPlaylist,
 } from "../../services/playlistService";
+import {
+  listarParticipantes,
+  adicionarParticipante,
+  removerParticipante,
+} from "../../services/chatService";
 
 export default function EditarEvento() {
  const { id } = useParams();
@@ -56,9 +61,28 @@ if (!evento) {
   const mapaLinkAtual = getLocalPrincipal(evento.id)?.linkUrl || "";
   const embedAtual = getPlaylistEmbed(evento.id);
   const playlistLinkAtual = embedAtual ? embedParaSpotify(embedAtual) : "";
+  const participantesAtuais = listarParticipantes(evento.id);
 
   async function handleSalvar(dados) {
-  await atualizarEvento(evento.id, dados);
+    await atualizarEvento(evento.id, dados);
+
+    const nomesFinais = new Set(
+      (dados.participantes || []).map((nome) => nome.toLowerCase()),
+    );
+    participantesAtuais
+      .filter((participante) => !nomesFinais.has(participante.name.toLowerCase()))
+      .forEach((participante) => removerParticipante(evento.id, participante.id));
+
+    const nomesAtuais = new Set(
+      participantesAtuais.map((participante) => participante.name.toLowerCase()),
+    );
+    for (const nome of dados.participantes || []) {
+      if (nomesAtuais.has(nome.toLowerCase())) continue;
+      const resultado = adicionarParticipante(evento.id, nome);
+      if (resultado?.erro) {
+        throw new Error(`Não foi possível adicionar "${nome}" ao grupo.`);
+      }
+    }
 
     // Mapa: mantém o local principal em sincronia com o campo (troca/remove).
     if (dados.mapaLink !== mapaLinkAtual) {
@@ -107,10 +131,14 @@ if (!evento) {
                 ...evento,
                 mapaLink: mapaLinkAtual,
                 playlistLink: playlistLinkAtual,
+                participantes: participantesAtuais.map(
+                  (participante) => participante.name,
+                ),
               }}
               onSubmit={handleSalvar}
               textoBotao="Salvar alterações"
               cancelarHref={`/eventos/${evento.id}`}
+              permitirParticipantes
             />
           </div>
     </main>

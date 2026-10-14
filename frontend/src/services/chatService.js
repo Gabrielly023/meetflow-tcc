@@ -1,4 +1,9 @@
-import { buscarEventoPorId, getUsuarioAtualId, isDono } from "./eventoService";
+import {
+  buscarEventoPorId,
+  getUsuarioAtualId,
+  isDono,
+  organizadorDoEvento,
+} from "./eventoService";
 import { getUsuarioLogado } from "./usuarioService";
 import { USE_API } from "./config";
 import * as chatApi from "./chatApi";
@@ -64,7 +69,9 @@ export function meuNome() {
 
 // Diz se o usuário atual é o organizador do evento (pode moderar o chat).
 export function isOrganizador(eventId) {
-  return isDono(buscarEventoPorId(eventId));
+  const evento = buscarEventoPorId(eventId);
+  if (evento && typeof evento.then !== "function") return isDono(evento);
+  return organizadorDoEvento(eventId) === getUsuarioLogado()?.id_usuario;
 }
 
 // Diz se a mensagem é do usuário atual.
