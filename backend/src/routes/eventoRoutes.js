@@ -10,10 +10,13 @@ const router = express.Router();
 // Todas as rotas de evento exigem estar logado
 router.use(authMiddleware);
 
+router.get("/lixeira", eventoController.listarLixeira);
 router.get("/", eventoController.listar);
 router.get("/:id", eventoController.buscarPorId);
 router.post("/", eventoController.criar);
 router.put("/:id", eventoController.atualizar);
+router.patch("/:id/restaurar", eventoController.restaurar);
+router.delete("/:id/permanente", eventoController.excluirPermanentemente);
 router.delete("/:id", eventoController.deletar);
 
 router.get("/:id/participantes", participanteController.listar);

@@ -1,6 +1,7 @@
 import { eventos as eventosSeed } from "../data/eventosData";
 import { USE_API } from "./config";
 import * as eventoApi from "./eventoApi";
+import { getUsuarioLogado } from "./usuarioService";
 
 // "Backend falso" dos eventos.
 // Hoje os dados vêm do mock (eventosData) + do que o usuário cria (localStorage).
@@ -11,6 +12,7 @@ const STORAGE_KEY = "meetflow.eventos.custom";
 const USER_KEY = "meetflow.usuarioId";
 const LEFT_KEY = "meetflow.eventos.saidos";
 const TRASH_KEY = "meetflow.eventos.excluidos";
+const eventosCarregados = new Map();
 
 const MESES = [
   "Jan",
@@ -59,7 +61,11 @@ export function getUsuarioAtualId() {
 
 // Diz se o usuário atual é o dono (organizador) do evento
 export function isDono(evento) {
-  return Boolean(evento?.ownerId && evento.ownerId === getUsuarioAtualId());
+  const idUsuario = getUsuarioLogado()?.id_usuario;
+  return Boolean(
+    evento?.ownerId &&
+      (evento.ownerId === getUsuarioAtualId() || evento.ownerId === idUsuario),
+  );
 }
 
 function lerEventosCriados() {
@@ -146,8 +152,17 @@ export function listarEventos() {
 
 // Busca um evento por id (compara como string para aceitar id numérico ou texto)
 export function buscarEventoPorId(id) {
-  if (USE_API.eventos) return eventoApi.buscarEventoPorId(id);
+  if (USE_API.eventos) {
+    return eventoApi.buscarEventoPorId(id).then((evento) => {
+      eventosCarregados.set(String(id), evento);
+      return evento;
+    });
+  }
   return listarEventos().find((evento) => String(evento.id) === String(id));
+}
+
+export function organizadorDoEvento(eventId) {
+  return eventosCarregados.get(String(eventId))?.ownerId || null;
 }
 
 // Monta os campos comuns de um evento a partir dos dados do formulário
@@ -260,6 +275,7 @@ export function sairDoEvento(id) {
 // - eventos que ELE saiu (motivo "saiu");
 // - eventos que ELE (dono) excluiu (motivo "excluido").
 export function listarLixeiraEventos() {
+  if (USE_API.eventos) return eventoApi.listarLixeiraEventos();
   const saidos = lerEventosSaidos();
   const excluidos = lerEventosExcluidos();
   return todosEventos()
@@ -277,6 +293,7 @@ export function listarLixeiraEventos() {
 
 // Restaura um evento da lixeira (volta a aparecer)
 export function restaurarEvento(id) {
+  if (USE_API.eventos) return eventoApi.restaurarEvento(id);
   const saidos = lerEventosSaidos();
   if (saidos.includes(String(id))) {
     salvarEventosSaidos(saidos.filter((x) => x !== String(id)));
@@ -285,4 +302,18 @@ export function restaurarEvento(id) {
   if (excluidos.includes(String(id))) {
     salvarEventosExcluidos(excluidos.filter((x) => x !== String(id)));
   }
+}
+
+export function excluirEventoPermanentemente(id) {
+  if (USE_API.eventos) return eventoApi.excluirEventoPermanentemente(id);
+  const criados = lerEventosCriados();
+  const alvo = criados.find(
+    (evento) => String(evento.id) === String(id) && isDono(evento),
+  );
+  if (!alvo || !lerEventosExcluidos().includes(String(id))) return false;
+  salvarEventosCriados(criados.filter((evento) => String(evento.id) !== String(id)));
+  salvarEventosExcluidos(
+    lerEventosExcluidos().filter((eventoId) => eventoId !== String(id)),
+  );
+  return true;
 }

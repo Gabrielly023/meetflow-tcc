@@ -33,6 +33,7 @@ const eventoController = {
 
       const eventos = await prisma.evento.findMany({
         where: {
+          excluido_em: null,
           OR: [{ id_usuario }, { participantes: { some: { id_usuario } } }]
         },
         orderBy: { data_hora: "asc" }
@@ -42,6 +43,24 @@ const eventoController = {
     } catch (error) {
       console.error(error);
       res.status(500).json({ mensagem: "Erro ao listar eventos." });
+    }
+  },
+
+  // LISTAR EVENTOS EXCLUÍDOS PELO ORGANIZADOR
+  async listarLixeira(req, res) {
+    try {
+      const eventos = await prisma.evento.findMany({
+        where: {
+          id_usuario: req.usuario.id_usuario,
+          excluido_em: { not: null }
+        },
+        orderBy: { data_hora: "asc" }
+      });
+
+      res.json(eventos);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ mensagem: "Erro ao listar eventos na lixeira." });
     }
   },
 
@@ -55,7 +74,7 @@ const eventoController = {
         where: { id_evento: id }
       });
 
-      if (!evento) {
+      if (!evento || evento.excluido_em) {
         return res.status(404).json({ mensagem: "Evento não encontrado." });
       }
 
@@ -99,12 +118,14 @@ const eventoController = {
         descricao
       } = req.body;
 
-      if (!titulo || !data_hora || !senha_acesso) {
+      if (!titulo || !data_hora) {
         return res.status(400).json({
-          mensagem:
-            "Preencha os campos obrigatórios: título, data e senha de acesso."
+          mensagem: "Preencha os campos obrigatórios: título e data."
         });
       }
+
+      senha_acesso =
+        typeof senha_acesso === "string" ? senha_acesso.trim() : "";
 
       // Valida se a data enviada é válida de verdade
       if (isNaN(new Date(data_hora).getTime())) {
@@ -239,12 +260,71 @@ const eventoController = {
         });
       }
 
-      await prisma.evento.delete({ where: { id_evento: id } });
+      await prisma.evento.update({
+        where: { id_evento: id },
+        data: { excluido_em: new Date() }
+      });
 
-      res.json({ mensagem: "Evento excluído com sucesso." });
+      res.json({ mensagem: "Evento movido para a lixeira." });
     } catch (error) {
       console.error(error);
       res.status(500).json({ mensagem: "Erro ao excluir evento." });
+    }
+  },
+
+  // RESTAURAR EVENTO EXCLUÍDO (só organizador)
+  async restaurar(req, res) {
+    try {
+      const { id } = req.params;
+      const { id_usuario } = req.usuario;
+      const evento = await prisma.evento.findUnique({
+        where: { id_evento: id }
+      });
+
+      if (!evento || !evento.excluido_em) {
+        return res.status(404).json({ mensagem: "Evento não encontrado na lixeira." });
+      }
+      if (evento.id_usuario !== id_usuario) {
+        return res.status(403).json({
+          mensagem: "Apenas o organizador pode restaurar este evento."
+        });
+      }
+
+      await prisma.evento.update({
+        where: { id_evento: id },
+        data: { excluido_em: null }
+      });
+
+      res.json({ mensagem: "Evento restaurado com sucesso." });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ mensagem: "Erro ao restaurar evento." });
+    }
+  },
+
+  // EXCLUIR EVENTO PERMANENTEMENTE (só organizador e se estiver na lixeira)
+  async excluirPermanentemente(req, res) {
+    try {
+      const { id } = req.params;
+      const { id_usuario } = req.usuario;
+      const evento = await prisma.evento.findUnique({
+        where: { id_evento: id }
+      });
+
+      if (!evento || !evento.excluido_em) {
+        return res.status(404).json({ mensagem: "Evento não encontrado na lixeira." });
+      }
+      if (evento.id_usuario !== id_usuario) {
+        return res.status(403).json({
+          mensagem: "Apenas o organizador pode excluir permanentemente este evento."
+        });
+      }
+
+      await prisma.evento.delete({ where: { id_evento: id } });
+      res.json({ mensagem: "Evento excluído permanentemente." });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ mensagem: "Erro ao excluir evento permanentemente." });
     }
   },
 

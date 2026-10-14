@@ -217,6 +217,7 @@ export default function EventoForm({
       console.error("Erro ao salvar evento:", err);
       setErro(
         err?.response?.data?.mensagem ||
+          err?.message ||
           "Não foi possível salvar o evento. Tente novamente.",
       );
     } finally {

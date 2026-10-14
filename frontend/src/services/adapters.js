@@ -21,12 +21,14 @@ function isoParaInput(iso) {
 export function eventoDaApi(e) {
   if (!e) return null;
   const dataHora = isoParaInput(e.data_hora);
+  const dataHoraFim = isoParaInput(e.data_hora_fim);
   return {
     id: e.id_evento,
     ownerId: e.id_usuario,
     titulo: e.titulo,
     descricao: e.descricao || "",
     dataHora,
+    dataHoraFim,
     data: formatarDataHora(dataHora),
     local: e.localizacao || "",
     senhaAcesso: e.senha_acesso || "",
@@ -49,6 +51,9 @@ export function eventoParaApi(dados) {
     titulo: dados.titulo,
     descricao: dados.descricao || "",
     data_hora: dados.dataHora ? new Date(dados.dataHora).toISOString() : null,
+    data_hora_fim: dados.dataHoraFim
+      ? new Date(dados.dataHoraFim).toISOString()
+      : null,
     localizacao: dados.local || "",
     senha_acesso: dados.senhaAcesso || "",
     // enviados só se o backend adicionar as colunas (ver contrato):

@@ -11,6 +11,14 @@ export async function listarEventos() {
   return (data || []).map(eventoDaApi);
 }
 
+export async function listarLixeiraEventos() {
+  const { data } = await api.get("/eventos/lixeira");
+  return (data || []).map((evento) => ({
+    ...eventoDaApi(evento),
+    motivo: "excluido",
+  }));
+}
+
 export async function buscarEventoPorId(id) {
   const { data } = await api.get(`/eventos/${id}`);
   return eventoDaApi(data);
@@ -28,6 +36,16 @@ export async function atualizarEvento(id, dados) {
 
 export async function excluirEvento(id) {
   await api.delete(`/eventos/${id}`);
+  return true;
+}
+
+export async function restaurarEvento(id) {
+  await api.patch(`/eventos/${id}/restaurar`);
+  return true;
+}
+
+export async function excluirEventoPermanentemente(id) {
+  await api.delete(`/eventos/${id}/permanente`);
   return true;
 }
 

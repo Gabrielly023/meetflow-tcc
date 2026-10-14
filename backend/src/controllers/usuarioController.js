@@ -173,8 +173,8 @@ const usuarioController = {
       // Gera os tokens para o novo usuário
       const token = jwt.sign(
         { id_usuario: usuario.id_usuario, username: usuario.username },
-        process.env.JWT_SECRET || "seusesegredo",
-        { expiresIn: "15m" }
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || "30m" }
       );
 
       const refreshToken = crypto.randomBytes(40).toString("hex");
@@ -322,8 +322,8 @@ const usuarioController = {
       // Access token
       const token = jwt.sign(
         { id_usuario: usuario.id_usuario, username: usuario.username },
-        process.env.JWT_SECRET || "seusesegredo",
-        { expiresIn: "30m" }
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || "30m" }
       );
 
       // Refresh token
@@ -388,8 +388,8 @@ const usuarioController = {
 
       const novoToken = jwt.sign(
         { id_usuario: usuario.id_usuario, username: usuario.username },
-        process.env.JWT_SECRET || "seusesegredo",
-        { expiresIn: "30m" }
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || "30m" }
       );
 
       return res.status(200).json({
@@ -440,9 +440,8 @@ const usuarioController = {
         return res.status(400).json({ mensagem: "A senha deve ter no mínimo 6 caracteres." });
       }
 
-      // Remove caracteres comuns de formatação (espaços, traços, parênteses e barras)
       // Remove parênteses, traços, espaços e barras antes de validar
-    // Remove qualquer caractere que não seja número caso chegue algo formatado
+      // Remove qualquer caractere que não seja número caso chegue algo formatado
 const telefoneLimpo = telefone ? telefone.replace(/\D/g, "") : "";
 
 if (telefone && (telefoneLimpo.length < 10 || telefoneLimpo.length > 11)) {
@@ -523,7 +522,7 @@ if (telefone && (telefoneLimpo.length < 10 || telefoneLimpo.length > 11)) {
 
       const token = jwt.sign(
         { id_usuario: usuario.id_usuario },
-        process.env.JWT_SECRET || "seusesegredo",
+        process.env.JWT_SECRET,
         { expiresIn: "7d" }
       );
 

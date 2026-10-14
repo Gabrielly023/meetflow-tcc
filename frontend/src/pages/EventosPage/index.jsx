@@ -5,35 +5,76 @@ import {
   listarEventos,
   listarLixeiraEventos,
   restaurarEvento,
+  excluirEventoPermanentemente,
   ordenarPorData,
 } from "../../services/eventoService";
 
 export default function EventosPage() {
   const [verLixeira, setVerLixeira] = useState(false);
-  const [, setAtualizar] = useState(0);
+  const [atualizar, setAtualizar] = useState(0);
+  const [eventos, setEventos] = useState([]);
+  const [lixeira, setLixeira] = useState([]);
+  const [erro, setErro] = useState("");
 
-const [eventos, setEventos] = useState([]);
+  useEffect(() => {
+    let ativo = true;
+    Promise.all([listarEventos(), listarLixeiraEventos()])
+      .then(([dados, excluidos]) => {
+        if (!ativo) return;
+        setEventos(ordenarPorData(dados));
+        setLixeira(ordenarPorData(excluidos));
+      })
+      .catch((erroCarregamento) => {
+        console.error("Erro ao carregar eventos:", erroCarregamento);
+        if (!ativo) return;
+        setErro("Não foi possível carregar os eventos.");
+      });
+    return () => {
+      ativo = false;
+    };
+  }, [atualizar]);
 
-useEffect(() => {
-  listarEventos()
-    .then((dados) => {
-      setEventos(ordenarPorData(dados));
-    })
-    .catch((erro) => {
-      console.error("Erro ao carregar eventos:", erro);
-      setEventos([]);
-    });
-}, []);
+  async function handleRestaurar(id) {
+    try {
+      await restaurarEvento(id);
+      setErro("");
+      setAtualizar((versao) => versao + 1);
+    } catch (erroRestauracao) {
+      console.error("Erro ao restaurar evento:", erroRestauracao);
+      setErro(
+        erroRestauracao?.response?.data?.mensagem ||
+          "Não foi possível restaurar o evento.",
+      );
+    }
+  }
 
-const lixeira = ordenarPorData(listarLixeiraEventos());
-  function handleRestaurar(id) {
-    restaurarEvento(id);
-    setAtualizar((v) => v + 1);
+  async function handleExcluirPermanentemente(evento) {
+    const confirmar = window.confirm(
+      `Excluir permanentemente "${evento.titulo}"? Essa ação não pode ser desfeita.`,
+    );
+    if (!confirmar) return;
+
+    try {
+      await excluirEventoPermanentemente(evento.id);
+      setErro("");
+      setAtualizar((versao) => versao + 1);
+    } catch (erroExclusao) {
+      console.error("Erro ao excluir evento permanentemente:", erroExclusao);
+      setErro(
+        erroExclusao?.response?.data?.mensagem ||
+          "Não foi possível excluir o evento permanentemente.",
+      );
+    }
   }
 
   return (
     <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="max-w-7xl mx-auto">
+                {erro && (
+                  <p role="alert" className="mb-4 rounded-2xl border border-red-500/40 bg-red-900/40 px-4 py-3 text-sm text-red-200">
+                    {erro}
+                  </p>
+                )}
             <div className="mb-8 flex flex-col items-center gap-3 text-center">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.3em]">
@@ -156,13 +197,25 @@ const lixeira = ordenarPorData(listarLixeiraEventos());
                           {evento.data}
                           {evento.local ? ` · ${evento.local}` : ""}
                         </p>
-                        <button
-                          type="button"
-                          onClick={() => handleRestaurar(evento.id)}
-                          className="mt-4 w-full rounded-2xl bg-gradient-to-r from-sky-500 to-violet-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/20 transition hover:opacity-90"
-                        >
-                          Restaurar
-                        </button>
+                        <p className="mt-2 text-xs text-slate-500">
+                          Eventos na lixeira são excluídos automaticamente após 30 dias.
+                        </p>
+                        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                          <button
+                            type="button"
+                            onClick={() => handleRestaurar(evento.id)}
+                            className="w-full rounded-2xl bg-gradient-to-r from-sky-500 to-violet-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-500/20 transition hover:opacity-90"
+                          >
+                            Restaurar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleExcluirPermanentemente(evento)}
+                            className="w-full rounded-2xl border border-red-500/40 px-4 py-2.5 text-sm font-semibold text-red-300 transition hover:bg-red-500/10"
+                          >
+                            Excluir permanentemente
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}

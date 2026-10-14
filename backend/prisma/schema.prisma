@@ -68,6 +68,7 @@ model Evento {
   descricao      String?   @db.Text
   data_hora      DateTime
   data_hora_fim  DateTime?
+  excluido_em    DateTime?
   localizacao    String?   @db.VarChar(255)
   senha_acesso   String    @db.VarChar(255)
   tipo           String?   @db.VarChar(50)

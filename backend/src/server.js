@@ -7,6 +7,10 @@ import eventoRouter from "./routes/eventoRoutes.js";
 import galeriaRouter from "./routes/galeriaRoutes.js";
 import chatRouter from "./routes/chatRoutes.js";
 import grupoRoutes from "./routes/grupoRoutes.js";
+import {
+  excluirEventosExpirados,
+  INTERVALO_LIMPEZA_EVENTOS_MS,
+} from "./services/eventoRetention.js";
 
 
 dotenv.config();
@@ -37,6 +41,21 @@ app.listen(PORT, async () => {
     await prisma.$connect();
     console.log("✅ Banco de dados conectado com sucesso!");
   } catch (error) {
-    console.error("❌ Erro ao conectar ao banco de dados:", error.message);
+    console.error("❌ Erro ao conectar ao banco de dados:", error);
+    return;
   }
+
+  async function limparEventosExpirados() {
+    try {
+      const quantidade = await excluirEventosExpirados();
+      if (quantidade > 0) {
+        console.log(`🗑️ Eventos expirados removidos: ${quantidade}`);
+      }
+    } catch (error) {
+      console.error("❌ Erro ao limpar eventos expirados:", error);
+    }
+  }
+
+  await limparEventosExpirados();
+  setInterval(limparEventosExpirados, INTERVALO_LIMPEZA_EVENTOS_MS);
 });

@@ -31,8 +31,11 @@ function authMiddleware(req, res, next) {
     // 5. Deixa a requisição seguir para o controller
     next();
 
-  } catch (error) {
-    return res.status(401).json({ mensagem: "Token inválido ou expirado." });
+ } catch (error) {
+  if (error.name === "TokenExpiredError") {
+    return res.status(401).json({ mensagem: "Token expirado." });
+  }
+  return res.status(401).json({ mensagem: "Token inválido." });
 }
 }
 
