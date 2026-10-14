@@ -43,7 +43,6 @@ const iconeSenha = (
 const formatarTelefone = (valor) => {
   if (!valor) return "";
   const apenasNumeros = valor.replace(/\D/g, "").slice(0, 11);
-
   if (apenasNumeros.length <= 2) {
     return apenasNumeros.length ? `(${apenasNumeros}` : "";
   }
@@ -66,21 +65,20 @@ const Signup = () => {
     senha: "",
     senhaConfirma: "",
   });
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
     const { name, id, value } = e.target;
-    const key = name || id; // garante compatibilidade caso name ou id sejam usados
-
+    const key = name || id;
     setFormData((prev) => ({
       ...prev,
       [key]: key === "telefone" ? formatarTelefone(value) : value,
     }));
   };
 
+  // Entra no modo demonstração com a conta de teste e navega para /usuarios
   const handleGoogle = () => {
     entrarModoDemo();
     navigate("/usuarios");
@@ -91,9 +89,7 @@ const Signup = () => {
     setLoading(true);
     setError("");
     setSuccess("");
-
     const username = formData.username.trim();
-    // Telefone vai limpo só com dígitos para o backend
     const telefoneNumeros = formData.telefone.replace(/\D/g, "");
 
     if (!/^[a-zA-Z0-9._]+$/.test(username)) {
@@ -103,25 +99,21 @@ const Signup = () => {
       setLoading(false);
       return;
     }
-
     if (formData.senha !== formData.senhaConfirma) {
       setError("As senhas não correspondem.");
       setLoading(false);
       return;
     }
-
     if (formData.senha.length < 6) {
       setError("A senha deve ter no mínimo 6 caracteres.");
       setLoading(false);
       return;
     }
-
     if (telefoneNumeros.length < 10) {
       setError("Telefone inválido. Informe DDD + número (ex.: 11987654321).");
       setLoading(false);
       return;
     }
-
     try {
       await cadastrar({
         nome: formData.nome.trim(),
@@ -130,7 +122,6 @@ const Signup = () => {
         telefone: telefoneNumeros,
         senha: formData.senha,
       });
-
       setSuccess("Cadastro realizado com sucesso! Redirecionando para login...");
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
@@ -155,19 +146,16 @@ const Signup = () => {
               Comece a organizar eventos inesquecíveis.
             </p>
           </div>
-
           {error && (
             <div className="mb-4 rounded-2xl border border-red-500/40 bg-red-900/40 px-4 py-3 text-sm text-red-200">
               {error}
             </div>
           )}
-
           {success && (
             <div className="mb-4 rounded-2xl border border-green-500/40 bg-green-900/40 px-4 py-3 text-sm text-green-200">
               {success}
             </div>
           )}
-
           <form onSubmit={handleSubmit} className="space-y-4">
             <AuthField
               id="nome"
@@ -179,7 +167,6 @@ const Signup = () => {
               icon={iconeUsuario}
               required
             />
-
             <AuthField
               id="username"
               name="username"
@@ -190,7 +177,6 @@ const Signup = () => {
               icon={iconeArroba}
               required
             />
-
             <AuthField
               id="email"
               name="email"
@@ -202,7 +188,6 @@ const Signup = () => {
               icon={iconeEmail}
               required
             />
-
             <AuthField
               id="telefone"
               name="telefone"
@@ -214,7 +199,6 @@ const Signup = () => {
               icon={iconeTelefone}
               required
             />
-
             <AuthField
               id="senha"
               name="senha"
@@ -226,7 +210,6 @@ const Signup = () => {
               icon={iconeSenha}
               required
             />
-
             <AuthField
               id="senhaConfirma"
               name="senhaConfirma"
@@ -238,7 +221,6 @@ const Signup = () => {
               icon={iconeSenha}
               required
             />
-
             <button
               type="submit"
               disabled={loading}
@@ -247,7 +229,6 @@ const Signup = () => {
               {loading ? "Cadastrando..." : "Cadastrar"}
             </button>
           </form>
-
           <div className="my-5 flex items-center gap-3">
             <span className="h-px flex-1 bg-slate-700/60" />
             <span className="text-xs uppercase tracking-widest text-slate-500">
@@ -256,7 +237,12 @@ const Signup = () => {
             <span className="h-px flex-1 bg-slate-700/60" />
           </div>
 
-          <GoogleButton onClick={handleGoogle} texto="Cadastrar com o Google" />
+          {/* Botão do Google corrigido para aceitar ambas as props (text e texto) */}
+          <GoogleButton 
+            onClick={handleGoogle} 
+            text="Cadastrar com o Google" 
+            texto="Cadastrar com o Google" 
+          />
 
           <p className="mt-6 text-center text-sm text-slate-400">
             Já tem conta?{" "}
@@ -267,7 +253,6 @@ const Signup = () => {
               Faça login
             </Link>
           </p>
-
           <Link
             to="/"
             className="mt-4 block text-center text-sm text-slate-500 transition hover:text-slate-300"
