@@ -38,7 +38,12 @@ export default function AppLayout() {
         links={[{ label: "Home", href: "/usuarios" }]}
         user={
           usuario
-            ? { name: usuario.nome, foto_perfil: usuario.foto_perfil }
+            ? {
+                name: usuario.username
+                  ? `@${usuario.username}`
+                  : usuario.nome,
+                foto_perfil: usuario.foto_perfil,
+              }
             : null
         }
       />
