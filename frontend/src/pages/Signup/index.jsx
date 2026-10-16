@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useGoogleLogin } from "@react-oauth/google";
 import AuthLayout from "../../components/AuthLayout";
 import AuthField from "../../components/AuthField";
 import GoogleButton from "../../components/GoogleButton";
 import {
   cadastrar,
-  entrarModoDemo,
   mensagemDoErro,
 } from "../../services/usuarioService";
 
@@ -39,7 +39,6 @@ const iconeSenha = (
   </svg>
 );
 
-// Formatação automática do telefone com máscara
 const formatarTelefone = (valor) => {
   if (!valor) return "";
   const apenasNumeros = valor.replace(/\D/g, "").slice(0, 11);
@@ -65,6 +64,8 @@ const Signup = () => {
     senha: "",
     senhaConfirma: "",
   });
+
+  const [viaGoogle, setViaGoogle] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -78,42 +79,74 @@ const Signup = () => {
     }));
   };
 
-  // Entra no modo demonstração com a conta de teste e navega para /usuarios
-  const handleGoogle = () => {
-    entrarModoDemo();
-    navigate("/usuarios");
-  };
+  const loginGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        setLoading(true);
+        setError("");
+        
+        const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        });
+        const googleProfile = await res.json();
+
+        if (googleProfile?.email) {
+          const sugestaoUsername = googleProfile.email.split("@")[0].replace(/[^a-zA-Z0-9._]/g, "");
+          setFormData((prev) => ({
+            ...prev,
+            email: googleProfile.email,
+            nome: googleProfile.name || prev.nome,
+            username: sugestaoUsername,
+          }));
+          
+          setViaGoogle(true);
+          setSuccess(`Conta Google (${googleProfile.email}) conectada! Crie e confirme sua senha para finalizar.`);
+        }
+      } catch (err) {
+        console.error("Erro ao obter perfil Google:", err);
+        setError("Não foi possível carregar as informações do Google.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    onError: () => {
+      setError("Falha na conexão com o Google. Tente novamente.");
+    },
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     setSuccess("");
+
     const username = formData.username.trim();
     const telefoneNumeros = formData.telefone.replace(/\D/g, "");
 
     if (!/^[a-zA-Z0-9._]+$/.test(username)) {
-      setError(
-        "Nome de usuário inválido: use apenas letras, números, ponto (.) e underline (_), sem espaços."
-      );
+      setError("Nome de usuário inválido: use apenas letras, números, ponto (.) e underline (_), sem espaços.");
       setLoading(false);
       return;
     }
+
     if (formData.senha !== formData.senhaConfirma) {
       setError("As senhas não correspondem.");
       setLoading(false);
       return;
     }
+
     if (formData.senha.length < 6) {
       setError("A senha deve ter no mínimo 6 caracteres.");
       setLoading(false);
       return;
     }
+
     if (telefoneNumeros.length < 10) {
       setError("Telefone inválido. Informe DDD + número (ex.: 11987654321).");
       setLoading(false);
       return;
     }
+
     try {
       await cadastrar({
         nome: formData.nome.trim(),
@@ -122,7 +155,8 @@ const Signup = () => {
         telefone: telefoneNumeros,
         senha: formData.senha,
       });
-      setSuccess("Cadastro realizado com sucesso! Redirecionando para login...");
+
+      setSuccess("Cadastro realizado com sucesso! Redirecionando para o login...");
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
       setError(mensagemDoErro(err, "Erro ao fazer cadastro. Tente novamente."));
@@ -146,16 +180,19 @@ const Signup = () => {
               Comece a organizar eventos inesquecíveis.
             </p>
           </div>
+
           {error && (
             <div className="mb-4 rounded-2xl border border-red-500/40 bg-red-900/40 px-4 py-3 text-sm text-red-200">
               {error}
             </div>
           )}
+
           {success && (
             <div className="mb-4 rounded-2xl border border-green-500/40 bg-green-900/40 px-4 py-3 text-sm text-green-200">
               {success}
             </div>
           )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <AuthField
               id="nome"
@@ -186,6 +223,7 @@ const Signup = () => {
               onChange={handleChange}
               placeholder="seu@email.com"
               icon={iconeEmail}
+              disabled={viaGoogle}
               required
             />
             <AuthField
@@ -221,28 +259,33 @@ const Signup = () => {
               icon={iconeSenha}
               required
             />
+
+            {!viaGoogle && (
+              <div className="pt-2">
+                <div className="my-4 flex items-center gap-3">
+                  <span className="h-px flex-1 bg-slate-700/60" />
+                  <span className="text-xs uppercase tracking-widest text-slate-500">
+                    ou entre com
+                  </span>
+                  <span className="h-px flex-1 bg-slate-700/60" />
+                </div>
+
+                <GoogleButton 
+                  onClick={() => loginGoogle()} 
+                  text="Cadastrar com o Google" 
+                  texto="Cadastrar com o Google" 
+                />
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 w-full rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/25 transition duration-300 hover:scale-[1.02] hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-4 w-full rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/25 transition duration-300 hover:scale-[1.02] hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? "Cadastrando..." : "Cadastrar"}
             </button>
           </form>
-          <div className="my-5 flex items-center gap-3">
-            <span className="h-px flex-1 bg-slate-700/60" />
-            <span className="text-xs uppercase tracking-widest text-slate-500">
-              ou
-            </span>
-            <span className="h-px flex-1 bg-slate-700/60" />
-          </div>
-
-          {/* Botão do Google corrigido para aceitar ambas as props (text e texto) */}
-          <GoogleButton 
-            onClick={handleGoogle} 
-            text="Cadastrar com o Google" 
-            texto="Cadastrar com o Google" 
-          />
 
           <p className="mt-6 text-center text-sm text-slate-400">
             Já tem conta?{" "}
@@ -253,6 +296,7 @@ const Signup = () => {
               Faça login
             </Link>
           </p>
+
           <Link
             to="/"
             className="mt-4 block text-center text-sm text-slate-500 transition hover:text-slate-300"
