@@ -81,28 +81,36 @@ const iconeCamera = (
 );
 
 // Um "chip" de metadado (ícone + texto), usado na leitura do perfil.
+
 function Chip({ icon, children, href }) {
   const conteudo = (
     <>
-      <span className="text-fuchsia-400">{icon}</span>
-      <span className="truncate">{children}</span>
+      <span className="shrink-0 text-fuchsia-400">
+        {icon}
+      </span>
+      <span className="min-w-0 break-words [overflow-wrap:anywhere]">
+        {children}
+      </span>
     </>
   );
+
   const classe =
-    "inline-flex items-center gap-2 rounded-full border border-slate-800/70 bg-slate-950/40 px-3 py-1.5 text-sm text-slate-300";
+    "inline-flex min-w-0 max-w-full items-start gap-2 rounded-xl border border-slate-800/70 bg-slate-950/40 px-3 py-2 text-sm leading-relaxed text-slate-300";
+
   return href ? (
     <a
       href={href}
       target="_blank"
       rel="noreferrer"
-      className={`${classe} max-w-full transition hover:border-fuchsia-500/50 hover:text-white`}
+      className={`${classe} transition hover:border-fuchsia-500/50 hover:text-white`}
     >
       {conteudo}
     </a>
   ) : (
-    <span className={`${classe} max-w-full`}>{conteudo}</span>
+    <span className={classe}>{conteudo}</span>
   );
 }
+
 
 // Card de estatística com a animação de hover padrão do projeto.
 function CardStat({ valor, label }) {
@@ -407,7 +415,9 @@ export default function Perfil() {
                     value={form.bio || ""}
                     onChange={handleChange}
                     placeholder="Conte um pouco sobre você, seus eventos favoritos, seu estilo..."
-                    className="w-full resize-none rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-500/25"
+                    
+                  className="block w-full min-w-0 resize-y rounded-2xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-sm leading-6 text-left text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-500/25"
+
                   />
                 </div>
 
@@ -453,9 +463,11 @@ export default function Perfil() {
                 )}
 
                 {usuario.bio ? (
-                  <p className="mt-4 max-w-2xl whitespace-pre-line text-sm leading-relaxed text-slate-300">
-                    {usuario.bio}
-                  </p>
+                  
+              <p className="mt-4 w-full max-w-2xl whitespace-pre-line break-words text-left text-sm leading-7 text-slate-300 [overflow-wrap:anywhere]">
+               {usuario.bio}
+              </p>
+
                 ) : (
                   <p className="mt-4 text-sm italic text-slate-500">
                     Sem biografia ainda. Clique em “Editar perfil” para se apresentar.
