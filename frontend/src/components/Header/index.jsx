@@ -26,7 +26,7 @@ const Header = ({
               M
             </span>
             <span className="fonte-flow text-xl font-bold">
-              <span className="text-white">Meet</span>
+              <span className="header-logo-meet text-white">Meet</span>
               <span className="texto-gradiente">Flow</span>
             </span>
           </Link>

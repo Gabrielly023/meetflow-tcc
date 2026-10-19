@@ -227,7 +227,7 @@ export default function MapaEvento() {
           {/* Formulário: adicionar local */}
           <form
             onSubmit={handleAdicionar}
-            className="rounded-3xl border border-slate-800/70 bg-slate-900/80 p-6 shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-fuchsia-500/20"
+            className="rounded-3xl border border-slate-800/70 bg-slate-900/80 p-6 text-center shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-fuchsia-500/20"
           >
             <p className="texto-gradiente-2 text-lg font-semibold uppercase tracking-[0.3em]">
               Adicionar local
@@ -265,18 +265,18 @@ export default function MapaEvento() {
             </div>
 
             {erro && (
-              <div className="mt-4 rounded-2xl border border-red-500/40 bg-red-900/40 px-4 py-3 text-sm text-red-200">
+              <div className="mx-auto mt-4 max-w-4xl rounded-2xl border border-red-500/40 bg-red-900/40 px-4 py-3 text-center text-sm text-red-200">
                 {erro}
               </div>
             )}
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">
+            <div className="mx-auto mt-4 flex w-full max-w-4xl flex-col items-center gap-3">
               <input
                 type="text"
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
                 placeholder="Nome do local (opcional) — ex.: Entrada principal"
-                className="w-full rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-500/25 sm:col-span-2"
+                className="w-full rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-center text-sm text-slate-100 placeholder:text-center placeholder:text-slate-500 outline-none transition focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-500/25"
               />
               <textarea
                 value={link}
@@ -287,12 +287,12 @@ export default function MapaEvento() {
                     ? "Cole aqui o link do Waze (ex.: https://waze.com/ul?ll=-23.56,-46.65 ou https://waze.com/ul/...)"
                     : "Cole aqui o link do Google Maps (ex.: https://maps.app.goo.gl/... ou https://www.google.com/maps/place/...)"
                 }
-                className="w-full resize-none rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-500/25"
+                className="w-full resize-none rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-center text-sm text-slate-100 placeholder:text-center placeholder:text-slate-500 outline-none transition focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-500/25"
               />
               <button
                 type="submit"
                 disabled={enviando}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100 sm:self-start"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
               >
                 {enviando ? "Adicionando…" : "Adicionar"}
               </button>

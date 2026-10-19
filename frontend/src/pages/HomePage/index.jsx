@@ -80,7 +80,7 @@ useEffect(() => {
   );
 
   return (
-    <main className="flex-1 px-6 py-8 lg:px-10">
+    <main className="home-page flex-1 px-6 py-8 lg:px-10">
           <div className="mx-auto max-w-6xl">
             <div className="flex flex-col gap-6 text-left lg:flex-row lg:items-center lg:justify-between">
               <div>
@@ -97,10 +97,10 @@ useEffect(() => {
                 >
                   Seja bem-vindo
                 </p>
-                <p className="mt-1 text-5xl font-semibold text-white">
+                <p className="home-page-title mt-1 text-5xl font-semibold text-white">
                   Seu espaço
                 </p>
-                <p className="mt-2 text-slate-400">
+                <p className="home-page-description mt-2 text-slate-400">
                   Acesse rapidamente o que importa.
                 </p>
               </div>
@@ -108,7 +108,7 @@ useEffect(() => {
               {proximo ? (
                 <Link
                   to={`/eventos/${proximo.id}`}
-                  className="hover-degrade group flex items-center gap-4 rounded-3xl border-2 border-slate-800/70 bg-slate-900/70 p-4 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 lg:w-80"
+                  className="home-next-event hover-degrade group flex items-center gap-4 rounded-3xl border-2 border-slate-800/70 bg-slate-900/70 p-4 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 lg:w-80"
                 >
                   <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl">
                     {capaProximo ? (
@@ -123,7 +123,7 @@ useEffect(() => {
                       </div>
                     )}
                   </div>
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 text-center">
                     <p className="text-[11px] uppercase tracking-[0.25em] text-fuchsia-400">
                       Próximo evento
                     </p>
@@ -140,13 +140,13 @@ useEffect(() => {
                   </span>
                 </Link>
               ) : (
-                <div className="hover-degrade group flex items-center gap-4 rounded-3xl border-2 border-slate-800/70 bg-slate-900/70 p-4 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 lg:w-80">
+                <div className="home-next-event hover-degrade group flex items-center gap-4 rounded-3xl border-2 border-slate-800/70 bg-slate-900/70 p-4 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 lg:w-80">
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500/30 via-fuchsia-500/30 to-sky-500/30 text-white">
                     <span className="text-2xl" aria-hidden="true">
                       ♪
                     </span>
                   </div>
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 text-center">
                     <p className="text-[11px] uppercase tracking-[0.25em] text-fuchsia-400">
                       Próximo evento
                     </p>
@@ -190,7 +190,7 @@ useEffect(() => {
               {/* Bloco: Meus eventos */}
               <Link
                 to="/eventos"
-                className="group relative rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="home-dashboard-card group relative rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
                 <span className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
                   →
@@ -230,7 +230,7 @@ useEffect(() => {
               {/* Bloco: Minhas galerias */}
               <Link
                 to="/galerias"
-                className="group relative rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="home-dashboard-card group relative rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
                 <span className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
                   →
@@ -274,7 +274,7 @@ useEffect(() => {
               {/* Bloco: Minhas playlists */}
               <Link
                 to="/playlists"
-                className="group relative rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="home-dashboard-card group relative rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
                 <span className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
                   →
@@ -325,7 +325,7 @@ useEffect(() => {
               {/* Bloco: Meus mapas */}
               <Link
                 to="/mapas"
-                className="group relative rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="home-dashboard-card group relative rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
                 <span className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
                   →
@@ -365,7 +365,7 @@ useEffect(() => {
               {/* Bloco: Meus chats */}
               <Link
                 to="/chats"
-                className="group relative rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="home-dashboard-card group relative rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
                 <span className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
                   →

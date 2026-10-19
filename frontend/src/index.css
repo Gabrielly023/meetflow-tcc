@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  --meetflow-scale: 1;
   --text: #f8fafc;
   --text-h: #ffffff;
   --bg: #020617;
@@ -17,7 +18,7 @@
   --heading: system-ui, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
-  font: 18px/145% var(--sans);
+  font: calc(18px * var(--meetflow-scale, 1))/145% var(--sans);
   letter-spacing: 0.18px;
   color-scheme: light dark;
   color: var(--text);
@@ -28,7 +29,7 @@
   -moz-osx-font-smoothing: grayscale;
 
   @media (max-width: 1024px) {
-    font-size: 16px;
+    font-size: calc(16px * var(--meetflow-scale, 1));
   }
 }
 
@@ -268,6 +269,508 @@ h2 {
 }
 p {
   margin: 0;
+}
+
+.texto-nome-perfil {
+  color: #f472b6;
+}
+
+html.reduzir-animacoes *,
+html.reduzir-animacoes *::before,
+html.reduzir-animacoes *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-duration: 0.01ms !important;
+}
+
+html.alto-contraste :focus-visible {
+  outline: 3px solid #f0abfc !important;
+  outline-offset: 3px;
+}
+
+html.espacamento-ampliado {
+  letter-spacing: 0.04em;
+  line-height: 1.65;
+}
+
+html.interface-compacta .rounded-3xl,
+html.interface-compacta .rounded-2xl {
+  scroll-margin-block: 1rem;
+}
+
+@media (max-width: 767px) {
+  body:has(.settings-page-main, .settings-overview-intro) aside.sidebar-borda {
+    display: none;
+  }
+
+  body:has(.settings-page-main) .settings-page-main {
+    width: 100%;
+    flex: 1 1 auto;
+  }
+}
+
+.settings-page-heading {
+  width: 100%;
+  text-align: center !important;
+}
+
+.settings-page-heading > * {
+  text-align: center !important;
+}
+
+.settings-page-heading > a {
+  display: flex;
+  width: fit-content;
+  justify-content: center;
+}
+
+.settings-page-heading > nav > ol {
+  justify-content: center !important;
+}
+
+.settings-overview-intro,
+.settings-overview-intro > * {
+  text-align: center !important;
+}
+
+.settings-page-main section[id] {
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.settings-page-main section[id]:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 18px 38px -24px rgb(124 58 237 / 38%),
+    0 12px 32px -24px rgb(14 165 233 / 42%);
+}
+
+html[data-theme="claro"] .settings-page-main section[id] button:not(:disabled):hover,
+html[data-theme="claro"] .settings-page-main section[id] a:hover,
+html[data-theme="claro"] .settings-page-main section[id] label:has(input:not(:disabled)):hover {
+  box-shadow:
+    0 8px 18px -14px rgb(124 58 237 / 55%),
+    0 6px 14px -12px rgb(14 165 233 / 55%);
+}
+
+html[data-theme="claro"] .settings-page-main section[id] input:not(:disabled):hover,
+html[data-theme="claro"] .settings-page-main section[id] select:not(:disabled):hover,
+html[data-theme="claro"] .settings-page-main section[id] textarea:not(:disabled):hover {
+  border-color: #a78bfa !important;
+  box-shadow:
+    0 0 0 1px rgb(167 139 250 / 18%),
+    0 6px 16px -12px rgb(14 165 233 / 50%);
+}
+
+.settings-page-main button:not(:disabled),
+.settings-page-main a,
+.settings-page-main input:not(:disabled),
+.settings-page-main select:not(:disabled),
+.settings-page-main textarea:not(:disabled),
+.settings-page-main label:has(input:not(:disabled)) {
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.settings-page-main button:not(:disabled):hover,
+.settings-page-main a:hover,
+.settings-page-main input:not(:disabled):hover,
+.settings-page-main select:not(:disabled):hover,
+.settings-page-main textarea:not(:disabled):hover,
+.settings-page-main label:has(input:not(:disabled)):hover {
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-page-main section[id],
+  .settings-page-main button:not(:disabled),
+  .settings-page-main a,
+  .settings-page-main input:not(:disabled),
+  .settings-page-main select:not(:disabled),
+  .settings-page-main textarea:not(:disabled),
+  .settings-page-main label:has(input:not(:disabled)) {
+    transition-duration: 0.01ms;
+  }
+
+  .settings-page-main section[id]:hover,
+  .settings-page-main button:not(:disabled):hover,
+  .settings-page-main a:hover,
+  .settings-page-main input:not(:disabled):hover,
+  .settings-page-main select:not(:disabled):hover,
+  .settings-page-main textarea:not(:disabled):hover,
+  .settings-page-main label:has(input:not(:disabled)):hover {
+    transform: none;
+  }
+}
+
+html[data-theme="claro"] {
+  --text: #1e293b;
+  --text-h: #0f172a;
+  --bg: #f1f5f9;
+  color-scheme: light;
+}
+
+html[data-theme="claro"] body,
+html[data-theme="claro"] #root {
+  background-color: #f1f5f9;
+  color: #1e293b;
+}
+
+html[data-theme="claro"] [class~="bg-slate-950"],
+html[data-theme="claro"] [class~="bg-slate-950/95"],
+html[data-theme="claro"] [class~="bg-slate-950/90"],
+html[data-theme="claro"] [class~="bg-slate-950/80"],
+html[data-theme="claro"] [class~="bg-slate-950/70"],
+html[data-theme="claro"] [class~="bg-slate-950/60"],
+html[data-theme="claro"] [class~="bg-slate-950/50"],
+html[data-theme="claro"] [class~="bg-slate-900"],
+html[data-theme="claro"] [class~="bg-slate-900/95"],
+html[data-theme="claro"] [class~="bg-slate-900/90"],
+html[data-theme="claro"] [class~="bg-slate-900/80"],
+html[data-theme="claro"] [class~="bg-slate-900/70"],
+html[data-theme="claro"] [class~="bg-slate-900/60"],
+html[data-theme="claro"] [class~="bg-slate-900/50"] {
+  background-color: #fff !important;
+}
+
+html[data-theme="claro"] [class~="bg-slate-800"],
+html[data-theme="claro"] [class~="bg-slate-800/80"],
+html[data-theme="claro"] [class~="bg-slate-800/70"] {
+  background-color: #e2e8f0 !important;
+}
+
+html[data-theme="claro"] [class~="text-white"],
+html[data-theme="claro"] [class~="text-slate-100"],
+html[data-theme="claro"] [class~="text-slate-200"],
+html[data-theme="claro"] [class~="text-slate-300"] {
+  color: #0f172a !important;
+}
+
+html[data-theme="claro"] [class~="text-slate-400"],
+html[data-theme="claro"] [class~="text-slate-500"] {
+  color: #475569 !important;
+}
+
+html[data-theme="claro"] button[class~="text-white"],
+html[data-theme="claro"] a[class~="text-white"],
+html[data-theme="claro"] button [class~="text-white"],
+html[data-theme="claro"] a [class~="text-white"] {
+  color: #fff !important;
+}
+
+html[data-theme="claro"] [class~="border-slate-700"],
+html[data-theme="claro"] [class~="border-slate-800/70"],
+html[data-theme="claro"] [class~="border-slate-800/80"] {
+  border-color: #cbd5e1 !important;
+}
+
+html[data-theme="claro"] .settings-page-main section[id] {
+  border-color: #c7d2fe !important;
+  background-image: linear-gradient(
+    135deg,
+    #eff6ff 0%,
+    #f5f3ff 54%,
+    #eef2ff 100%
+  ) !important;
+  box-shadow: 0 18px 38px -28px rgb(79 70 229 / 30%);
+}
+
+html[data-theme="claro"] .settings-page-main section[id]:hover {
+  background-image: linear-gradient(
+    135deg,
+    #e0f2fe 0%,
+    #ede9fe 54%,
+    #e0e7ff 100%
+  ) !important;
+  box-shadow:
+    0 18px 38px -24px rgb(124 58 237 / 42%),
+    0 12px 32px -24px rgb(14 165 233 / 46%) !important;
+}
+
+html[data-theme="claro"] .settings-page-main section[id] > div:first-child {
+  border-color: #dbe4f5 !important;
+}
+
+html[data-theme="claro"] .settings-page-main section[id] [class~="bg-slate-950/40"],
+html[data-theme="claro"] .settings-page-main section[id] [class~="bg-slate-950/50"],
+html[data-theme="claro"] .settings-page-main section[id] [class~="bg-slate-900/70"] {
+  border-color: #d6def2 !important;
+  background-color: rgb(255 255 255 / 64%) !important;
+}
+
+html[data-theme="claro"] .settings-page-main section[id] [class~="border-slate-800"],
+html[data-theme="claro"] .settings-page-main section[id] [class~="border-slate-800/80"] {
+  border-color: #cbd5e1 !important;
+}
+
+html[data-theme="claro"] .settings-page-main section[id] button[role="radio"] {
+  border-color: #d1d9ec !important;
+  background-color: rgb(255 255 255 / 65%) !important;
+}
+
+html[data-theme="claro"] .settings-page-main section[id] button[role="radio"][aria-checked="true"] {
+  border-color: #a5b4fc !important;
+  background-image: linear-gradient(
+    135deg,
+    rgb(224 242 254 / 90%),
+    rgb(237 233 254 / 95%)
+  ) !important;
+}
+
+html[data-theme="claro"] .settings-page-main section[id] input:not([type="checkbox"]),
+html[data-theme="claro"] .settings-page-main section[id] select,
+html[data-theme="claro"] .settings-page-main section[id] textarea {
+  border-color: #cbd5e1 !important;
+  background-color: rgb(255 255 255 / 88%) !important;
+  color: #0f172a !important;
+}
+
+html[data-theme="claro"] .settings-page-main section[id] input::placeholder,
+html[data-theme="claro"] .settings-page-main section[id] textarea::placeholder {
+  color: #64748b !important;
+}
+
+html[data-theme="claro"] .settings-overview-card:hover {
+  border-color: transparent !important;
+  background-image:
+    linear-gradient(135deg, #e0f2fe 0%, #ede9fe 54%, #e0e7ff 100%),
+    linear-gradient(160deg, #38bdf8, #a855f7) !important;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow:
+    0 20px 42px -28px rgb(124 58 237 / 42%),
+    0 14px 32px -26px rgb(14 165 233 / 45%) !important;
+}
+
+html[data-theme="claro"] .settings-overview-card:hover h2,
+html[data-theme="claro"] .settings-overview-card:hover > div p,
+html[data-theme="claro"] .settings-overview-card:hover > div > p {
+  color: #0f172a !important;
+}
+
+html[data-theme="claro"] .settings-overview-card:hover > div > p {
+  color: #334155 !important;
+}
+
+html[data-theme="claro"] .settings-overview-card a:not([aria-label]) {
+  border-color: #c7d2fe !important;
+  background-color: rgb(255 255 255 / 88%) !important;
+  color: #1e293b !important;
+}
+
+html[data-theme="claro"] .settings-overview-card a:not([aria-label]):hover {
+  border-color: #a78bfa !important;
+  background-color: #f5f3ff !important;
+  color: #5b21b6 !important;
+  box-shadow:
+    0 8px 18px -14px rgb(124 58 237 / 55%),
+    0 6px 14px -12px rgb(14 165 233 / 55%);
+}
+
+html[data-theme="claro"] .settings-account-summary.borda-degrade-fixa,
+html[data-theme="claro"] .settings-data-summary.borda-degrade-fixa {
+  background-image:
+    linear-gradient(135deg, #e0f2fe 0%, #ede9fe 54%, #e0e7ff 100%),
+    linear-gradient(160deg, #38bdf8, #a855f7) !important;
+}
+
+html[data-theme="claro"] .settings-account-summary h2,
+html[data-theme="claro"] .settings-data-summary h2,
+html[data-theme="claro"] .settings-data-summary dd {
+  color: #0f172a !important;
+}
+
+html[data-theme="claro"] .settings-account-summary > div > div > p,
+html[data-theme="claro"] .settings-data-summary dt,
+html[data-theme="claro"] .settings-data-summary > div > p {
+  color: #334155 !important;
+}
+
+html[data-theme="claro"] .settings-data-summary dl > div {
+  border-color: #c7d2fe !important;
+  background: linear-gradient(135deg, rgb(255 255 255 / 76%), rgb(238 242 255 / 82%)) !important;
+}
+
+html[data-theme="claro"] .settings-account-summary > span {
+  color: #047857 !important;
+}
+
+html[data-theme="claro"] .settings-overview-card:hover > div > p.text-red-300,
+html[data-theme="claro"] .settings-overview-card:hover .text-red-300 {
+  color: #b91c1c !important;
+}
+
+html[data-theme="claro"] aside.sidebar-borda {
+  background:
+    linear-gradient(#f8fafc, #f8fafc) padding-box,
+    linear-gradient(160deg, #a855f7, #38bdf8) border-box;
+}
+
+html[data-theme="claro"] aside.sidebar-borda input.borda-degrade-fixa {
+  background-image:
+    linear-gradient(#fff, #fff),
+    linear-gradient(160deg, #38bdf8, #a855f7);
+}
+
+html[data-theme="claro"] aside.sidebar-borda input.borda-degrade-fixa:hover {
+  background-image:
+    linear-gradient(#f1f5f9, #f1f5f9),
+    linear-gradient(160deg, #38bdf8, #a855f7);
+}
+
+html[data-theme="claro"] aside.sidebar-borda.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  border-color: rgb(248 250 252 / 80%);
+}
+
+html[data-theme="claro"] .header-logo-meet {
+  background-image: linear-gradient(100deg, #7c3aed, #0284c7);
+  background-clip: text;
+  color: transparent !important;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+html[data-theme="claro"] .home-page-title {
+  color: #111827 !important;
+}
+
+html[data-theme="claro"] .home-page-description {
+  color: #475569 !important;
+}
+
+html[data-theme="claro"] .home-next-event {
+  border-color: #c7d2fe !important;
+  background-image: linear-gradient(135deg, #ffffff 0%, #f5f3ff 58%, #eff6ff 100%) !important;
+  box-shadow: 0 16px 36px -28px rgb(79 70 229 / 36%);
+}
+
+html[data-theme="claro"] .home-next-event h2 {
+  color: #111827 !important;
+}
+
+html[data-theme="claro"] .home-next-event p.text-slate-400 {
+  color: #475569 !important;
+}
+
+html[data-theme="claro"] .home-dashboard-card {
+  border-color: #d6d9f0 !important;
+  background-image: linear-gradient(135deg, #ffffff 0%, #f5f3ff 56%, #eff8ff 100%) !important;
+  box-shadow: 0 16px 36px -28px rgb(79 70 229 / 32%);
+}
+
+html[data-theme="claro"] .home-dashboard-card:hover {
+  border-color: #a78bfa !important;
+  background-image: linear-gradient(135deg, #f0f9ff 0%, #f5f3ff 54%, #ede9fe 100%) !important;
+  box-shadow:
+    0 18px 38px -24px rgb(124 58 237 / 35%),
+    0 12px 32px -24px rgb(14 165 233 / 38%) !important;
+}
+
+html[data-theme="claro"] .home-dashboard-card h2 {
+  color: #111827 !important;
+}
+
+html[data-theme="claro"] .home-dashboard-card p.text-slate-400,
+html[data-theme="claro"] .home-dashboard-card div.text-slate-400 {
+  color: #475569 !important;
+}
+
+html[data-theme="claro"] [class*="via-slate-900"],
+html[data-theme="claro"] [class*="from-slate-900"][class*="to-slate-950"],
+html[data-theme="claro"] [class*="from-violet-500/40"][class*="to-sky-500/40"] {
+  background-image: linear-gradient(
+    135deg,
+    #f5f3ff 0%,
+    #eef2ff 52%,
+    #e0f2fe 100%
+  ) !important;
+  color: #1e293b !important;
+}
+
+html[data-theme="claro"] .hover-degrade[class*="bg-slate-900/70"] h2 {
+  color: #0f172a !important;
+}
+
+html[data-theme="claro"] .hover-degrade[class*="bg-slate-900/70"] p.text-slate-400 {
+  color: #475569 !important;
+}
+
+html[data-theme="claro"] :is(
+    a,
+    button,
+    [role="button"],
+    [role="radio"],
+    [role="switch"],
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea,
+    label:has(input),
+    [class*="cursor-pointer"]
+  ):not(:disabled):hover {
+  border-color: #a78bfa !important;
+  box-shadow:
+    0 8px 18px -14px rgb(124 58 237 / 55%),
+    0 6px 14px -12px rgb(14 165 233 / 55%) !important;
+}
+
+html[data-theme="claro"] :is(
+    a,
+    button,
+    [role="button"],
+    [role="radio"],
+    [role="switch"],
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea,
+    label:has(input),
+    [class*="cursor-pointer"],
+    [class*="hover:"]
+  ) {
+  transition-property: transform, box-shadow, border-color, background-color, color;
+  transition-duration: 180ms;
+  transition-timing-function: ease;
+}
+
+html[data-theme="claro"] .hover-degrade:hover,
+html[data-theme="claro"] [class*="hover:-translate-y"]:hover,
+html[data-theme="claro"] [class*="hover:shadow"]:hover,
+html[data-theme="claro"] [class*="hover:border"]:hover {
+  border-color: #a78bfa !important;
+  box-shadow:
+    0 18px 38px -24px rgb(124 58 237 / 42%),
+    0 12px 32px -24px rgb(14 165 233 / 46%) !important;
+}
+
+html[data-theme="claro"] .hover-degrade:hover {
+  background-image:
+    linear-gradient(135deg, #e0f2fe 0%, #ede9fe 54%, #e0e7ff 100%),
+    linear-gradient(160deg, #38bdf8, #a855f7) !important;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="claro"] :is(
+      a,
+      button,
+      [role="button"],
+      [role="radio"],
+      [role="switch"],
+      input:not([type="checkbox"]):not([type="radio"]),
+      select,
+      textarea,
+      label:has(input),
+      [class*="cursor-pointer"],
+      [class*="hover:"]
+    ) {
+    transition-duration: 0.01ms;
+  }
 }
 
 code,
