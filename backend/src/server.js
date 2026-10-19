@@ -9,6 +9,7 @@ import eventoRouter from "./routes/eventoRoutes.js";
 import galeriaRouter from "./routes/galeriaRoutes.js";
 import chatRouter from "./routes/chatRoutes.js";
 import grupoRoutes from "./routes/grupoRoutes.js";
+import notificacaoRoutes from "./routes/notificacaoRoutes.js";
 import {
   excluirEventosExpirados,
   INTERVALO_LIMPEZA_EVENTOS_MS,
@@ -34,6 +35,9 @@ const io = new Server(httpServer, {
   cors: corsOptions,
 });
 
+// 🔔 Torna o Socket.io acessível dentro dos controllers através de req.app.get("io")
+
+
 // 5. Configuração dos eventos em tempo real do Socket.io
 io.on("connection", (socket) => {
   console.log(`⚡ Usuário conectado via Socket: ${socket.id}`);
@@ -44,7 +48,14 @@ io.on("connection", (socket) => {
     console.log(`📌 Socket ${socket.id} entrou no evento: ${id_evento}`);
   });
 
-  // Receber mensagem e retransmitir para a sala
+  // 🔔 Entrar na sala pessoal do usuário para receber notificações em tempo real
+  socket.on("juntar_usuario", (id_usuario) => {
+    const salaUsuario = `user_${id_usuario}`;
+    socket.join(salaUsuario);
+    console.log(`🔔 Socket ${socket.id} escutando notificações na sala: ${salaUsuario}`);
+  });
+
+  // Receber mensagem do chat e retransmitir para a sala
   socket.on("enviar_mensagem", (dadosMensagem) => {
     // dadosMensagem: { id_evento, id_usuario, nome, texto, hora }
     io.to(dadosMensagem.id_evento).emit("receber_mensagem", dadosMensagem);
@@ -56,11 +67,13 @@ io.on("connection", (socket) => {
 });
 
 app.use(express.json({ limit: "10mb" }));
+app.set("io", io);
 app.use("/galeria", galeriaRouter);
 app.use("/usuarios", usuarioRouter);
 app.use("/eventos", eventoRouter);
 app.use("/chat", chatRouter);
 app.use("/eventos/:id/grupo", grupoRoutes);
+app.use("/notificacoes", notificacaoRoutes);
 
 const PORT = process.env.PORT || 3000;
 
