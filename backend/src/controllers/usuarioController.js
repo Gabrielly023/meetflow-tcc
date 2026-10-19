@@ -493,7 +493,7 @@ if (telefone && (telefoneLimpo.length < 10 || telefoneLimpo.length > 11)) {
   // GOOGLE LOGIN
   async googleLogin(req, res) {
     try {
-      const { email, nome, foto } = req.body;
+      const { email, nome, foto, username } = req.body;
 
       if (!email) {
         return res.status(400).json({ mensagem: "E-mail é obrigatório." });
@@ -503,16 +503,56 @@ if (telefone && (telefoneLimpo.length < 10 || telefoneLimpo.length > 11)) {
         where: { email }
       });
 
+      // Só define username quando a conta ainda não existe.
+      // Se o e-mail já está cadastrado, mantém o username que a pessoa já tem.
       if (!usuario) {
-        const baseUsername = email.split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "");
-        const sufixo = Math.floor(1000 + Math.random() * 9000);
-        const usernameGerado = `${baseUsername}_${sufixo}`;
+        let usernameFinal;
+
+        if (username) {
+          // Username escolhido pela pessoa no cadastro
+          const usernameEscolhido = String(username).trim();
+
+          if (!/^[a-zA-Z0-9._]+$/.test(usernameEscolhido)) {
+            return res.status(400).json({
+              mensagem: "Username deve conter apenas letras, números, pontos ou underline."
+            });
+          }
+
+          const usernameEmUso = await prisma.usuario.findFirst({
+            where: { username: usernameEscolhido }
+          });
+
+          if (usernameEmUso) {
+            return res.status(409).json({
+              mensagem: "Este nome de usuário já está em uso. Escolha outro."
+            });
+          }
+
+          usernameFinal = usernameEscolhido;
+        } else {
+          // Reserva: se o frontend não enviar username, gera um a partir do e-mail,
+          // garantindo que não exista outro igual
+          const baseUsername = email.split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "");
+
+          for (let tentativa = 0; tentativa < 5 && !usernameFinal; tentativa++) {
+            const sufixo = Math.floor(1000 + Math.random() * 9000);
+            const candidato = `${baseUsername}_${sufixo}`;
+            const existe = await prisma.usuario.findFirst({ where: { username: candidato } });
+            if (!existe) usernameFinal = candidato;
+          }
+
+          if (!usernameFinal) {
+            return res.status(500).json({
+              mensagem: "Não foi possível gerar um nome de usuário. Tente novamente."
+            });
+          }
+        }
 
         usuario = await prisma.usuario.create({
           data: {
             email,
             nome: nome || "Usuário Google",
-            username: usernameGerado,
+            username: usernameFinal,
             senha: "",
             telefone: "",
             foto_perfil: foto || null
@@ -538,6 +578,14 @@ if (telefone && (telefoneLimpo.length < 10 || telefoneLimpo.length > 11)) {
       });
     } catch (error) {
       console.error("Erro detalhado do Google Login:", error);
+
+      // Duas pessoas tentando o mesmo username ao mesmo tempo (chave única do banco)
+      if (error.code === "P2002") {
+        return res.status(409).json({
+          mensagem: "Este nome de usuário já está em uso. Escolha outro."
+        });
+      }
+
       return res.status(500).json({
         mensagem: "Erro ao autenticar com o Google.",
         detalhe: error.message

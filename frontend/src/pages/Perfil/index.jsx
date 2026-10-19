@@ -439,7 +439,7 @@ export default function Perfil() {
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   <h2 className="text-2xl font-semibold text-white">
                     {usuario.username
-                      ? `@${usuario.username}`
+                      ? usuario.username
                       : usuario.nome || "Sem nome"}
                   </h2>
                   {demo && (
