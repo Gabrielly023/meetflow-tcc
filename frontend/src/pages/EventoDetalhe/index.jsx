@@ -237,7 +237,7 @@ useEffect(() => {
             {/* AÇÕES DO EVENTO */}
             <div className="rounded-3xl border border-slate-800/70 bg-slate-900/80 p-6 shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-fuchsia-500/20">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
+                <div className="flex-1 text-left">
                   <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-400">
                     Ações do evento
                   </p>
