@@ -428,7 +428,7 @@ export default function Home() {
           <section className="mx-auto max-w-5xl px-6 pb-24">
             <Reveal>
               <div className="rounded-[2rem] bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 p-0.5 shadow-2xl shadow-fuchsia-500/20">
-                <div className="rounded-[1.9rem] bg-slate-950/95 px-8 py-16 text-center">
+                <div className="flex flex-col items-center justify-center rounded-[1.9rem] bg-slate-950/95 px-8 py-12 text-center sm:py-14">
                   <h2 className="mx-auto max-w-2xl text-4xl font-semibold text-white sm:text-5xl">
                     Pronto para criar seu próximo{" "}
                     <span className="texto-gradiente">evento</span>?

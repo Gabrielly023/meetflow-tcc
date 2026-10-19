@@ -258,7 +258,7 @@ export default function EventosPage() {
                         <span className="text-sm text-slate-400">#{index + 1}</span>
                       </div>
 
-                      <div className="rounded-2xl bg-gradient-to-br from-orange-500/20 via-fuchsia-500/20 to-sky-500/20 p-4">
+                      <div className="flex flex-col items-center rounded-2xl bg-gradient-to-br from-orange-500/20 via-fuchsia-500/20 to-sky-500/20 p-4 text-center">
                         <h2 className="texto-gradiente-2 text-xl font-semibold">{evento.titulo}</h2>
                         <p className="mt-3 text-sm text-slate-300">{evento.data}</p>
                         {evento.dataFim && (

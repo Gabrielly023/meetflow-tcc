@@ -161,7 +161,7 @@ export default function Perfil() {
 
   // Fonte de verdade para exibir avatar/capa (form no modo edição, usuário salvo na leitura).
   const vis = editando ? form : usuario;
-  const inicial = (vis.nome || "?").trim().charAt(0).toUpperCase();
+  const inicial = (vis.username || vis.nome || "?").trim().charAt(0).toUpperCase();
   const site = urlDoSite(usuario.site);
 
   function abrirEdicao() {
@@ -358,8 +358,12 @@ export default function Perfil() {
               <div className="relative">
                 <div className="h-28 w-28 rounded-full bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 p-[3px] shadow-lg shadow-fuchsia-500/25">
                   <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-slate-950">
-                    {vis.foto_perfil ? (
-                      <img src={vis.foto_perfil} alt="Foto de perfil" className="h-full w-full object-cover" />
+                      {vis.foto_perfil ? (
+                        <img
+                          src={vis.foto_perfil}
+                          alt={`Foto de perfil de ${vis.username || vis.nome || "usuário"}`}
+                          className="h-full w-full object-cover"
+                        />
                     ) : (
                       <span className="fonte-flow text-4xl font-bold text-white">
                         {inicial}
@@ -448,9 +452,7 @@ export default function Perfil() {
               <div>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   <h2 className="text-2xl font-semibold text-white">
-                    {usuario.username
-                      ? usuario.username
-                      : usuario.nome || "Sem nome"}
+                    {usuario.username || "Sem nome de usuário"}
                   </h2>
                   {demo && (
                     <span className="inline-flex items-center rounded-full border border-sky-500/40 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-300">
@@ -458,8 +460,10 @@ export default function Perfil() {
                     </span>
                   )}
                 </div>
-                {usuario.username && usuario.nome && (
-                  <p className="mt-1 text-sm text-slate-400">{usuario.nome}</p>
+                {usuario.nome && (
+                  <p className="texto-nome-perfil mt-1 text-base font-medium">
+                    {usuario.nome}
+                  </p>
                 )}
 
                 {usuario.bio ? (

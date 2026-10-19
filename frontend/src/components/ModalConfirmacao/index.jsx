@@ -1,6 +1,5 @@
-import { useEffect } from "react";
+import useDialogA11y from "../Settings/useDialogA11y";
 
-// Modal de confirmação com o design do site (substitui o window.confirm).
 export default function ModalConfirmacao({
   aberto,
   titulo,
@@ -11,15 +10,7 @@ export default function ModalConfirmacao({
   onConfirmar,
   onCancelar,
 }) {
-  // Fecha com a tecla Esc
-  useEffect(() => {
-    if (!aberto) return;
-    function aoTeclar(evt) {
-      if (evt.key === "Escape") onCancelar?.();
-    }
-    document.addEventListener("keydown", aoTeclar);
-    return () => document.removeEventListener("keydown", aoTeclar);
-  }, [aberto, onCancelar]);
+  const dialogRef = useDialogA11y(aberto, onCancelar);
 
   if (!aberto) return null;
 
@@ -32,8 +23,15 @@ export default function ModalConfirmacao({
       />
 
       {/* card */}
-      <div className="modal-entrada relative w-full max-w-md rounded-3xl border border-slate-700/70 bg-slate-900/95 p-6 shadow-2xl shadow-black/50">
-        <h2 className="text-xl font-semibold text-white">{titulo}</h2>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-confirmacao-titulo"
+        tabIndex={-1}
+        className="modal-entrada relative w-full max-w-md rounded-3xl border border-slate-700/70 bg-slate-900/95 p-6 shadow-2xl shadow-black/50"
+      >
+        <h2 id="modal-confirmacao-titulo" className="text-xl font-semibold text-white">{titulo}</h2>
         {mensagem && (
           <p className="mt-3 text-sm leading-relaxed text-slate-400">
             {mensagem}
