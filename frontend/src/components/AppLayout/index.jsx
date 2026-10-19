@@ -40,7 +40,7 @@ export default function AppLayout() {
           usuario
             ? {
                 name: usuario.username
-                  ? `@${usuario.username}`
+                  ? usuario.username
                   : usuario.nome,
                 foto_perfil: usuario.foto_perfil,
               }

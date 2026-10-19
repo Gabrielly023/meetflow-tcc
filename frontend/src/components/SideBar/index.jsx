@@ -172,7 +172,7 @@ const menuItemClass =
 export default function SideBar({ usuario, onLogout }) {
   const { registrarHost, aberto, fechar, origem } = usePlayer();
   const nomeUsuario = usuario?.username
-    ? `@${usuario.username}`
+    ? usuario.username
     : usuario?.nome || "Convidado";
 
   return (
