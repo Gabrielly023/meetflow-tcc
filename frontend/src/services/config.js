@@ -30,6 +30,7 @@ export const API_URL = "http://localhost:3000";
 
 // Onde guardamos o token JWT devolvido pelo login (POST /usuarios/login).
 export const TOKEN_KEY = "meetflow.token";
+export const REFRESH_TOKEN_KEY = "meetflow.refreshToken";
 
 // Instância única do Axios usada por todos os serviços de API.
 export const api = axios.create({
@@ -49,3 +50,49 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+let refreshPromise;
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const request = error.config;
+    if (
+      error.response?.status !== 401 ||
+      !request ||
+      request._retry ||
+      request.url?.includes("/usuarios/refresh-token")
+    ) {
+      return Promise.reject(error);
+    }
+
+    let refreshToken;
+    try {
+      refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+    } catch {
+      return Promise.reject(error);
+    }
+    if (!refreshToken) return Promise.reject(error);
+
+    request._retry = true;
+    try {
+      if (!refreshPromise) {
+        refreshPromise = axios
+          .post(`${API_URL}/usuarios/refresh-token`, { refreshToken })
+          .then(({ data }) => {
+            localStorage.setItem(TOKEN_KEY, data.token);
+            return data.token;
+          })
+          .finally(() => {
+            refreshPromise = null;
+          });
+      }
+
+      const token = await refreshPromise;
+      request.headers.Authorization = `Bearer ${token}`;
+      return api(request);
+    } catch (refreshError) {
+      return Promise.reject(refreshError);
+    }
+  },
+);

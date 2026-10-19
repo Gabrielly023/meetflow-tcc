@@ -171,7 +171,9 @@ const menuItemClass =
 
 export default function SideBar({ usuario, onLogout }) {
   const { registrarHost, aberto, fechar, origem } = usePlayer();
-  const nomeUsuario = usuario?.nome || "Convidado";
+  const nomeUsuario = usuario?.username
+    ? `@${usuario.username}`
+    : usuario?.nome || "Convidado";
 
   return (
     <aside className="sidebar-borda sidebar-scrollbar mt-6 flex w-64 shrink-0 flex-col self-stretch px-5 py-8">
@@ -293,24 +295,26 @@ export default function SideBar({ usuario, onLogout }) {
             </div>
           </div>
 
-          <div className="-mx-2 mt-6 flex items-center justify-between rounded-2xl px-2 py-1.5 transition duration-300 hover:-translate-y-1 hover:bg-white/5 hover:shadow-lg hover:shadow-fuchsia-500/10">
-            <Link to="/perfil" className="flex items-center gap-x-2">
-              {usuario?.foto_perfil ? (
-                <img
-                  className="object-cover rounded-full h-7 w-7"
-                  src={usuario.foto_perfil}
-                  alt="avatar"
-                />
-              ) : (
-                <span className="fonte-flow flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 text-xs font-bold text-white">
-                  {nomeUsuario.charAt(0).toUpperCase()}
-                </span>
-              )}
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                {nomeUsuario}
+          <Link
+            to="/perfil"
+            aria-label={`Abrir perfil de ${nomeUsuario}`}
+            className="-mx-2 mt-6 flex w-full items-center rounded-2xl px-2 py-1.5 transition duration-300 hover:-translate-y-1 hover:bg-white/5 hover:shadow-lg hover:shadow-fuchsia-500/10"
+          >
+            {usuario?.foto_perfil ? (
+              <img
+                className="object-cover rounded-full h-7 w-7"
+                src={usuario.foto_perfil}
+                alt="avatar"
+              />
+            ) : (
+              <span className="fonte-flow flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 text-xs font-bold text-white">
+                {nomeUsuario.charAt(0).toUpperCase()}
               </span>
-            </Link>
-          </div>
+            )}
+            <span className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+              {nomeUsuario}
+            </span>
+          </Link>
 
           <button
             type="button"

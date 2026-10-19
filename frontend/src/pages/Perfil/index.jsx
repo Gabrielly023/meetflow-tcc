@@ -438,7 +438,9 @@ export default function Perfil() {
               <div>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   <h2 className="text-2xl font-semibold text-white">
-                    {usuario.nome || "Sem nome"}
+                    {usuario.username
+                      ? `@${usuario.username}`
+                      : usuario.nome || "Sem nome"}
                   </h2>
                   {demo && (
                     <span className="inline-flex items-center rounded-full border border-sky-500/40 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-300">
@@ -446,10 +448,8 @@ export default function Perfil() {
                     </span>
                   )}
                 </div>
-                {usuario.username && (
-                  <p className="texto-gradiente-2 text-sm font-medium">
-                    @{usuario.username}
-                  </p>
+                {usuario.username && usuario.nome && (
+                  <p className="mt-1 text-sm text-slate-400">{usuario.nome}</p>
                 )}
 
                 {usuario.bio ? (

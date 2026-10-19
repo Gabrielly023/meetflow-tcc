@@ -1,8 +1,7 @@
-import { api, TOKEN_KEY } from "./config";
+import { api, REFRESH_TOKEN_KEY, TOKEN_KEY } from "./config";
 
 // Chaves usadas no localStorage
 const USUARIO_KEY = "meetflow.usuario";
-const REFRESH_TOKEN_KEY = "meetflow.refreshToken"; // ➕ NOVA CHAVE ADICIONADA
 export const EVENTO_SESSAO_ATUALIZADA = "meetflow:sessao-atualizada";
 
 // Extrai a mensagem de erro que o backend envia

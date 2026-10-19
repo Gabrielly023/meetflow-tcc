@@ -18,17 +18,30 @@ export default function EventosPage() {
 
   useEffect(() => {
     let ativo = true;
-    Promise.all([listarEventos(), listarLixeiraEventos()])
-      .then(([dados, excluidos]) => {
+    Promise.allSettled([listarEventos(), listarLixeiraEventos()]).then(
+      ([resultadoEventos, resultadoLixeira]) => {
         if (!ativo) return;
-        setEventos(ordenarPorData(dados));
-        setLixeira(ordenarPorData(excluidos));
-      })
-      .catch((erroCarregamento) => {
-        console.error("Erro ao carregar eventos:", erroCarregamento);
-        if (!ativo) return;
-        setErro("Não foi possível carregar os eventos.");
-      });
+
+        const mensagensErro = [];
+        if (resultadoEventos.status === "fulfilled") {
+          setEventos(ordenarPorData(resultadoEventos.value));
+        } else {
+          console.error("Erro ao carregar eventos:", resultadoEventos.reason);
+          mensagensErro.push("Não foi possível carregar os eventos.");
+        }
+
+        if (resultadoLixeira.status === "fulfilled") {
+          setLixeira(ordenarPorData(resultadoLixeira.value));
+        } else {
+          console.error(
+            "Erro ao carregar eventos da lixeira:",
+            resultadoLixeira.reason,
+          );
+          mensagensErro.push("Não foi possível carregar a lixeira.");
+        }
+        setErro(mensagensErro.join(" "));
+      },
+    );
     return () => {
       ativo = false;
     };
