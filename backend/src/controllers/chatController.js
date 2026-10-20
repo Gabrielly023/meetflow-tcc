@@ -44,7 +44,10 @@ const chatController = {
         return res.status(403).json({ mensagem: "Você não tem acesso a este evento." });
       }
       const mensagens = await prisma.chat.findMany({
-        where: { id_evento: id },
+        where: {
+          id_evento: id,
+          NOT: { conteudo: { startsWith: "[NOTIFICACAO:" } },
+        },
         orderBy: { criado_em: "asc" },
         include: {
           usuario: { select: { nome: true } },

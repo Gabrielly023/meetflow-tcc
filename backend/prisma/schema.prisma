@@ -1,7 +1,7 @@
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
-  }
+}
 
 datasource db {
   provider = "mysql"
@@ -34,27 +34,27 @@ enum TipoChat {
 //
 
 model Usuario {
-  id_usuario   String   @id @default(uuid()) @db.Char(36)
+  id_usuario String @id @default(uuid()) @db.Char(36)
 
-  nome         String   @db.VarChar(100)
-  username     String   @unique @db.VarChar(30)
-  email        String   @unique @db.VarChar(100)
-  telefone     String   @db.VarChar(20)
-  senha        String   @db.VarChar(255)
-  foto_perfil  String?  @db.VarChar(500)
-  bio          String?  @db.Text
-  foto_capa    String?  @db.VarChar(500)
-  localizacao  String?  @db.VarChar(150)
-  site         String?  @db.VarChar(255)
+  nome        String  @db.VarChar(100)
+  username    String  @unique @db.VarChar(30)
+  email       String  @unique @db.VarChar(100)
+  telefone    String  @db.VarChar(20)
+  senha       String  @db.VarChar(255)
+  foto_perfil String? @db.VarChar(500)
+  bio         String? @db.Text
+  foto_capa   String? @db.VarChar(500)
+  localizacao String? @db.VarChar(150)
+  site        String? @db.VarChar(255)
 
   // RELAÇÕES
-  eventos         Evento[]
-  participacoes   Participantes[]
-  galerias        Galeria[]
-  chats           Chat[]
-  curtidas        GaleriaCurtida[]
+  eventos       Evento[]
+  participacoes Participantes[]
+  galerias      Galeria[]
+  chats         Chat[]
+  curtidas      GaleriaCurtida[]
   refreshTokens RefreshToken[]
-  
+
   @@map("usuario")
 }
 
@@ -63,20 +63,20 @@ model Usuario {
 //
 
 model Evento {
-  id_evento      String    @id @default(uuid()) @db.Char(36)
-  titulo         String    @db.VarChar(150)
-  descricao      String?   @db.Text
-  data_hora      DateTime
-  data_hora_fim  DateTime?
-  excluido_em    DateTime?
-  localizacao    String?   @db.VarChar(255)
-  senha_acesso   String    @db.VarChar(255)
-  tipo           String?   @db.VarChar(50)
-  capa_url       String?   @db.VarChar(500)
-  google_maps    String? @db.VarChar(500)
-  playlist_spotify String? @db.VarChar(500)
+  id_evento        String    @id @default(uuid()) @db.Char(36)
+  titulo           String    @db.VarChar(150)
+  descricao        String?   @db.Text
+  data_hora        DateTime
+  data_hora_fim    DateTime?
+  excluido_em      DateTime?
+  localizacao      String?   @db.VarChar(255)
+  senha_acesso     String    @db.VarChar(255)
+  tipo             String?   @db.VarChar(50)
+  capa_url         String?   @db.VarChar(500)
+  google_maps      String?   @db.VarChar(500)
+  playlist_spotify String?   @db.VarChar(500)
 
-  id_usuario     String
+  id_usuario String
 
   // RELAÇÃO ORGANIZADOR
   usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
@@ -111,17 +111,17 @@ model Participantes {
 //
 
 model Galeria {
-  id_foto     String    @id @default(uuid()) @db.Char(36)
-  url_foto    String?   @db.VarChar(500)
-  postado_em  DateTime  @default(now())
+  id_foto    String   @id @default(uuid()) @db.Char(36)
+  url_foto   String?  @db.VarChar(500)
+  postado_em DateTime @default(now())
 
-  id_evento   String
-  id_usuario  String
+  id_evento  String
+  id_usuario String
 
   // RELAÇÕES
-  evento     Evento           @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
-  usuario    Usuario          @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
-  curtidas   GaleriaCurtida[]
+  evento   Evento           @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
+  usuario  Usuario          @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  curtidas GaleriaCurtida[]
 }
 
 //
@@ -139,28 +139,27 @@ model GaleriaCurtida {
   @@id([id_foto, id_usuario])
 }
 
-
 //
 // CHAT
 //
 
 model Chat {
-  id_chat      String    @id @default(uuid()) @db.Char(36)
-  conteudo     String?   @db.Text
-  tipo         TipoChat  @default(mensagem)
-  imagem_url   String?   @db.VarChar(500)
-  audio_url    String?   @db.VarChar(500)
-  duracao      Int?
-  criado_em    DateTime  @default(now())
-  editado_em   DateTime?
-  excluido     Boolean   @default(false)
+  id_chat    String    @id @default(uuid()) @db.Char(36)
+  conteudo   String?   @db.Text
+  tipo       TipoChat  @default(mensagem)
+  imagem_url String?   @db.VarChar(500)
+  audio_url  String?   @db.VarChar(500)
+  duracao    Int?
+  criado_em  DateTime  @default(now())
+  editado_em DateTime?
+  excluido   Boolean   @default(false)
 
-  id_evento    String
-  id_usuario   String
-  responder_a  String?
+  id_evento   String
+  id_usuario  String
+  responder_a String?
 
-  evento     Evento        @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
-  usuario    Usuario       @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  evento  Evento  @relation(fields: [id_evento], references: [id_evento], onDelete: Cascade)
+  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
 
   // Auto-relação: uma mensagem pode responder a outra
   mensagemCitada Chat?  @relation("RespostaChat", fields: [responder_a], references: [id_chat], onDelete: SetNull)

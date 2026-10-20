@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { socket } from "../../services/socket";
 import { buscarEventoPorId } from "../../services/eventoService";
 import { getUsuarioLogado } from "../../services/usuarioService";
 import {
@@ -133,8 +134,25 @@ export default function ChatEvento() {
   }
 
   // Carrega tudo, calcula a primeira não lida (antes de marcar) e marca lidas.
+  // Carrega tudo, calcula a primeira não lida (antes de marcar) e marca lidas + Ativa Socket.io
   useEffect(() => {
     if (!evento) return;
+
+    // ⚡ 1. Conecta ao Socket.io e entra na sala deste evento
+    socket.connect();
+    socket.emit("juntar_evento", id);
+
+    // ⚡ 2. Escuta quando chegar uma nova mensagem enviada por outro usuário
+    const aoReceberMensagem = (novaMsg) => {
+      // Se a mensagem for deste evento, recarrega a lista automaticamente
+      if (String(novaMsg.id_evento || novaMsg.eventId) === String(id)) {
+        recarregar();
+      }
+    };
+
+    socket.on("receber_mensagem", aoReceberMensagem);
+
+    // Carregamento inicial de dados locais/API
     Promise.resolve(listarMensagens(id)).then((msgs) => {
       const lista = msgs || [];
       const primeira = lista.find(
@@ -149,6 +167,12 @@ export default function ChatEvento() {
       setPapel(getPapelDeParede(id));
       marcarComoLidas(id);
     });
+
+    // ⚡ 3. Limpa o ouvinte e desconecta o Socket ao sair do chat
+    return () => {
+      socket.off("receber_mensagem", aoReceberMensagem);
+      socket.disconnect();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -212,11 +236,24 @@ export default function ChatEvento() {
   function handleSend() {
     const texto = newMessage.trim();
     if (!texto) return;
+
+    const payload = {
+      id_evento: id,
+      texto,
+      ownerId: uid,
+      sender: usuario?.nome || "Você",
+      createdAt: new Date().toISOString(),
+    };
+
     enviarMensagem(id, texto, {
       replyTo: replyingTo
         ? { id: replyingTo.id, sender: replyingTo.sender, text: replyingTo.text }
         : null,
     });
+
+    // ⚡ Notifica os outros via Socket
+    socket.emit("enviar_mensagem", payload);
+
     setNewMessage("");
     setReplyingTo(null);
     recarregar();
@@ -235,6 +272,7 @@ export default function ChatEvento() {
     if (!arquivo || !arquivo.type.startsWith("image/")) return;
     try {
       const imageUrl = await arquivoParaDataUrl(arquivo);
+
       enviarMensagem(id, "", {
         tipo: "imagem",
         imageUrl,
@@ -242,13 +280,16 @@ export default function ChatEvento() {
           ? { id: replyingTo.id, sender: replyingTo.sender, text: replyingTo.text }
           : null,
       });
+
+      // ⚡ Notifica via Socket
+      socket.emit("enviar_mensagem", { id_evento: id, tipo: "imagem" });
+
       setReplyingTo(null);
       recarregar();
     } catch (erro) {
       console.error(erro);
     }
   }
-
   // Papel de parede vindo dos arquivos: lê a imagem e abre o ajustador (o
   // mesmo do resto do site). O recorte só é aplicado após a confirmação.
   function handleWallpaperFile(e) {
@@ -346,6 +387,8 @@ export default function ChatEvento() {
 
   // Chamada quando o MediaRecorder para: monta o áudio e (se não foi cancelado)
   // envia como uma mensagem do tipo "audio".
+  // Chamada quando o MediaRecorder para: monta o áudio e (se não foi cancelado)
+  // envia como uma mensagem do tipo "audio".
   function finalizarGravacao() {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop());
@@ -354,7 +397,6 @@ export default function ChatEvento() {
     const partes = chunksRef.current;
     chunksRef.current = [];
     if (!enviarAoPararRef.current || !partes.length) return;
-
     const dur = Math.max(1, Math.round((Date.now() - inicioRef.current) / 1000));
     const blob = new Blob(partes, {
       type: mediaRecorderRef.current?.mimeType || "audio/webm",
@@ -369,6 +411,10 @@ export default function ChatEvento() {
           ? { id: replyingTo.id, sender: replyingTo.sender, text: replyingTo.text }
           : null,
       });
+
+      // ⚡ ADICIONAR APENAS ESTA LINHA DO SOCKET AQUI:
+      socket.emit("enviar_mensagem", { id_evento: id, tipo: "audio" });
+
       setReplyingTo(null);
       recarregar();
     };
