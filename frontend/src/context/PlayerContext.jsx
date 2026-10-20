@@ -32,21 +32,28 @@ export function PlayerProvider({ children }) {
 
   // Carrega e toca uma URI. O play() logo após o loadUri às vezes chega antes
   // de o embed terminar de carregar, então tentamos algumas vezes.
-  const reproduzir = useCallback((uri) => {
-    const c = controllerRef.current;
-    if (!c) return;
-    c.loadUri(uri);
-    const tentar = () => {
-      try {
-        c.play();
-      } catch {
-        // ainda carregando; as próximas tentativas resolvem
-      }
-    };
-    tentar();
-    window.setTimeout(tentar, 350);
-    window.setTimeout(tentar, 900);
-  }, []);
+
+
+const reproduzir = useCallback((uri) => {
+  const c = controllerRef.current;
+  if (!c || !uri) return;
+
+  c.loadUri(uri);
+
+  const tentar = () => {
+    try {
+      c.play();
+    } catch {
+      // O player pode ainda estar carregando.
+    }
+  };
+
+  tentar();
+  window.setTimeout(tentar, 350);
+  window.setTimeout(tentar, 900);
+}, []);
+
+
 
   // Cria o controller quando já temos a API E o elemento host disponíveis.
   const tentarCriar = useCallback(() => {

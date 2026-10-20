@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listarEventos, ordenarPorData } from "../../services/eventoService";
 import {
-  getPlaylistEmbed,
-  listarMusicas,
+  carregarPlaylist,
   getUltimaPlaylist,
   setUltimaPlaylist,
   embedParaUri,
@@ -15,22 +14,64 @@ export default function MinhasPlaylists() {
   // para o topo depois (ver `ordenadas` abaixo).
   const [eventos, setEventos] = useState([]);
   const [carregando, setCarregando] = useState(true);
-  useEffect(() => {
-    listarEventos()
-      .then((dados) => setEventos(ordenarPorData(dados)))
-      .catch((erro) => {
-        console.error("Erro ao carregar eventos das playlists:", erro);
+  
+useEffect(() => {
+  let ativo = true;
+
+  async function carregarDados() {
+    try {
+      const dados = await listarEventos();
+      const eventosOrdenados = ordenarPorData(dados);
+
+      const playlistsCarregadas = await Promise.all(
+        eventosOrdenados.map(async (evento) => {
+          try {
+            const embed = await carregarPlaylist(evento.id);
+
+            return {
+              evento,
+              embed,
+            };
+          } catch (erro) {
+            console.error(
+              `Erro ao carregar playlist do evento ${evento.id}:`,
+              erro
+            );
+
+            return {
+              evento,
+              embed: null,
+            };
+          }
+        })
+      );
+
+      if (ativo) {
+        setEventos(playlistsCarregadas);
+      }
+    } catch (erro) {
+      console.error("Erro ao carregar eventos das playlists:", erro);
+
+      if (ativo) {
         setEventos([]);
-      })
-      .finally(() => setCarregando(false));
-  }, []);
+      }
+    } finally {
+      if (ativo) {
+        setCarregando(false);
+      }
+    }
+  }
+
+  carregarDados();
+
+  return () => {
+    ativo = false;
+  };
+}, []);
+
 
   // Junta os dados de playlist de cada evento (embed do Spotify + músicas sugeridas)
-  const playlists = eventos.map((evento) => ({
-    evento,
-    embed: getPlaylistEmbed(evento.id),
-    totalMusicas: listarMusicas(evento.id).length,
-  }));
+  const playlists = eventos;
 
   const comPlaylist = playlists.filter((p) => p.embed).length;
 
@@ -102,7 +143,7 @@ export default function MinhasPlaylists() {
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {ordenadas.map(({ evento, embed, totalMusicas }) => {
+                {ordenadas.map(({ evento, embed }) => {
                   const destacada = ehUltima({ evento, embed });
                   return (
                   <div
@@ -205,11 +246,8 @@ export default function MinhasPlaylists() {
                           {evento.titulo}
                         </h2>
                         <p className="mt-1 text-sm text-slate-400">
-                          {totalMusicas}{" "}
-                          {totalMusicas === 1
-                            ? "música sugerida"
-                            : "músicas sugeridas"}
-                        </p>
+                          Playlist do evento
+                       </p>
                       </div>
                       <span className="text-fuchsia-400 transition group-hover:translate-x-1">
                         →
