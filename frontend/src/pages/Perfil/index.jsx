@@ -452,7 +452,7 @@ export default function Perfil() {
               <div>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   <h2 className="text-2xl font-semibold text-white">
-                    {usuario.username || "Sem nome de usuário"}
+                    {usuario.nome || "Sem nome"}
                   </h2>
                   {demo && (
                     <span className="inline-flex items-center rounded-full border border-sky-500/40 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-300">
@@ -460,9 +460,9 @@ export default function Perfil() {
                     </span>
                   )}
                 </div>
-                {usuario.nome && (
+                {usuario.username && (
                   <p className="texto-nome-perfil mt-1 text-base font-medium">
-                    {usuario.nome}
+                    @{usuario.username}
                   </p>
                 )}
 
