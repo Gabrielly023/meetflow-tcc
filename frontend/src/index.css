@@ -523,6 +523,10 @@ html[data-theme="claro"] .settings-page-main section[id] button[role="radio"][ar
   ) !important;
 }
 
+html[data-theme="claro"] .settings-page-main section[id] button[role="radio"] > span.text-white {
+  color: #0f172a !important;
+}
+
 html[data-theme="claro"] .settings-page-main section[id] input:not([type="checkbox"]),
 html[data-theme="claro"] .settings-page-main section[id] select,
 html[data-theme="claro"] .settings-page-main section[id] textarea {
@@ -678,9 +682,57 @@ html[data-theme="claro"] .home-dashboard-card h2 {
   color: #111827 !important;
 }
 
+html[data-theme="claro"] .home-dashboard-card svg.text-white {
+  color: #fff !important;
+}
+
+html[data-theme="claro"] .home-dashboard-card h2.text-white {
+  color: #111827 !important;
+}
+
+html[data-theme="claro"] .home-dashboard-card > span {
+  color: #6d28d9 !important;
+}
+
 html[data-theme="claro"] .home-dashboard-card p.text-slate-400,
 html[data-theme="claro"] .home-dashboard-card div.text-slate-400 {
   color: #475569 !important;
+}
+
+html[data-theme="claro"] .chat-wallpaper-preview[data-chat-wallpaper="padrao"],
+html[data-theme="claro"] .chat-wallpaper-messages[data-chat-wallpaper="padrao"] {
+  background-color: #f8fafc !important;
+  background-image: linear-gradient(145deg, #f8fafc 0%, #e0e7ff 54%, #dbeafe 100%) !important;
+}
+
+html[data-theme="claro"] .chat-wallpaper-preview[data-chat-wallpaper="aurora"],
+html[data-theme="claro"] .chat-wallpaper-messages[data-chat-wallpaper="aurora"] {
+  background-color: #f5eafe !important;
+  background-image: linear-gradient(145deg, #f5eafe 0%, #e0e7ff 54%, #fce7f3 100%) !important;
+}
+
+html[data-theme="claro"] .chat-wallpaper-preview[data-chat-wallpaper="oceano"],
+html[data-theme="claro"] .chat-wallpaper-messages[data-chat-wallpaper="oceano"] {
+  background-color: #e0f2fe !important;
+  background-image: linear-gradient(145deg, #e0f2fe 0%, #dbeafe 54%, #cffafe 100%) !important;
+}
+
+html[data-theme="claro"] .chat-wallpaper-preview[data-chat-wallpaper="brasa"],
+html[data-theme="claro"] .chat-wallpaper-messages[data-chat-wallpaper="brasa"] {
+  background-color: #ffedd5 !important;
+  background-image: linear-gradient(145deg, #ffedd5 0%, #fce7f3 54%, #ffe4e6 100%) !important;
+}
+
+html[data-theme="claro"] .chat-wallpaper-preview[data-chat-wallpaper="floresta"],
+html[data-theme="claro"] .chat-wallpaper-messages[data-chat-wallpaper="floresta"] {
+  background-color: #dcfce7 !important;
+  background-image: linear-gradient(145deg, #dcfce7 0%, #ccfbf1 54%, #d1fae5 100%) !important;
+}
+
+html[data-theme="claro"] .chat-wallpaper-preview[data-chat-wallpaper="bolhas"],
+html[data-theme="claro"] .chat-wallpaper-messages[data-chat-wallpaper="bolhas"] {
+  background-color: #f5f3ff !important;
+  background-image: linear-gradient(145deg, #f5f3ff 0%, #ede9fe 54%, #e0f2fe 100%) !important;
 }
 
 html[data-theme="claro"] [class*="via-slate-900"],

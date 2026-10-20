@@ -906,11 +906,12 @@ export default function ChatEvento() {
                       type="button"
                       onClick={() => pedirPapel(w.id)}
                       title={w.label}
+                      data-chat-wallpaper={w.id}
                       style={{
                         backgroundColor: w.base || "transparent",
                         backgroundImage: w.css,
                       }}
-                      className={`h-14 w-14 rounded-2xl border-2 transition hover:scale-105 ${
+                      className={`chat-wallpaper-preview h-14 w-14 rounded-2xl border-2 transition hover:scale-105 ${
                         papel === w.id
                           ? "border-fuchsia-500 ring-2 ring-fuchsia-500/40"
                           : "border-slate-700"
@@ -942,7 +943,10 @@ export default function ChatEvento() {
 
             {/* Mensagens (ocupa todo o espaço restante) */}
             <div
-              className="flex-1 space-y-3 overflow-y-auto px-5 py-5"
+              className="chat-wallpaper-messages flex-1 space-y-3 overflow-y-auto px-5 py-5"
+              data-chat-wallpaper={
+                papel.startsWith("data:") ? "personalizado" : papel || "padrao"
+              }
               style={estiloPapelDeParede(papel)}
             >
               {renderLista()}
