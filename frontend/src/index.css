@@ -659,17 +659,19 @@ html[data-theme="claro"] .home-next-event p.text-slate-400 {
 }
 
 html[data-theme="claro"] .home-dashboard-card {
-  border-color: #d6d9f0 !important;
-  background-image: linear-gradient(135deg, #ffffff 0%, #f5f3ff 56%, #eff8ff 100%) !important;
-  box-shadow: 0 16px 36px -28px rgb(79 70 229 / 32%);
+  border-color: #c4b5fd !important;
+  background-image: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 48%, #e0f2fe 100%) !important;
+  box-shadow:
+    0 16px 36px -28px rgb(109 40 217 / 42%),
+    0 12px 30px -26px rgb(2 132 199 / 38%);
 }
 
 html[data-theme="claro"] .home-dashboard-card:hover {
-  border-color: #a78bfa !important;
-  background-image: linear-gradient(135deg, #f0f9ff 0%, #f5f3ff 54%, #ede9fe 100%) !important;
+  border-color: #8b5cf6 !important;
+  background-image: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 52%, #bae6fd 100%) !important;
   box-shadow:
-    0 18px 38px -24px rgb(124 58 237 / 35%),
-    0 12px 32px -24px rgb(14 165 233 / 38%) !important;
+    0 18px 38px -24px rgb(109 40 217 / 48%),
+    0 12px 32px -24px rgb(2 132 199 / 44%) !important;
 }
 
 html[data-theme="claro"] .home-dashboard-card h2 {

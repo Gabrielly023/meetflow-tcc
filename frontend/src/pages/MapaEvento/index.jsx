@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { buscarEventoPorId } from "../../services/eventoService";
 import {
@@ -120,7 +120,10 @@ function CardLocal({ local, podeRemover, onRemover }) {
 
 export default function MapaEvento() {
   const { id } = useParams();
-  const evento = buscarEventoPorId(id);
+  const [eventoCarregado, setEventoCarregado] = useState(null);
+  const evento =
+    eventoCarregado?.id === id ? eventoCarregado.dados : null;
+  const carregandoEvento = eventoCarregado?.id !== id;
 
   const [locais, setLocais] = useState(() => listarLocais(id));
   const [link, setLink] = useState("");
@@ -129,6 +132,31 @@ export default function MapaEvento() {
   const [erro, setErro] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [aRemover, setARemover] = useState(null);
+
+  useEffect(() => {
+    let ativo = true;
+
+    buscarEventoPorId(id)
+      .then((dados) => {
+        if (ativo) setEventoCarregado({ id, dados });
+      })
+      .catch((erro) => {
+        console.error("Erro ao carregar evento do mapa:", erro);
+        if (ativo) setEventoCarregado({ id, dados: null });
+      });
+
+    return () => {
+      ativo = false;
+    };
+  }, [id]);
+
+  if (carregandoEvento) {
+    return (
+      <main className="flex flex-1 items-center justify-center px-6 py-10">
+        <p role="status" className="text-slate-300">Carregando evento…</p>
+      </main>
+    );
+  }
 
   if (!evento) {
     return (

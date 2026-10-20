@@ -91,7 +91,10 @@ function Avatar({ nome, foto, size = "h-9 w-9" }) {
 
 export default function ChatEvento() {
   const { id } = useParams();
-  const evento = buscarEventoPorId(id);
+  const [eventoCarregado, setEventoCarregado] = useState(null);
+  const evento =
+    eventoCarregado?.id === id ? eventoCarregado.dados : null;
+  const carregandoEvento = eventoCarregado?.id !== id;
   const usuario = getUsuarioLogado();
   const uid = meuId();
 
@@ -127,6 +130,23 @@ export default function ChatEvento() {
   const timerRef = useRef(null);
   const inicioRef = useRef(0);
   const enviarAoPararRef = useRef(true);
+
+  useEffect(() => {
+    let ativo = true;
+
+    buscarEventoPorId(id)
+      .then((dados) => {
+        if (ativo) setEventoCarregado({ id, dados });
+      })
+      .catch((erro) => {
+        console.error("Erro ao carregar evento do chat:", erro);
+        if (ativo) setEventoCarregado({ id, dados: null });
+      });
+
+    return () => {
+      ativo = false;
+    };
+  }, [id]);
 
   function recarregar() {
     Promise.resolve(listarMensagens(id)).then((msgs) => setMessages(msgs || []));
@@ -174,7 +194,7 @@ export default function ChatEvento() {
       socket.disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, evento]);
 
   // Auto-scroll para a última mensagem quando chega mensagem nova.
   useEffect(() => {
@@ -208,6 +228,14 @@ export default function ChatEvento() {
       }
     };
   }, []);
+
+  if (carregandoEvento) {
+    return (
+      <main className="flex flex-1 items-center justify-center px-6 py-10">
+        <p role="status" className="text-slate-300">Carregando evento…</p>
+      </main>
+    );
+  }
 
   if (!evento) {
     return (

@@ -19,7 +19,10 @@ import {
 
 export default function GaleriaEvento() {
   const { id } = useParams();
-  const evento = buscarEventoPorId(id);
+  const [eventoCarregado, setEventoCarregado] = useState(null);
+  const evento =
+    eventoCarregado?.id === id ? eventoCarregado.dados : null;
+  const carregandoEvento = eventoCarregado?.id !== id;
   const inputRef = useRef(null);
   const [fotos, setFotos] = useState(() => listarFotos(id));
   const [reordenando, setReordenando] = useState(false);
@@ -28,6 +31,23 @@ export default function GaleriaEvento() {
   const [verLixeira, setVerLixeira] = useState(false);
   const [arrastandoIndice, setArrastandoIndice] = useState(null);
   const [lightbox, setLightbox] = useState(null);
+
+  useEffect(() => {
+    let ativo = true;
+
+    buscarEventoPorId(id)
+      .then((dados) => {
+        if (ativo) setEventoCarregado({ id, dados });
+      })
+      .catch((erro) => {
+        console.error("Erro ao carregar evento da galeria:", erro);
+        if (ativo) setEventoCarregado({ id, dados: null });
+      });
+
+    return () => {
+      ativo = false;
+    };
+  }, [id]);
 
   function recarregar() {
     setFotos(listarFotos(id));
@@ -42,6 +62,14 @@ export default function GaleriaEvento() {
     document.addEventListener("mousedown", aoClicarFora);
     return () => document.removeEventListener("mousedown", aoClicarFora);
   }, [menuAberto]);
+
+  if (carregandoEvento) {
+    return (
+      <main className="flex flex-1 items-center justify-center px-6 py-10">
+        <p role="status" className="text-slate-300">Carregando evento…</p>
+      </main>
+    );
+  }
 
   if (!evento) {
     return (

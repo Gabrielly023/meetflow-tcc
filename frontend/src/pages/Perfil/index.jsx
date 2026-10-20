@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   getUsuarioLogado,
   salvarSessao,
@@ -6,7 +6,6 @@ import {
 } from "../../services/usuarioService";
 import { listarEventos } from "../../services/eventoService";
 import { listarFotos } from "../../services/galeriaService";
-import { listarMusicas } from "../../services/playlistService";
 import ImageAdjuster from "../../components/ImageAdjuster";
 import ImageChoiceModal from "../../components/ImageChoiceModal";
 
@@ -136,6 +135,7 @@ export default function Perfil() {
   const inputCapa = useRef(null);
   const [ajuste, setAjuste] = useState(null); // imagem em ajuste (crop) ou null
   const [escolha, setEscolha] = useState(null); // { config, inputRef } ou null
+  const [stats, setStats] = useState({ eventos: 0, fotos: 0, musicas: 0 });
   const demo = ehModoDemo();
 
   // A mensagem de sucesso some sozinha depois de alguns segundos.
@@ -145,18 +145,30 @@ export default function Perfil() {
     return () => clearTimeout(t);
   }, [sucesso]);
 
-  const stats = useMemo(() => {
-    const eventos = listarEventos();
-    const eventosArr = Array.isArray(eventos) ? eventos : [];
-    const fotos = eventosArr.reduce(
-      (soma, ev) => soma + (listarFotos(ev.id)?.length || 0),
-      0,
-    );
-    const musicas = eventosArr.reduce(
-      (soma, ev) => soma + (listarMusicas(ev.id)?.length || 0),
-      0,
-    );
-    return { eventos: eventosArr.length, fotos, musicas };
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregarEstatisticas() {
+      try {
+        const eventos = await listarEventos();
+        const eventosArr = Array.isArray(eventos) ? eventos : [];
+        const fotos = eventosArr.reduce(
+          (soma, evento) => soma + (listarFotos(evento.id)?.length || 0),
+          0,
+        );
+
+        if (ativo) {
+          setStats({ eventos: eventosArr.length, fotos, musicas: 0 });
+        }
+      } catch (erro) {
+        console.error("Não foi possível carregar as estatísticas do perfil:", erro);
+      }
+    }
+
+    carregarEstatisticas();
+    return () => {
+      ativo = false;
+    };
   }, []);
 
   // Fonte de verdade para exibir avatar/capa (form no modo edição, usuário salvo na leitura).
