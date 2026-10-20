@@ -489,109 +489,78 @@ if (telefone && (telefoneLimpo.length < 10 || telefoneLimpo.length > 11)) {
       return res.status(500).json({ mensagem: "Erro ao atualizar usuário." });
     }
   },
-
+  
   // GOOGLE LOGIN
   async googleLogin(req, res) {
     try {
-      const { email, nome, foto, username } = req.body;
+      const email = String(req.body.email || "").trim().toLowerCase();
 
       if (!email) {
-        return res.status(400).json({ mensagem: "E-mail é obrigatório." });
-      }
-
-      let usuario = await prisma.usuario.findUnique({
-        where: { email }
-      });
-
-      // Só define username quando a conta ainda não existe.
-      // Se o e-mail já está cadastrado, mantém o username que a pessoa já tem.
-      if (!usuario) {
-        let usernameFinal;
-
-        if (username) {
-          // Username escolhido pela pessoa no cadastro
-          const usernameEscolhido = String(username).trim();
-
-          if (!/^[a-zA-Z0-9._]+$/.test(usernameEscolhido)) {
-            return res.status(400).json({
-              mensagem: "Username deve conter apenas letras, números, pontos ou underline."
-            });
-          }
-
-          const usernameEmUso = await prisma.usuario.findFirst({
-            where: { username: usernameEscolhido }
-          });
-
-          if (usernameEmUso) {
-            return res.status(409).json({
-              mensagem: "Este nome de usuário já está em uso. Escolha outro."
-            });
-          }
-
-          usernameFinal = usernameEscolhido;
-        } else {
-          // Reserva: se o frontend não enviar username, gera um a partir do e-mail,
-          // garantindo que não exista outro igual
-          const baseUsername = email.split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "");
-
-          for (let tentativa = 0; tentativa < 5 && !usernameFinal; tentativa++) {
-            const sufixo = Math.floor(1000 + Math.random() * 9000);
-            const candidato = `${baseUsername}_${sufixo}`;
-            const existe = await prisma.usuario.findFirst({ where: { username: candidato } });
-            if (!existe) usernameFinal = candidato;
-          }
-
-          if (!usernameFinal) {
-            return res.status(500).json({
-              mensagem: "Não foi possível gerar um nome de usuário. Tente novamente."
-            });
-          }
-        }
-
-        usuario = await prisma.usuario.create({
-          data: {
-            email,
-            nome: nome || "Usuário Google",
-            username: usernameFinal,
-            senha: "",
-            telefone: "",
-            foto_perfil: foto || null
-          }
+        return res.status(400).json({
+          mensagem: "E-mail é obrigatório.",
         });
       }
 
+      // Procura uma conta que já existe.
+      // O login NÃO pode criar usuários.
+      const usuario = await prisma.usuario.findUnique({
+        where: { email },
+      });
+
+      if (!usuario) {
+        return res.status(404).json({
+          mensagem:
+            "Você ainda não possui cadastro no MeetFlow. Cadastre-se primeiro.",
+        });
+      }
+
+      // Usa o username que já está salvo no banco.
       const token = jwt.sign(
-        { id_usuario: usuario.id_usuario },
+        {
+          id_usuario: usuario.id_usuario,
+          username: usuario.username,
+        },
         process.env.JWT_SECRET,
-        { expiresIn: "7d" }
+        {
+          expiresIn: process.env.JWT_EXPIRES_IN || "30m",
+        }
       );
 
-      return res.json({
-        token,
-        usuario: {
+      // Gera um refresh token usando a tabela já existente.
+      const refreshToken = crypto.randomBytes(40).toString("hex");
+      const expiraEm = new Date(
+        Date.now() + 30 * 24 * 60 * 60 * 1000
+      );
+
+      await prisma.refreshToken.create({
+        data: {
+          token: refreshToken,
           id_usuario: usuario.id_usuario,
-          nome: usuario.nome,
-          email: usuario.email,
-          username: usuario.username,
-          telefone: usuario.telefone
-        }
+          expira_em: expiraEm,
+        },
+      });
+
+      // Retorna os dados existentes, sem expor a senha.
+      const {
+        senha: _,
+        ...usuarioSemSenha
+      } = usuario;
+
+      return res.status(200).json({
+        mensagem: "Login com Google realizado com sucesso!",
+        usuario: usuarioSemSenha,
+        token,
+        refreshToken,
       });
     } catch (error) {
-      console.error("Erro detalhado do Google Login:", error);
-
-      // Duas pessoas tentando o mesmo username ao mesmo tempo (chave única do banco)
-      if (error.code === "P2002") {
-        return res.status(409).json({
-          mensagem: "Este nome de usuário já está em uso. Escolha outro."
-        });
-      }
+      console.error("Erro no Google Login:", error);
 
       return res.status(500).json({
         mensagem: "Erro ao autenticar com o Google.",
-        detalhe: error.message
       });
     }
   },
+
 
   // DELETAR USUÁRIO
   async deletar(req, res) {
