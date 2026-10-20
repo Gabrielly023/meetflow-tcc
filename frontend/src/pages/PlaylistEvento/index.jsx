@@ -14,12 +14,36 @@ import TituloDegrade from "../../components/TituloDegrade";
 
 export default function PlaylistEvento() {
   const { id } = useParams();
-  const evento = buscarEventoPorId(id);
   const { tocar } = usePlayer();
 
+  const [eventoCarregado, setEventoCarregado] = useState(null);
+  const evento =
+    eventoCarregado?.id === id ? eventoCarregado.dados : null;
+  const carregandoEvento = eventoCarregado?.id !== id;
   const [embed, setEmbed] = useState(null);
 const [carregando, setCarregando] = useState(true);
 const [salvando, setSalvando] = useState(false);
+  const [editando, setEditando] = useState(false);
+  const [link, setLink] = useState("");
+  const [erro, setErro] = useState("");
+  const [aviso, setAviso] = useState(false);
+
+useEffect(() => {
+  let ativo = true;
+
+  buscarEventoPorId(id)
+    .then((dados) => {
+      if (ativo) setEventoCarregado({ id, dados });
+    })
+    .catch((error) => {
+      console.error("Erro ao carregar evento da playlist:", error);
+      if (ativo) setEventoCarregado({ id, dados: null });
+    });
+
+  return () => {
+    ativo = false;
+  };
+}, [id]);
 
 useEffect(() => {
   let ativo = true;
@@ -43,11 +67,13 @@ useEffect(() => {
   };
 }, [id]);
 
-  const [editando, setEditando] = useState(false);
-  const [link, setLink] = useState("");
-  const [erro, setErro] = useState("");
-  const [aviso, setAviso] = useState(false);
-
+  if (carregandoEvento) {
+    return (
+      <main className="flex flex-1 items-center justify-center px-6 py-10">
+        <p role="status" className="text-slate-300">Carregando evento…</p>
+      </main>
+    );
+  }
 
   if (!evento) {
     return (
