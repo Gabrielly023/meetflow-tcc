@@ -156,8 +156,8 @@ const eventoController = {
         });
       }
 
-      senha_acesso =
-        typeof senha_acesso === "string" ? senha_acesso.trim() : "";
+    senha_acesso =
+      typeof senha_acesso === "string" ? senha_acesso.trim() : "";
 
       // Valida se a data enviada é válida de verdade
       if (isNaN(new Date(data_hora).getTime())) {
@@ -165,11 +165,11 @@ const eventoController = {
         return res.status(400).json({ mensagem: "data_hora inválida." });
       }
 
-      // Sanitiza campos de texto livre
-      titulo = sanitizarTexto(titulo);
-      if (descricao) descricao = sanitizarTexto(descricao);
-      if (localizacao) localizacao = sanitizarTexto(localizacao);
-      if (tipo) tipo = sanitizarTexto(tipo);
+    // Sanitiza campos de texto livre
+    titulo = sanitizarTexto(titulo);
+    if (descricao) descricao = sanitizarTexto(descricao);
+    if (localizacao) localizacao = sanitizarTexto(localizacao);
+    if (tipo) tipo = sanitizarTexto(tipo);
 
       // Valida URLs
       if (capa_url && !req.file && !validator.isURL(capa_url)) {
@@ -178,28 +178,28 @@ const eventoController = {
           .json({ mensagem: "capa_url deve ser uma URL válida." });
       }
 
-      const evento = await prisma.evento.create({
-        data: {
-          titulo,
-          descricao,
-          data_hora: new Date(data_hora),
-          data_hora_fim: data_hora_fim ? new Date(data_hora_fim) : null,
-          localizacao,
-          senha_acesso,
-          tipo,
-          capa_url,
-          id_usuario,
-          // O criador já entra como participante, papel organizador
-          participantes: {
-            create: {
-              id_usuario,
-              papel: "organizador",
-              status: "confirmado",
-              admin: true
-            }
+    const evento = await prisma.evento.create({
+      data: {
+        titulo,
+        descricao,
+        data_hora: new Date(data_hora),
+        data_hora_fim: data_hora_fim ? new Date(data_hora_fim) : null,
+        localizacao,
+        senha_acesso,
+        tipo,
+        capa_url,
+        id_usuario,
+        // O criador já entra como participante, papel organizador
+        participantes: {
+          create: {
+            id_usuario,
+            papel: "organizador",
+            status: "confirmado",
+            admin: true
           }
         }
-      });
+      }
+    });
 
       res.status(201).json(evento);
     } catch (error) {

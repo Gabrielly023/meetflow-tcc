@@ -125,7 +125,8 @@ export default function MapaEvento() {
     eventoCarregado?.id === id ? eventoCarregado.dados : null;
   const carregandoEvento = eventoCarregado?.id !== id;
 
-  const [locais, setLocais] = useState(() => listarLocais(id));
+  const [locais, setLocais] = useState([]);
+  const [carregandoLocais, setCarregandoLocais] = useState(true);
   const [link, setLink] = useState("");
   const [label, setLabel] = useState("");
   const [provedor, setProvedor] = useState("google");
@@ -149,6 +150,28 @@ export default function MapaEvento() {
       ativo = false;
     };
   }, [id]);
+
+  useEffect(() => {
+  let ativo = true;
+
+  setCarregandoLocais(true);
+
+  listarLocais(id)
+    .then((dados) => {
+      if (ativo) setLocais(dados);
+    })
+    .catch((erro) => {
+      console.error("Erro ao carregar locais:", erro);
+      if (ativo) setLocais([]);
+    })
+    .finally(() => {
+      if (ativo) setCarregandoLocais(false);
+    });
+
+  return () => {
+    ativo = false;
+  };
+}, [id]);
 
   if (carregandoEvento) {
     return (
@@ -200,19 +223,26 @@ export default function MapaEvento() {
       }
       setLink("");
       setLabel("");
-      setLocais(listarLocais(id));
+      setLocais(await listarLocais(id));
     } finally {
       setEnviando(false);
     }
   }
 
-  function confirmarRemocao() {
-    if (aRemover) {
-      removerLocal(id, aRemover.id);
-      setLocais(listarLocais(id));
+  async function confirmarRemocao() {
+  if (aRemover) {
+    const removido = await removerLocal(id, aRemover.id);
+
+    if (removido) {
+      setLocais(await listarLocais(id));
+      setErro("");
+    } else {
+      setErro("Não foi possível remover o mapa. Verifique se você é o organizador do evento.");
     }
-    setARemover(null);
   }
+
+  setARemover(null);
+}
 
   return (
     <>

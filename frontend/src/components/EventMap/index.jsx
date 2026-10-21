@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getLocalPrincipal } from "../../services/mapaService";
 
@@ -8,33 +9,69 @@ const iconePin = (
   </svg>
 );
 
-// Prévia do mapa dentro do detalhe do evento.
-// Só mostra o mini-mapa quando um participante já adicionou um local; caso
-// contrário, exibe um convite para adicionar. O mapa grande a partir do
-// endereço fica na página completa (/eventos/:id/mapa).
-export default function EventMap({ eventoId, location = "Local do evento" }) {
-  const principal = getLocalPrincipal(eventoId);
-  const temMapa = Boolean(principal && principal.embedUrl);
+export default function EventMap({
+  eventoId,
+  location = "Local do evento",
+}) {
+  const [principal, setPrincipal] = useState(null);
+  const [carregando, setCarregando] = useState(true);
+
+  useEffect(() => {
+    let ativo = true;
+
+    setCarregando(true);
+    setPrincipal(null);
+
+    getLocalPrincipal(eventoId)
+      .then((local) => {
+        if (ativo) setPrincipal(local);
+      })
+      .catch((erro) => {
+        console.error("Erro ao carregar prévia do mapa:", erro);
+        if (ativo) setPrincipal(null);
+      })
+      .finally(() => {
+        if (ativo) setCarregando(false);
+      });
+
+    return () => {
+      ativo = false;
+    };
+  }, [eventoId]);
+
+  const temMapa = Boolean(principal?.embedUrl);
+  const linkMapa = `/eventos/${eventoId}/mapa`;
 
   return (
     <section className="rounded-3xl border border-slate-800/70 bg-slate-900/80 p-6 shadow-2xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-fuchsia-500/20">
       <div className="mb-5 flex items-center justify-between gap-4">
         <div>
-          <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-400">Mapa</p>
-          <h2 className="text-2xl font-semibold text-white">Localização</h2>
+          <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-400">
+            Mapa
+          </p>
+          <h2 className="text-2xl font-semibold text-white">
+            Localização
+          </h2>
         </div>
+
         <Link
-          to={`/eventos/${eventoId}/mapa`}
+          to={linkMapa}
           className="rounded-2xl bg-gradient-to-r from-orange-500 via-fuchsia-500 to-sky-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-fuchsia-500/20 transition duration-300 hover:scale-105 hover:opacity-90 active:scale-95"
         >
           Ver no mapa
         </Link>
       </div>
 
-      {temMapa ? (
+      {carregando ? (
+        <div
+          className="flex aspect-[4/3] items-center justify-center rounded-3xl border border-slate-700 bg-slate-950/60 text-sm text-slate-400"
+          role="status"
+        >
+          Carregando mapa...
+        </div>
+      ) : temMapa ? (
         <>
           <div className="relative overflow-hidden rounded-3xl bg-slate-950/90">
-            {/* Mapa só de prévia: sem interação, o clique leva à página */}
             <iframe
               title="Prévia do mapa do evento"
               src={principal.embedUrl}
@@ -43,23 +80,27 @@ export default function EventMap({ eventoId, location = "Local do evento" }) {
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
             />
+
             <Link
-              to={`/eventos/${eventoId}/mapa`}
+              to={linkMapa}
               aria-label="Abrir mapa do evento"
               className="absolute inset-0"
             />
           </div>
+
           <p className="mt-3 text-sm text-slate-400">
             {principal.label || location}
           </p>
         </>
       ) : (
         <Link
-          to={`/eventos/${eventoId}/mapa`}
+          to={linkMapa}
           className="flex aspect-[4/3] flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-slate-700 bg-slate-950/60 text-center text-slate-300 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:text-white"
         >
           <span className="text-fuchsia-400">{iconePin}</span>
-          <span className="text-sm font-medium">Adicionar localização</span>
+          <span className="text-sm font-medium">
+            Adicionar localização
+          </span>
         </Link>
       )}
     </section>
