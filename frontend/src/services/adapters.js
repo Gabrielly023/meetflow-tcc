@@ -60,6 +60,8 @@ export function eventoParaApi(dados) {
     // enviados só se o backend adicionar as colunas (ver contrato):
     tipo: dados.tipo || "",
     capa_url: dados.capa || "",
+    // NOVO: Repassa a flag de confirmação enviada pelo formulário/front
+    confirmarDuplicado: dados.confirmarDuplicado || false,
   };
 }
 
