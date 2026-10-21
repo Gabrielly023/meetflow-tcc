@@ -4,6 +4,7 @@ import participanteController from "../controllers/participanteController.js";
 import galeriaController from "../controllers/galeriaController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 import chatController from "../controllers/chatController.js";
+import upload from "../config/upload.js";
 
 const router = express.Router();
 
@@ -34,7 +35,11 @@ router.delete(
 
 // Galeria
 router.get("/:id/galeria", galeriaController.listar);
-router.post("/:id/galeria", galeriaController.adicionar);
+router.post(
+  "/:id/galeria",
+  upload.single("foto"),
+  galeriaController.adicionar
+);
 
 // Locais / Mapas
 router.get("/:id/local", eventoController.verLocal);

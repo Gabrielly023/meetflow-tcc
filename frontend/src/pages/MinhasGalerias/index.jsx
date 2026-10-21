@@ -12,6 +12,7 @@ import {
 export default function MinhasGalerias() {
   const [eventos, setEventos] = useState([]);
   const [carregando, setCarregando] = useState(true);
+  const [todasFotos, setTodasFotos] = useState([]);
   useEffect(() => {
     listarEventos()
       .then((dados) => setEventos(ordenarPorData(dados)))
@@ -22,20 +23,69 @@ export default function MinhasGalerias() {
       .finally(() => setCarregando(false));
   }, []);
 
-  const todasFotos = eventos.flatMap((ev) =>
-    listarFotos(ev.id).map((foto) => ({
-      ...foto,
-      eventoId: ev.id,
-      eventoTitulo: ev.titulo,
-    })),
-  );
+  
+useEffect(() => {
+  let ativo = true;
+
+  async function carregarTodasFotos() {
+    try {
+      const resultados = await Promise.all(
+        eventos.map(async (ev) => {
+          const fotos = await listarFotos(ev.id);
+
+          return (Array.isArray(fotos) ? fotos : []).map((foto) => ({
+            ...foto,
+            eventoId: ev.id,
+            eventoTitulo: ev.titulo,
+          }));
+        })
+      );
+
+      if (ativo) {
+        setTodasFotos(resultados.flat());
+      }
+    } catch (erro) {
+      console.error("Erro ao carregar todas as fotos:", erro);
+      if (ativo) setTodasFotos([]);
+    }
+  }
+
+  if (!carregando) {
+    carregarTodasFotos();
+  }
+
+  return () => {
+    ativo = false;
+  };
+}, [eventos, carregando]);
+
   const [lightbox, setLightbox] = useState(null);
   const [, forcarAtualizacao] = useState(0);
 
-  function handleCurtir(fotoId) {
-    curtirFoto(fotoId);
+ 
+async function handleCurtir(fotoId) {
+  try {
+    await curtirFoto(fotoId);
+
+    const resultados = await Promise.all(
+      eventos.map(async (ev) => {
+        const fotosEvento = await listarFotos(ev.id);
+
+        return (Array.isArray(fotosEvento) ? fotosEvento : []).map((foto) => ({
+          ...foto,
+          eventoId: ev.id,
+          eventoTitulo: ev.titulo,
+        }));
+      })
+    );
+
+    setTodasFotos(resultados.flat());
     forcarAtualizacao((n) => n + 1);
+  } catch (erro) {
+    console.error("Erro ao curtir foto:", erro);
   }
+}
+
 
   return (
     <>
@@ -86,7 +136,7 @@ export default function MinhasGalerias() {
             ) : (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {eventos.map((evento) => {
-                  const fotos = listarFotos(evento.id);
+                  const fotos = todasFotos.filter((foto) => foto.eventoId === evento.id);
                   return (
                     <Link
                       key={evento.id}
@@ -171,10 +221,11 @@ export default function MinhasGalerias() {
                       <button
                         type="button"
                         onClick={(e) => {
-                          e.stopPropagation();
-                          handleCurtir(foto.id);
-                        }}
-                        title={usuarioCurtiuFoto(foto.id) ? "Remover meu like" : "Curtir foto"}
+  e.stopPropagation();
+  console.log("Clique no curtir!", foto.id);
+  handleCurtir(foto.id);
+}}
+                        title={usuarioCurtiuFoto(foto.id, todasFotos) ? "Remover meu like" : "Curtir foto"}
                         className={`absolute left-2 top-2 z-10 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium backdrop-blur transition duration-300 hover:scale-105 active:scale-95 ${
                           usuarioCurtiuFoto(foto.id)
                             ? "bg-fuchsia-500/30 text-fuchsia-200 ring-1 ring-fuchsia-400/50"
@@ -184,14 +235,14 @@ export default function MinhasGalerias() {
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 24 24"
-                          fill={usuarioCurtiuFoto(foto.id) ? "currentColor" : "none"}
+                          fill={usuarioCurtiuFoto(foto.id, todasFotos) ? "currentColor" : "none"}
                           stroke="currentColor"
                           strokeWidth="1.8"
                           className="h-3.5 w-3.5"
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                         </svg>
-                        {getVotosFoto(foto.id)}
+                        {getVotosFoto(foto.id, todasFotos)}
                       </button>
 
                       <div className="absolute inset-x-0 bottom-0 translate-y-full bg-slate-950/80 px-3 py-2 text-xs font-medium text-white backdrop-blur transition duration-300 group-hover:translate-y-0">

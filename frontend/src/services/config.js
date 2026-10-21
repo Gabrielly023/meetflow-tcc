@@ -20,7 +20,7 @@ export const USE_API = {
   usuarios: true, // já tem backend real (/usuarios): cadastro e login
   eventos: true, // CRUD de eventos
   playlists: false, // playlist do evento + lista colaborativa de músicas
-  galeria: false, // fotos do evento
+  galeria: true, // fotos do evento
   chat: false, // mensagens do evento
   mapas: false, // locais (Google Maps) do evento
 };
@@ -35,7 +35,7 @@ export const REFRESH_TOKEN_KEY = "meetflow.refreshToken";
 // Instância única do Axios usada por todos os serviços de API.
 export const api = axios.create({
   baseURL: API_URL,
-  headers: { "Content-Type": "application/json" },
+  headers: {},
   withCredentials: true,
 });
 

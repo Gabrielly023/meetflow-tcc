@@ -24,13 +24,37 @@ export default function GaleriaEvento() {
     eventoCarregado?.id === id ? eventoCarregado.dados : null;
   const carregandoEvento = eventoCarregado?.id !== id;
   const inputRef = useRef(null);
-  const [fotos, setFotos] = useState(() => listarFotos(id));
+  const [fotos, setFotos] = useState([]);
+  const [lixeira, setLixeira] = useState([]);
   const [reordenando, setReordenando] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [menuAberto, setMenuAberto] = useState(null);
   const [verLixeira, setVerLixeira] = useState(false);
   const [arrastandoIndice, setArrastandoIndice] = useState(null);
   const [lightbox, setLightbox] = useState(null);
+
+useEffect(() => {
+  let ativo = true;
+
+  async function carregarFotos() {
+    try {
+      const resultado = await listarFotos(id);
+
+      if (ativo) {
+        setFotos(Array.isArray(resultado) ? resultado : []);
+      }
+    } catch (erro) {
+      console.error("Erro ao carregar fotos:", erro);
+      if (ativo) setFotos([]);
+    }
+  }
+
+  carregarFotos();
+
+  return () => {
+    ativo = false;
+  };
+}, [id]);
 
   useEffect(() => {
     let ativo = true;
@@ -49,9 +73,25 @@ export default function GaleriaEvento() {
     };
   }, [id]);
 
-  function recarregar() {
-    setFotos(listarFotos(id));
+  
+
+async function recarregar() {
+  try {
+    const [resultado, resultadoLixeira] = await Promise.all([
+      listarFotos(id),
+      listarLixeira(id),
+    ]);
+
+    setFotos(Array.isArray(resultado) ? resultado : []);
+    setLixeira(
+      Array.isArray(resultadoLixeira) ? resultadoLixeira : []
+    );
+  } catch (erro) {
+    console.error("Erro ao recarregar a galeria:", erro);
   }
+}
+
+
 
   // Fecha o balão ao clicar fora dele
   useEffect(() => {
@@ -87,7 +127,7 @@ export default function GaleriaEvento() {
     );
   }
 
-  const lixeira = listarLixeira(id);
+
 
   async function handleArquivos(event) {
     const arquivos = event.target.files;
@@ -120,10 +160,16 @@ export default function GaleriaEvento() {
     recarregar();
   }
 
-  function handleCurtir(fotoId) {
-    curtirFoto(fotoId);
-    recarregar();
+  
+async function handleCurtir(fotoId) {
+  try {
+    await curtirFoto(fotoId);
+    await recarregar();
+  } catch (erro) {
+    console.error("Erro ao curtir foto:", erro);
   }
+}
+
 
   // Quantas pessoas diferentes enviaram fotos
   const totalPessoas = new Set(fotos.map((f) => f.ownerId)).size;

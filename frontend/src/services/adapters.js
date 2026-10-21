@@ -8,6 +8,7 @@
 
 import { formatarDataHora } from "./eventoService";
 import { normalizarParaEmbed } from "./playlistService";
+import { API_URL } from "./config";
 
 // ───────────────────────── EVENTO ─────────────────────────
 
@@ -83,9 +84,13 @@ export function musicaDaApi(m) {
 // ───────────────────────── FOTO (GALERIA) ─────────────────────────
 
 export function fotoDaApi(f) {
+  if (!f) return null;
+
   return {
     id: f.id_foto,
-    url: f.url_foto,
+    url: f.url_foto?.startsWith("/")
+      ? `${API_URL}${f.url_foto}`
+      : f.url_foto,
     ownerId: f.id_usuario,
   };
 }

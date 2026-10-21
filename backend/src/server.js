@@ -10,6 +10,7 @@ import galeriaRouter from "./routes/galeriaRoutes.js";
 import chatRouter from "./routes/chatRoutes.js";
 import grupoRoutes from "./routes/grupoRoutes.js";
 import notificacaoRoutes from "./routes/notificacaoRoutes.js";
+import path from "path";
 import {
   excluirEventosExpirados,
   INTERVALO_LIMPEZA_EVENTOS_MS,
@@ -67,6 +68,7 @@ io.on("connection", (socket) => {
 });
 
 app.use(express.json({ limit: "10mb" }));
+app.use("/uploads", express.static(path.resolve("uploads")));
 app.set("io", io);
 app.use("/galeria", galeriaRouter);
 app.use("/usuarios", usuarioRouter);

@@ -48,28 +48,37 @@ function fotosSeed(evento) {
 }
 
 // Lista as fotos visíveis para o usuário atual, na ordem definida
-export function listarFotos(eventId) {
-  if (USE_API.galeria) return galeriaApi.listarFotos(eventId);
-  const evento = buscarEventoPorId(eventId);
-  const adicionadas = ler(KEY_ADD, {})[eventId] || [];
-  const excluidas = ler(KEY_EXCLUIDAS, []);
-  const ocultas = ler(KEY_OCULTAS, []);
 
-  let todas = [...fotosSeed(evento), ...adicionadas].filter(
-    (foto) => !excluidas.includes(foto.id) && !ocultas.includes(foto.id),
-  );
+export async function listarFotos(eventId) {
+  let todas;
 
-  const ordem = ler(KEY_ORDEM, {})[eventId];
-  if (ordem) {
-    const posicao = (id) => {
-      const p = ordem.indexOf(id);
-      return p === -1 ? Number.MAX_SAFE_INTEGER : p;
-    };
-    todas = [...todas].sort((a, b) => posicao(a.id) - posicao(b.id));
+  if (USE_API.galeria) {
+    todas = await galeriaApi.listarFotos(eventId);
+  } else {
+    const evento = buscarEventoPorId(eventId);
+    const adicionadas = ler(KEY_ADD, {})[eventId] || [];
+    const excluidas = ler(KEY_EXCLUIDAS, []);
+    const ocultas = ler(KEY_OCULTAS, []);
+
+    todas = [...fotosSeed(evento), ...adicionadas].filter(
+      (foto) => !excluidas.includes(foto.id) && !ocultas.includes(foto.id),
+    );
+
+    const ordem = ler(KEY_ORDEM, {})[eventId];
+    if (ordem) {
+      const posicao = (id) => {
+        const p = ordem.indexOf(id);
+        return p === -1 ? Number.MAX_SAFE_INTEGER : p;
+      };
+      todas = [...todas].sort((a, b) => posicao(a.id) - posicao(b.id));
+    }
   }
 
-  return todas;
+  // Também oculta fotos vindas do backend.
+  const ocultas = ler(KEY_OCULTAS, []);
+  return todas.filter((foto) => !ocultas.includes(foto.id));
 }
+
 
 // Reduz a imagem antes de guardar (mock: evita estourar o localStorage)
 function arquivoParaDataUrl(arquivo, maxLado = 1200) {
@@ -101,7 +110,7 @@ function arquivoParaDataUrl(arquivo, maxLado = 1200) {
 // Adiciona fotos do dispositivo do usuário (dono = usuário atual)
 export async function adicionarFotos(eventId, arquivos) {
   if (USE_API.galeria)
-    return galeriaApi.adicionarFotos(eventId, arquivos, arquivoParaDataUrl);
+    return galeriaApi.adicionarFotos(eventId, arquivos);
   const imagens = Array.from(arquivos).filter((a) => a.type.startsWith("image/"));
   const ownerId = getUsuarioAtualId();
   const novas = [];
@@ -129,6 +138,23 @@ export function removerParaMim(fotoId) {
   }
 }
 
+
+export async function listarFotosOcultas(eventId) {
+  let todas;
+
+  if (USE_API.galeria) {
+    todas = await galeriaApi.listarFotos(eventId);
+  } else {
+    const evento = buscarEventoPorId(eventId);
+    const adicionadas = ler(KEY_ADD, {})[eventId] || [];
+    todas = [...fotosSeed(evento), ...adicionadas];
+  }
+
+  const ocultas = ler(KEY_OCULTAS, []);
+  return todas.filter((foto) => ocultas.includes(foto.id));
+}
+
+
 // Exclui a foto para todos — só o dono da foto pode.
 // Não apaga de vez: vai para a lixeira (pode ser restaurada).
 export function excluirParaTodos(foto) {
@@ -144,25 +170,36 @@ export function excluirParaTodos(foto) {
 // Lista o que está na lixeira do evento para o usuário atual:
 // - fotos que ELE removeu só para si (motivo "mim");
 // - fotos que ELE (dono) excluiu para todos (motivo "todos").
-export function listarLixeira(eventId) {
-  const evento = buscarEventoPorId(eventId);
-  const adicionadas = ler(KEY_ADD, {})[eventId] || [];
+
+export async function listarLixeira(eventId) {
+  let todas;
+
+  if (USE_API.galeria) {
+    todas = await galeriaApi.listarFotos(eventId);
+  } else {
+    const evento = buscarEventoPorId(eventId);
+    const adicionadas = ler(KEY_ADD, {})[eventId] || [];
+    todas = [...fotosSeed(evento), ...adicionadas];
+  }
+
   const excluidas = ler(KEY_EXCLUIDAS, []);
   const ocultas = ler(KEY_OCULTAS, []);
-  const todas = [...fotosSeed(evento), ...adicionadas];
 
   return todas
     .map((foto) => {
       if (excluidas.includes(foto.id) && isDonoFoto(foto)) {
         return { ...foto, motivo: "todos" };
       }
+
       if (ocultas.includes(foto.id)) {
         return { ...foto, motivo: "mim" };
       }
+
       return null;
     })
     .filter(Boolean);
 }
+
 
 // Restaura uma foto da lixeira (volta a aparecer)
 export function restaurar(foto) {
@@ -194,24 +231,48 @@ export function reordenar(eventId, idsNaOrdem) {
 //
 
 // Quantidade de curtidas de uma foto.
-export function getVotosFoto(fotoId) {
+
+export function getVotosFoto(fotoId, fotos = []) {
+  if (USE_API.galeria) {
+    const foto = fotos.find((f) => f.id === fotoId);
+    return foto?.curtidas?.length ?? 0;
+  }
+
   const votos = ler(KEY_VOTOS, {});
   return (votos[fotoId] || []).length;
 }
 
+
 // Diz se o usuário atual já curtiu essa foto.
-export function usuarioCurtiuFoto(fotoId) {
+
+
+export function usuarioCurtiuFoto(fotoId, fotos = []) {
+  if (USE_API.galeria) {
+    const foto = fotos.find((f) => f.id === fotoId);
+    const usuarioId = getUsuarioAtualId();
+    return foto?.curtidas?.includes(usuarioId) ?? false;
+  }
+
   const votos = ler(KEY_VOTOS, {});
   return (votos[fotoId] || []).includes(getUsuarioAtualId());
 }
 
+
+
 // Alterna a curtida do usuário atual em uma foto (curtir / descurtir).
-export function curtirFoto(fotoId) {
+
+export async function curtirFoto(fotoId) {
+  if (USE_API.galeria) {
+    return galeriaApi.curtirFoto(fotoId);
+  }
+
   const uid = getUsuarioAtualId();
   const votos = ler(KEY_VOTOS, {});
   const lista = votos[fotoId] || [];
+
   votos[fotoId] = lista.includes(uid)
     ? lista.filter((v) => v !== uid)
     : [...lista, uid];
+
   salvar(KEY_VOTOS, votos);
 }

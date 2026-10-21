@@ -15,22 +15,30 @@ export async function listarFotos(eventId) {
 // Envia fotos do dispositivo. O mock reduz a imagem para uma data URL;
 // aqui reaproveitamos essa conversão e mandamos a url_foto para o backend.
 // Retorna quantas fotos foram adicionadas com sucesso.
-export async function adicionarFotos(eventId, arquivos, arquivoParaDataUrl) {
-  const imagens = Array.from(arquivos).filter((a) =>
-    a.type.startsWith("image/"),
+
+export async function adicionarFotos(eventId, arquivos) {
+  const imagens = Array.from(arquivos).filter((arquivo) =>
+    arquivo.type.startsWith("image/")
   );
+
   let enviadas = 0;
+
   for (const arquivo of imagens) {
+    const formData = new FormData();
+    formData.append("foto", arquivo);
+
     try {
-      const url = await arquivoParaDataUrl(arquivo);
-      await api.post(`/eventos/${eventId}/galeria`, { url_foto: url });
+      await api.post(`/eventos/${eventId}/galeria`, formData);
       enviadas++;
     } catch (erro) {
       console.error("Falha ao enviar foto:", erro);
+      console.error("Resposta do backend:", erro.response?.data);
     }
   }
+
   return enviadas;
 }
+
 
 // Exclui a foto para todos (o backend valida se o logado é o dono da foto).
 export async function excluirParaTodos(foto) {
@@ -41,3 +49,10 @@ export async function excluirParaTodos(foto) {
     return false;
   }
 }
+
+
+export async function curtirFoto(fotoId) {
+  const { data } = await api.post(`/galeria/${fotoId}/curtir`);
+  return data;
+}
+
