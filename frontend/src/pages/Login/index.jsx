@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import AuthLayout from "../../components/AuthLayout";
 import AuthField from "../../components/AuthField";
@@ -26,10 +26,17 @@ const RECUPERACAO_LOGIN_KEY = "meetflow.recuperacao.login";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [login, setLogin] = useState("");
+  const location = useLocation();
+  
+  const [login, setLogin] = useState(
+    location.state?.login || "");
+  
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  
+  const [error, setError] = useState(
+    location.state?.mensagem || "");
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -45,52 +52,64 @@ const Login = () => {
     }
   };
 
-  const handleGoogle = useGoogleLogin({
-    prompt: "select_account",
+  
 
-    onSuccess: async (tokenResponse) => {
-      setLoading(true);
-      setError("");
-      try {
-        // 1. Pega os dados do Google
-        const googleRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-        });
-        const googleUser = await googleRes.json();
+const handleGoogle = useGoogleLogin({
+  prompt: "select_account",
 
-        // 2. Envia para o backend criar/autenticar
-        const backRes = await fetch("http://localhost:3000/usuarios/google-login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: googleUser.email,
-            nome: googleUser.name,
-            foto: googleUser.picture,
-          }),
-        });
+  onSuccess: async (tokenResponse) => {
+    setLoading(true);
+    setError("");
 
-        const data = await backRes.json();
-
-        if (!backRes.ok) {
-          throw new Error(data.mensagem || "Erro ao realizar login no servidor.");
+    try {
+      const resposta = await fetch(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        {
+          headers: {
+            Authorization: `Bearer ${tokenResponse.access_token}`,
+          },
         }
+      );
 
-        // 3. Salva a sessão usando a função oficial da aplicação
-        salvarSessao(data.usuario, data.token, data.refreshToken);
-
-        // 4. Navega para o painel de usuários
-        navigate("/usuarios");
-      } catch (err) {
-        console.error("Erro no fluxo do Google Login:", err);
-        setError(err.message || "Não foi possível completar o login com o Google.");
-      } finally {
-        setLoading(false);
+      if (!resposta.ok) {
+        throw new Error(
+          "Não foi possível obter os dados da conta Google."
+        );
       }
-    },
-    onError: () => {
-      setError("A autenticação do Google foi cancelada ou falhou.");
-    },
-  });
+
+      const contaGoogle = await resposta.json();
+
+      if (!contaGoogle.email) {
+        throw new Error(
+          "Não foi possível identificar o e-mail da conta."
+        );
+      }
+
+      // Preenche o e-mail, mas não autentica no MeetFlow.
+      setLogin(contaGoogle.email);
+      setPassword("");
+
+      sessionStorage.setItem(
+        RECUPERACAO_LOGIN_KEY,
+        contaGoogle.email
+      );
+    } catch (erro) {
+      console.error("Erro ao selecionar conta Google:", erro);
+
+      setError(
+        erro.message ||
+          "Não foi possível selecionar a conta Google."
+      );
+    } finally {
+      setLoading(false);
+    }
+  },
+
+  onError: () => {
+    setError("Não foi possível selecionar a conta Google.");
+  },
+});
+
 
   return (
     <AuthLayout

@@ -79,40 +79,104 @@ const Signup = () => {
     }));
   };
 
+  
   const loginGoogle = useGoogleLogin({
+    prompt: "select_account",
+
     onSuccess: async (tokenResponse) => {
       try {
         setLoading(true);
         setError("");
-        
-        const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-        });
+        setSuccess("");
+
+        // Busca os dados da conta Google selecionada
+        const res = await fetch(
+          "https://www.googleapis.com/oauth2/v3/userinfo",
+          {
+            headers: {
+              Authorization: `Bearer ${tokenResponse.access_token}`,
+            },
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error(
+            "Não foi possível obter os dados da conta Google."
+          );
+        }
+
         const googleProfile = await res.json();
 
-        if (googleProfile?.email) {
-          const sugestaoUsername = googleProfile.email.split("@")[0].replace(/[^a-zA-Z0-9._]/g, "");
-          setFormData((prev) => ({
-            ...prev,
-            email: googleProfile.email,
-            nome: googleProfile.name || prev.nome,
-            username: sugestaoUsername,
-          }));
-          
-          setViaGoogle(true);
-          setSuccess(`Conta Google (${googleProfile.email}) conectada! Crie e confirme sua senha para finalizar.`);
+        if (!googleProfile.email) {
+          throw new Error("Não foi possível identificar o e-mail Google.");
         }
+
+        const email = googleProfile.email.trim().toLowerCase();
+
+        // Verifica se o e-mail já possui cadastro
+        const respostaEmail = await fetch(
+          "http://localhost:3000/usuarios/verificar-email-google",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email }),
+          }
+        );
+
+        const resultado = await respostaEmail.json();
+
+        // Se o e-mail já existe, direciona para o login
+        if (respostaEmail.status === 409) {
+          navigate("/login", {
+            state: {
+              login: email,
+              mensagem: resultado.mensagem,
+            },
+          });
+          return;
+        }
+
+        if (!respostaEmail.ok) {
+          throw new Error(
+            resultado.mensagem || "Não foi possível verificar o e-mail."
+          );
+        }
+
+        // Preenche APENAS nome e e-mail.
+        // Username, telefone e senhas permanecem vazios.
+        setFormData((prev) => ({
+          ...prev,
+          nome: googleProfile.name || "",
+          email,
+          username: "",
+          telefone: "",
+          senha: "",
+          senhaConfirma: "",
+        }));
+
+        setViaGoogle(true);
+
+        setSuccess(
+          "E-mail confirmado! Escolha seu nome de usuário, informe seu telefone e crie sua senha."
+        );
       } catch (err) {
-        console.error("Erro ao obter perfil Google:", err);
-        setError("Não foi possível carregar as informações do Google.");
+        console.error("Erro ao processar conta Google:", err);
+        setError(
+          err.message ||
+            "Não foi possível carregar as informações do Google."
+        );
       } finally {
         setLoading(false);
       }
     },
+
     onError: () => {
       setError("Falha na conexão com o Google. Tente novamente.");
     },
   });
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
