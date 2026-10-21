@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import Lightbox from "../../components/Lightbox";
 import TituloDegrade from "../../components/TituloDegrade";
 import { buscarEventoPorId } from "../../services/eventoService";
@@ -12,6 +12,7 @@ import {
   reordenar,
   listarLixeira,
   restaurar,
+  excluirPermanentemente,
   curtirFoto,
   getVotosFoto,
   usuarioCurtiuFoto,
@@ -19,6 +20,8 @@ import {
 
 export default function GaleriaEvento() {
   const { id } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [eventoCarregado, setEventoCarregado] = useState(null);
   const evento =
     eventoCarregado?.id === id ? eventoCarregado.dados : null;
@@ -29,27 +32,40 @@ export default function GaleriaEvento() {
   const [reordenando, setReordenando] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [menuAberto, setMenuAberto] = useState(null);
-  const [verLixeira, setVerLixeira] = useState(false);
+  const verLixeira = location.pathname.endsWith("/lixeira");
   const [arrastandoIndice, setArrastandoIndice] = useState(null);
   const [lightbox, setLightbox] = useState(null);
+  const [erroGaleria, setErroGaleria] = useState("");
 
 useEffect(() => {
   let ativo = true;
 
-  async function carregarFotos() {
+  async function carregarGaleria() {
     try {
-      const resultado = await listarFotos(id);
+      const [resultado, resultadoLixeira] = await Promise.all([
+        listarFotos(id),
+        listarLixeira(id),
+      ]);
 
       if (ativo) {
         setFotos(Array.isArray(resultado) ? resultado : []);
+        setLixeira(Array.isArray(resultadoLixeira) ? resultadoLixeira : []);
+        setErroGaleria("");
       }
     } catch (erro) {
-      console.error("Erro ao carregar fotos:", erro);
-      if (ativo) setFotos([]);
+      console.error("Erro ao carregar a galeria:", erro);
+      if (ativo) {
+        setFotos([]);
+        setLixeira([]);
+        setErroGaleria(
+          erro?.response?.data?.mensagem ||
+            "Não foi possível carregar as fotos e a lixeira.",
+        );
+      }
     }
   }
 
-  carregarFotos();
+  carregarGaleria();
 
   return () => {
     ativo = false;
@@ -86,8 +102,13 @@ async function recarregar() {
     setLixeira(
       Array.isArray(resultadoLixeira) ? resultadoLixeira : []
     );
+    setErroGaleria("");
   } catch (erro) {
     console.error("Erro ao recarregar a galeria:", erro);
+    setErroGaleria(
+      erro?.response?.data?.mensagem ||
+        "Não foi possível atualizar as fotos e a lixeira.",
+    );
   }
 }
 
@@ -139,25 +160,65 @@ async function recarregar() {
     recarregar();
   }
 
-  function handleRemoverParaMim(foto) {
+  async function handleRemoverParaMim(foto) {
     removerParaMim(foto.id);
     setMenuAberto(null);
-    recarregar();
+    await recarregar();
   }
 
-  function handleExcluirParaTodos(foto) {
+  async function handleExcluirParaTodos(foto) {
     setMenuAberto(null);
     const ok = window.confirm(
-      "Excluir esta foto para todos os participantes? Ela vai para a lixeira e pode ser restaurada.",
+      "Mover esta foto para a lixeira de todos os participantes? Você poderá restaurá-la ou excluí-la permanentemente depois.",
     );
     if (!ok) return;
-    excluirParaTodos(foto);
-    recarregar();
+
+    try {
+      const excluida = await excluirParaTodos(foto);
+      if (!excluida) {
+        throw new Error("Você não pode mover esta foto para a lixeira.");
+      }
+      await recarregar();
+    } catch (erro) {
+      console.error("Erro ao mover a foto para a lixeira:", erro);
+      setErroGaleria(
+        erro?.response?.data?.mensagem ||
+          erro?.message ||
+          "Não foi possível mover a foto para a lixeira.",
+      );
+    }
   }
 
-  function handleRestaurar(foto) {
-    restaurar(foto);
-    recarregar();
+  async function handleRestaurar(foto) {
+    try {
+      await restaurar(foto);
+      await recarregar();
+    } catch (erro) {
+      console.error("Erro ao restaurar foto:", erro);
+      setErroGaleria(
+        erro?.response?.data?.mensagem || "Não foi possível restaurar a foto.",
+      );
+    }
+  }
+
+  async function handleExcluirPermanentemente(foto) {
+    const confirmar = window.confirm(
+      foto.motivo === "mim"
+        ? "Remover esta foto permanentemente da sua lixeira? Ela continuará disponível para os outros participantes."
+        : "Excluir esta foto permanentemente para todos? Essa ação não pode ser desfeita.",
+    );
+    if (!confirmar) return;
+
+    try {
+      await excluirPermanentemente(foto);
+      await recarregar();
+    } catch (erro) {
+      console.error("Erro ao excluir foto permanentemente:", erro);
+      setErroGaleria(
+        erro?.response?.data?.mensagem ||
+          "Não foi possível excluir a foto permanentemente.",
+      );
+    }
   }
 
   
@@ -214,6 +275,14 @@ async function handleCurtir(fotoId) {
 
       <main className="flex-1 px-6 py-8 lg:px-10">
           <div className="mx-auto max-w-6xl space-y-8">
+            {erroGaleria && (
+              <p
+                role="alert"
+                className="rounded-2xl border border-red-500/40 bg-red-900/40 px-4 py-3 text-sm text-red-200"
+              >
+                {erroGaleria}
+              </p>
+            )}
             {/* Cabeçalho */}
             <div className="flex flex-col items-center gap-4 text-center">
               <div>
@@ -271,7 +340,8 @@ async function handleCurtir(fotoId) {
                       onClick={() => {
                         setReordenando(false);
                         setMenuAberto(null);
-                        setVerLixeira(true);
+                        recarregar();
+                        navigate(`/eventos/${id}/galeria/lixeira`);
                       }}
                       className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-200 transition duration-300 hover:scale-105 hover:bg-slate-800 active:scale-95"
                     >
@@ -289,7 +359,7 @@ async function handleCurtir(fotoId) {
                 ) : (
                   <button
                     type="button"
-                    onClick={() => setVerLixeira(false)}
+                    onClick={() => navigate(`/eventos/${id}/galeria`)}
                     className="group inline-flex items-center justify-center gap-1 rounded-2xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-200 transition duration-300 hover:scale-105 hover:bg-slate-800 active:scale-95"
                   >
                     <span className="inline-block transition-transform duration-300 group-hover:-translate-x-1">
@@ -331,13 +401,27 @@ async function handleCurtir(fotoId) {
                           ? "Excluída para todos"
                           : "Removida para você"}
                       </span>
-                      <div className="absolute inset-x-0 bottom-0 p-2">
+                      <div className="absolute inset-x-0 bottom-0 space-y-2 p-2">
+                        {foto.motivo === "todos" && (
+                          <p className="rounded-xl bg-slate-950/80 px-3 py-2 text-center text-xs text-slate-300 backdrop-blur">
+                            Imagens na lixeira são excluídas automaticamente após 30 dias.
+                          </p>
+                        )}
                         <button
                           type="button"
                           onClick={() => handleRestaurar(foto)}
                           className="w-full rounded-xl bg-gradient-to-r from-sky-500 to-violet-500 px-3 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-500/20 transition hover:opacity-90"
                         >
                           Restaurar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleExcluirPermanentemente(foto)}
+                          className="w-full rounded-xl border border-red-400/50 bg-slate-950/90 px-3 py-2 text-sm font-semibold text-red-200 transition hover:bg-red-500/20"
+                        >
+                          {foto.motivo === "mim"
+                            ? "Excluir da minha lixeira"
+                            : "Excluir permanentemente"}
                         </button>
                       </div>
                     </div>

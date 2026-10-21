@@ -117,8 +117,8 @@ export function setUltimaPlaylist(eventId) {
 
 const KEY_CAPAS = "meetflow.playlistCapas";
 
-export async function getCapaPlaylist(eventId) {
-  const embed = await carregarPlaylist(eventId);
+export async function getCapaPlaylist(eventId, embedSalvo = null) {
+  const embed = embedSalvo || await carregarPlaylist(eventId);
   if (!embed) return null;
 
   let cache = {};

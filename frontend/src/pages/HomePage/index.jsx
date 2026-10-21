@@ -1,16 +1,23 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { listarEventos } from "../../services/eventoService";
-import { listarFotos } from "../../services/galeriaService";
 import {
-  getPlaylistEmbed,
+  listarEventos,
+  listarLixeiraEventos,
+} from "../../services/eventoService";
+import EventCover from "../../components/EventCover";
+import {
+  carregarPlaylist,
   getCapaPlaylist,
 } from "../../services/playlistService";
 import { getLocalPrincipal, listarLocais } from "../../services/mapaService";
 import { contarNaoLidas } from "../../services/chatService";
+import { listarLixeira } from "../../services/galeriaService";
 
 export default function HomePage() {
   const [eventos, setEventos] = useState([]);
+  const [eventosExcluidosHome, setEventosExcluidosHome] = useState([]);
+  const [playlistsHome, setPlaylistsHome] = useState([]);
+  const [fotosExcluidasHome, setFotosExcluidasHome] = useState([]);
 
 useEffect(() => {
   listarEventos()
@@ -23,34 +30,100 @@ useEffect(() => {
     });
 }, []);
 
-  const previews = eventos.flatMap((ev) => listarFotos(ev.id)).slice(0, 4);
-  const capas = eventos
-    .map((ev) => ev.capa || ev.images?.[0])
-    .filter(Boolean)
-    .slice(0, 4);
-  // Miniaturas de playlist para o card: eventos que têm playlist
-  const eventosComPlaylist = eventos.filter((ev) => getPlaylistEmbed(ev.id));
-  const tilesPlaylist = eventosComPlaylist.slice(0, 4);
-  const totalPlaylists = eventosComPlaylist.length;
-  const chaveCapas = tilesPlaylist.map((ev) => ev.id).join(",");
-  const [capasPlaylist, setCapasPlaylist] = useState({});
+useEffect(() => {
+  let ativo = true;
 
-  // Busca as capas dos álbuns/playlists no Spotify (oEmbed) para os tiles
-  useEffect(() => {
-    const ids = chaveCapas ? chaveCapas.split(",") : [];
-    if (ids.length === 0) return;
-    let ativo = true;
-    Promise.all(
-      ids.map((id) => getCapaPlaylist(id).then((capa) => [id, capa])),
-    ).then((pares) => {
-      if (ativo) {
-        setCapasPlaylist(Object.fromEntries(pares.filter(([, c]) => c)));
-      }
+  Promise.resolve()
+    .then(() => listarLixeiraEventos())
+    .then((dados) => {
+      if (ativo) setEventosExcluidosHome(Array.isArray(dados) ? dados : []);
+    })
+    .catch((erro) => {
+      console.error("Não foi possível carregar os eventos da lixeira:", erro);
     });
+
+  return () => {
+    ativo = false;
+  };
+}, []);
+
+useEffect(() => {
+  let ativo = true;
+
+  async function carregarFotosExcluidas() {
+    const resultados = await Promise.allSettled(
+      eventos.map((evento) => listarLixeira(evento.id)),
+    );
+    const fotos = resultados.flatMap((resultado, indice) => {
+      if (resultado.status === "fulfilled") {
+        return (Array.isArray(resultado.value) ? resultado.value : [])
+          .filter((foto) => foto?.url)
+          .map((foto) => ({ ...foto, eventoId: eventos[indice].id }));
+      }
+
+      console.error(
+        `Não foi possível carregar a lixeira da galeria do evento ${eventos[indice].id}:`,
+        resultado.reason,
+      );
+      return [];
+    });
+
+    if (ativo) setFotosExcluidasHome(fotos);
+  }
+
+  if (eventos.length > 0) {
+    carregarFotosExcluidas();
+  }
+
+  return () => {
+    ativo = false;
+  };
+}, [eventos]);
+
+const capas = eventos
+  .map((ev) => ev.capa || ev.images?.[0])
+  .filter(Boolean)
+  .slice(0, 4);
+const eventosPreviewGalerias = eventos.slice(0, 4);
+
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregarPlaylistsHome() {
+      const resultados = await Promise.allSettled(
+        eventos.map(async (evento) => {
+          const embed = await carregarPlaylist(evento.id);
+          if (!embed) return null;
+
+          const capa = await getCapaPlaylist(evento.id, embed);
+          return { evento, capa };
+        }),
+      );
+
+      const playlists = resultados.flatMap((resultado, indice) => {
+        if (resultado.status === "fulfilled") {
+          return resultado.value ? [resultado.value] : [];
+        }
+
+        console.error(
+          `Não foi possível carregar a playlist do evento ${eventos[indice].id}:`,
+          resultado.reason,
+        );
+        return [];
+      });
+
+      if (ativo) setPlaylistsHome(playlists);
+    }
+
+    carregarPlaylistsHome();
+
     return () => {
       ativo = false;
     };
-  }, [chaveCapas]);
+  }, [eventos]);
+
+  const tilesPlaylist = playlistsHome.slice(0, 4);
+  const totalPlaylists = playlistsHome.length;
 
   const [agora] = useState(() => Date.now());
   const eventosFuturos = eventos
@@ -250,17 +323,18 @@ useEffect(() => {
                   </p>
                 </div>
 
-                {previews.length > 0 && (
+                {eventosPreviewGalerias.length > 0 && (
                   <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-                    {previews.map((foto) => (
+                    {eventosPreviewGalerias.map((evento) => (
                       <div
-                        key={foto.id}
+                        key={evento.id}
                         className="h-16 w-16 overflow-hidden rounded-xl border border-slate-800/60"
                       >
-                        <img
-                          src={foto.url}
-                          alt=""
-                          className="h-full w-full object-cover"
+                        <EventCover
+                          capa={evento.capa || evento.images?.[0]}
+                          tipo={evento.tipo}
+                          titulo={evento.titulo}
+                          heightClass="h-full"
                         />
                       </div>
                     ))}
@@ -297,14 +371,14 @@ useEffect(() => {
 
                 {tilesPlaylist.length > 0 && (
                   <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-                    {tilesPlaylist.map((ev) => (
+                    {tilesPlaylist.map(({ evento, capa }) => (
                       <div
-                        key={ev.id}
+                        key={evento.id}
                         className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-slate-800/60 bg-gradient-to-br from-orange-500/25 via-fuchsia-500/25 to-sky-500/25"
                       >
-                        {capasPlaylist[ev.id] ? (
+                        {capa ? (
                           <img
-                            src={capasPlaylist[ev.id]}
+                            src={capa}
                             alt=""
                             className="h-full w-full object-cover"
                           />
@@ -366,7 +440,7 @@ useEffect(() => {
               {/* Bloco: Meus chats */}
               <Link
                 to="/chats"
-                className="home-dashboard-card group relative rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="home-dashboard-card group relative order-5 rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
                 <span className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
                   →
@@ -408,7 +482,7 @@ useEffect(() => {
               {/* Bloco: Meus contatos */}
               <Link
                 to="/contatos"
-                className="home-dashboard-card group relative rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="home-dashboard-card group relative order-6 self-start rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
                 <span className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
                   →
@@ -428,10 +502,11 @@ useEffect(() => {
                 </div>
               </Link>
 
-              {/* Bloco: Lixeira */}
-              <div
-                aria-label="Lixeira"
-                className="home-dashboard-card group relative cursor-pointer rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+              {/* Bloco: Lixeira geral */}
+              <Link
+                to="/lixeira"
+                aria-label="Abrir lixeira geral"
+                className="home-dashboard-card group relative order-8 self-start rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
                 <span aria-hidden="true" className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
                   →
@@ -443,18 +518,63 @@ useEffect(() => {
                     </svg>
                   </div>
                   <h2 className="text-xl font-semibold text-white">
-                    Lixeira
+                    Lixeira geral
                   </h2>
                   <p className="mt-2 text-sm text-slate-400">
-                    Revise eventos removidos, restaure-os ou exclua-os permanentemente.
+                    Acesse as lixeiras de eventos e das fotos das galerias.
                   </p>
                 </div>
-              </div>
+                {fotosExcluidasHome.length > 0 && (
+                  <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                    {fotosExcluidasHome.slice(0, 4).map((foto) => (
+                      <div
+                        key={`${foto.eventoId}-${foto.id}`}
+                        className="h-16 w-16 overflow-hidden rounded-xl border border-slate-800/60"
+                      >
+                        <img
+                          src={foto.url}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    ))}
+                    <div className="flex h-16 items-center rounded-xl px-3 text-sm text-slate-400">
+                      {fotosExcluidasHome.length}{" "}
+                      {fotosExcluidasHome.length === 1
+                        ? "foto excluída"
+                        : "fotos excluídas"}
+                    </div>
+                  </div>
+                )}
+                {eventosExcluidosHome.length > 0 && (
+                  <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                    {eventosExcluidosHome.slice(0, 4).map((evento) => (
+                      <div
+                        key={evento.id}
+                        className="h-16 w-16 overflow-hidden rounded-xl border border-slate-800/60 opacity-75"
+                      >
+                        <EventCover
+                          capa={evento.capa || evento.images?.[0]}
+                          tipo={evento.tipo}
+                          titulo={evento.titulo}
+                          heightClass="h-full"
+                        />
+                      </div>
+                    ))}
+                    <div className="flex h-16 items-center rounded-xl px-3 text-sm text-slate-400">
+                      {eventosExcluidosHome.length}{" "}
+                      {eventosExcluidosHome.length === 1
+                        ? "evento excluído"
+                        : "eventos excluídos"}
+                    </div>
+                  </div>
+                )}
+              </Link>
 
               {/* Bloco: Configurações */}
               <Link
                 to="/configuracoes"
-                className="home-dashboard-card group relative rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="home-dashboard-card group relative order-7 self-start rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
                 <span className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
                   →

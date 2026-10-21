@@ -1,0 +1,1 @@
+ALTER TABLE `Galeria` ADD COLUMN `excluido_em` DATETIME(3) NULL;

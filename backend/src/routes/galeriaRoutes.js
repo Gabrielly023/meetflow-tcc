@@ -7,6 +7,8 @@ const router = express.Router();
 router.use(authMiddleware);
 
 router.delete("/:idFoto", galeriaController.remover);
+router.patch("/:idFoto/restaurar", galeriaController.restaurar);
+router.delete("/:idFoto/permanente", galeriaController.excluirPermanentemente);
 
 router.post("/:idFoto/curtir", galeriaController.curtir);
 

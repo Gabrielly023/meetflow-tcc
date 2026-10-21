@@ -6,6 +6,13 @@ import {
 } from "../../services/usuarioService";
 import { listarEventos } from "../../services/eventoService";
 import { listarFotos } from "../../services/galeriaService";
+import { carregarPlaylist } from "../../services/playlistService";
+import { listarLocais } from "../../services/mapaService";
+import {
+  listarMensagens,
+  listarParticipantes,
+} from "../../services/chatService";
+import { api, USE_API } from "../../services/config";
 import ImageAdjuster from "../../components/ImageAdjuster";
 import ImageChoiceModal from "../../components/ImageChoiceModal";
 
@@ -135,7 +142,15 @@ export default function Perfil() {
   const inputCapa = useRef(null);
   const [ajuste, setAjuste] = useState(null); // imagem em ajuste (crop) ou null
   const [escolha, setEscolha] = useState(null); // { config, inputRef } ou null
-  const [stats, setStats] = useState({ eventos: 0, fotos: 0, musicas: 0 });
+  const [stats, setStats] = useState({
+    eventos: 0,
+    fotos: 0,
+    galerias: 0,
+    playlists: 0,
+    mapas: 0,
+    chats: 0,
+    contatos: 0,
+  });
   const demo = ehModoDemo();
 
   // A mensagem de sucesso some sozinha depois de alguns segundos.
@@ -147,27 +162,148 @@ export default function Perfil() {
 
   useEffect(() => {
     let ativo = true;
+    let carregandoEstatisticas = false;
 
     async function carregarEstatisticas() {
+      if (carregandoEstatisticas) return;
+      carregandoEstatisticas = true;
+
       try {
         const eventos = await listarEventos();
         const eventosArr = Array.isArray(eventos) ? eventos : [];
-        const fotos = eventosArr.reduce(
-          (soma, evento) => soma + (listarFotos(evento.id)?.length || 0),
+        const resultadosFotos = await Promise.allSettled(
+          eventosArr.map(async (evento) => {
+            const fotos = await listarFotos(evento.id);
+            return Array.isArray(fotos) ? fotos.length : 0;
+          }),
+        );
+        const quantidadesFotos = resultadosFotos.map((resultado, indice) => {
+          if (resultado.status === "fulfilled") return resultado.value;
+          console.error(
+            `Não foi possível carregar as fotos do evento ${eventosArr[indice].id}:`,
+            resultado.reason,
+          );
+          return 0;
+        });
+        const fotos = quantidadesFotos.reduce(
+          (total, quantidade) => total + quantidade,
           0,
+        );
+        const galerias = eventosArr.length;
+        const resultadosPlaylists = await Promise.allSettled(
+          eventosArr.map((evento) =>
+            carregarPlaylist(evento.id).then(Boolean),
+          ),
+        );
+        const playlists = resultadosPlaylists.filter((resultado, indice) => {
+          if (resultado.status === "fulfilled") return resultado.value;
+          console.error(
+            `Não foi possível carregar a playlist do evento ${eventosArr[indice].id}:`,
+            resultado.reason,
+          );
+          return false;
+        }).length;
+        const mapas = eventosArr.reduce(
+          (total, evento) => total + listarLocais(evento.id).length,
+          0,
+        );
+        const resultadosChats = await Promise.all(
+          eventosArr.map(async (evento) => {
+            try {
+              return await listarMensagens(evento.id);
+            } catch (erro) {
+              console.error(
+                `Não foi possível carregar o chat do evento ${evento.id}:`,
+                erro,
+              );
+              return [];
+            }
+          }),
+        );
+        const chats = resultadosChats.filter(
+          (mensagens) => Array.isArray(mensagens) && mensagens.length > 0,
+        ).length;
+        const usuarioAtual = getUsuarioLogado() || {};
+        const usuarioId = usuarioAtual.id_usuario;
+        const contatosPorEvento = await Promise.all(
+          eventosArr.map(async (evento) => {
+            try {
+              if (USE_API.eventos) {
+                const { data } = await api.get(
+                  `/eventos/${evento.id}/participantes`,
+                );
+                return (Array.isArray(data) ? data : [])
+                  .filter(
+                    (participante) =>
+                      String(participante.id_usuario) !== String(usuarioId),
+                  )
+                  .map((participante) => ({
+                    id: participante.id_usuario,
+                    nome: participante.nome,
+                  }));
+              }
+
+              return listarParticipantes(evento.id)
+                .filter(
+                  (participante) =>
+                    participante.name !== usuarioAtual.nome,
+                )
+                .map((participante) => ({
+                  id: participante.id,
+                  nome: participante.name,
+                }));
+            } catch (erro) {
+              console.error(
+                `Não foi possível carregar os contatos do evento ${evento.id}:`,
+                erro,
+              );
+              return [];
+            }
+          }),
+        );
+        const contatosUnicos = new Set(
+          contatosPorEvento
+            .flat()
+            .map((contato) => {
+              const identificador = contato.id || contato.nome || "";
+              return String(identificador).toLocaleLowerCase();
+            })
+            .filter(Boolean),
         );
 
         if (ativo) {
-          setStats({ eventos: eventosArr.length, fotos, musicas: 0 });
+          setStats({
+            eventos: eventosArr.length,
+            fotos,
+            galerias,
+            playlists,
+            mapas,
+            chats,
+            contatos: contatosUnicos.size,
+          });
         }
       } catch (erro) {
         console.error("Não foi possível carregar as estatísticas do perfil:", erro);
+      } finally {
+        carregandoEstatisticas = false;
       }
     }
 
     carregarEstatisticas();
+    const intervalo = window.setInterval(carregarEstatisticas, 15000);
+    const atualizarAoVoltar = () => {
+      if (document.visibilityState === "visible") carregarEstatisticas();
+    };
+    window.addEventListener("focus", atualizarAoVoltar);
+    document.addEventListener("visibilitychange", atualizarAoVoltar);
+    window.addEventListener("storage", carregarEstatisticas);
+
     return () => {
       ativo = false;
+      window.clearInterval(intervalo);
+      window.removeEventListener("focus", atualizarAoVoltar);
+      document.removeEventListener("visibilitychange", atualizarAoVoltar);
+      window.removeEventListener("storage", carregarEstatisticas);
     };
   }, []);
 
@@ -506,10 +642,14 @@ export default function Perfil() {
         </div>
 
         {/* Estatísticas */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           <CardStat valor={stats.eventos} label="Eventos" />
           <CardStat valor={stats.fotos} label="Fotos" />
-          <CardStat valor={stats.musicas} label="Músicas" />
+          <CardStat valor={stats.galerias} label="Galerias" />
+          <CardStat valor={stats.playlists} label="Playlists" />
+          <CardStat valor={stats.mapas} label="Mapas" />
+          <CardStat valor={stats.chats} label="Chats" />
+          <CardStat valor={stats.contatos} label="Contatos" />
         </div>
       </div>
     </main>

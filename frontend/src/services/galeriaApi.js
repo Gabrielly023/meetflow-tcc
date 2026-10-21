@@ -12,6 +12,11 @@ export async function listarFotos(eventId) {
   return (data || []).map(fotoDaApi);
 }
 
+export async function listarLixeira(eventId) {
+  const { data } = await api.get(`/eventos/${eventId}/galeria/lixeira`);
+  return (data || []).map(fotoDaApi);
+}
+
 // Envia fotos do dispositivo. O mock reduz a imagem para uma data URL;
 // aqui reaproveitamos essa conversão e mandamos a url_foto para o backend.
 // Retorna quantas fotos foram adicionadas com sucesso.
@@ -42,12 +47,16 @@ export async function adicionarFotos(eventId, arquivos) {
 
 // Exclui a foto para todos (o backend valida se o logado é o dono da foto).
 export async function excluirParaTodos(foto) {
-  try {
-    await api.delete(`/galeria/${foto.id}`);
-    return true;
-  } catch {
-    return false;
-  }
+  await api.delete(`/galeria/${foto.id}`);
+  return true;
+}
+
+export async function restaurar(foto) {
+  await api.patch(`/galeria/${foto.id}/restaurar`);
+}
+
+export async function excluirPermanentemente(foto) {
+  await api.delete(`/galeria/${foto.id}/permanente`);
 }
 
 
@@ -55,4 +64,3 @@ export async function curtirFoto(fotoId) {
   const { data } = await api.post(`/galeria/${fotoId}/curtir`);
   return data;
 }
-

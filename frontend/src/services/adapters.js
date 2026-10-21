@@ -35,7 +35,9 @@ export function eventoDaApi(e) {
     senhaAcesso: e.senha_acesso || "",
     // Campos que dependem de colunas novas no schema (ver CONTRATO_API_FRONTEND.md):
     tipo: e.tipo || "",
-    capa: e.capa_url || "",
+    capa: e.capa_url?.startsWith("/")
+      ? `${API_URL}${e.capa_url}`
+      : e.capa_url || "",
     // Estas listas vêm de rotas separadas do evento:
     images: [], // GET /eventos/:id/galeria
     participants: [], // GET /eventos/:id/participantes

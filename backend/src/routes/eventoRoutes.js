@@ -4,9 +4,21 @@ import participanteController from "../controllers/participanteController.js";
 import galeriaController from "../controllers/galeriaController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 import chatController from "../controllers/chatController.js";
-import upload from "../config/upload.js";
+import upload, { uploadCapa } from "../config/upload.js";
 
 const router = express.Router();
+
+function receberCapa(req, res, next) {
+  uploadCapa.single("capa")(req, res, (erro) => {
+    if (!erro) return next();
+
+    const mensagem =
+      erro.code === "LIMIT_FILE_SIZE"
+        ? "A imagem da capa deve ter no máximo 5 MB."
+        : erro.message;
+    return res.status(400).json({ mensagem });
+  });
+}
 
 // Todas as rotas de evento exigem estar logado
 router.use(authMiddleware);
@@ -14,8 +26,8 @@ router.use(authMiddleware);
 router.get("/lixeira", eventoController.listarLixeira);
 router.get("/", eventoController.listar);
 router.get("/:id", eventoController.buscarPorId);
-router.post("/", eventoController.criar);
-router.put("/:id", eventoController.atualizar);
+router.post("/", receberCapa, eventoController.criar);
+router.put("/:id", receberCapa, eventoController.atualizar);
 router.patch("/:id/restaurar", eventoController.restaurar);
 router.delete("/:id/permanente", eventoController.excluirPermanentemente);
 router.delete("/:id", eventoController.deletar);
@@ -34,6 +46,7 @@ router.delete(
 );
 
 // Galeria
+router.get("/:id/galeria/lixeira", galeriaController.listarLixeira);
 router.get("/:id/galeria", galeriaController.listar);
 router.post(
   "/:id/galeria",

@@ -25,6 +25,7 @@ const MapaEvento = lazy(() => import("./pages/MapaEvento"));
 const ChatEvento = lazy(() => import("./pages/ChatEvento"));
 const GrupoEvento = lazy(() => import("./pages/GrupoEvento"));
 const MinhasGalerias = lazy(() => import("./pages/MinhasGalerias"));
+const LixeiraGeral = lazy(() => import("./pages/LixeiraGeral"));
 const MinhasPlaylists = lazy(() => import("./pages/MinhasPlaylists"));
 const MapasGerais = lazy(() => import("./pages/MapasGerais"));
 const MeusChats = lazy(() => import("./pages/MeusChats"));
@@ -84,6 +85,7 @@ function App() {
           <Route path="/usuarios" element={<HomePage />} />
           <Route path="/perfil" element={<Perfil />} />
           <Route path="/galerias" element={<MinhasGalerias />} />
+          <Route path="/lixeira" element={<LixeiraGeral />} />
           <Route path="/playlists" element={<MinhasPlaylists />} />
           <Route path="/mapas" element={<MapasGerais />} />
           <Route path="/chats" element={<MeusChats />} />
@@ -95,10 +97,12 @@ function App() {
           <Route path="/configuracoes/aparencia" element={<ConfiguracoesAparencia />} />
           <Route path="/configuracoes/dados" element={<ConfiguracoesDados />} />
           <Route path="/eventos" element={<EventosPage />} />
+          <Route path="/eventos/lixeira" element={<EventosPage />} />
           <Route path="/eventos/novo" element={<CriarEvento />} />
           <Route path="/eventos/:id" element={<EventoDetalhe />} />
           <Route path="/eventos/:id/editar" element={<EditarEvento />} />
           <Route path="/eventos/:id/galeria" element={<GaleriaEvento />} />
+          <Route path="/eventos/:id/galeria/lixeira" element={<GaleriaEvento />} />
           <Route path="/eventos/:id/playlist" element={<PlaylistEvento />} />
           <Route path="/eventos/:id/mapa" element={<MapaEvento />} />
           <Route path="/eventos/:id/chat" element={<ChatEvento />} />

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import EventCover from "../../components/EventCover";
 import {
   listarEventos,
@@ -10,7 +10,9 @@ import {
 } from "../../services/eventoService";
 
 export default function EventosPage() {
-  const [verLixeira, setVerLixeira] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const verLixeira = location.pathname === "/eventos/lixeira";
   const [atualizar, setAtualizar] = useState(0);
   const [eventos, setEventos] = useState([]);
   const [lixeira, setLixeira] = useState([]);
@@ -146,7 +148,7 @@ export default function EventosPage() {
 
                     <button
                       type="button"
-                      onClick={() => setVerLixeira(true)}
+                      onClick={() => navigate("/eventos/lixeira")}
                       className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition duration-300 hover:scale-105 hover:bg-slate-800 active:scale-95"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-4 w-4">
@@ -163,7 +165,7 @@ export default function EventosPage() {
                 ) : (
                   <button
                     type="button"
-                    onClick={() => setVerLixeira(false)}
+                    onClick={() => navigate("/eventos")}
                     className="group inline-flex items-center justify-center gap-1 rounded-2xl border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 transition duration-300 hover:scale-105 hover:bg-slate-800 active:scale-95"
                   >
                     <span className="inline-block transition-transform duration-300 group-hover:-translate-x-1">

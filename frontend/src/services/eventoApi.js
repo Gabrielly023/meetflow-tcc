@@ -6,6 +6,24 @@
 import { api } from "./config";
 import { eventoDaApi, eventoParaApi } from "./adapters";
 
+async function prepararDadosEvento(dados) {
+  const payload = eventoParaApi(dados);
+  if (!payload.capa_url?.startsWith("data:")) return payload;
+
+  const resposta = await fetch(payload.capa_url);
+  const imagem = await resposta.blob();
+  const extensao = imagem.type === "image/png" ? "png" : "jpg";
+  const formulario = new FormData();
+
+  Object.entries(payload).forEach(([campo, valor]) => {
+    if (campo !== "capa_url" && valor !== null && valor !== undefined) {
+      formulario.append(campo, String(valor));
+    }
+  });
+  formulario.append("capa", imagem, `capa.${extensao}`);
+  return formulario;
+}
+
 export async function listarEventos() {
   const { data } = await api.get("/eventos");
   return (data || []).map(eventoDaApi);
@@ -25,12 +43,15 @@ export async function buscarEventoPorId(id) {
 }
 
 export async function criarEvento(dados) {
-  const { data } = await api.post("/eventos", eventoParaApi(dados));
+  const { data } = await api.post("/eventos", await prepararDadosEvento(dados));
   return eventoDaApi(data);
 }
 
 export async function atualizarEvento(id, dados) {
-  const { data } = await api.put(`/eventos/${id}`, eventoParaApi(dados));
+  const { data } = await api.put(
+    `/eventos/${id}`,
+    await prepararDadosEvento(dados),
+  );
   return eventoDaApi(data);
 }
 

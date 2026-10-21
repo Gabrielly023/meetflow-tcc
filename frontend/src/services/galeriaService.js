@@ -1,4 +1,5 @@
 import { buscarEventoPorId, getUsuarioAtualId } from "./eventoService";
+import { getUsuarioLogado } from "./usuarioService";
 import { USE_API } from "./config";
 import * as galeriaApi from "./galeriaApi";
 
@@ -10,6 +11,7 @@ import * as galeriaApi from "./galeriaApi";
 const KEY_ADD = "meetflow.galeria.adicionadas"; // { [eventId]: [ {id,url,ownerId} ] }
 const KEY_OCULTAS = "meetflow.galeria.ocultas"; // [fotoId] escondidas p/ o usuário atual
 const KEY_EXCLUIDAS = "meetflow.galeria.excluidas"; // [fotoId] excluídas para todos (seed)
+const KEY_PERMANENTES = "meetflow.galeria.permanentes";
 const KEY_ORDEM = "meetflow.galeria.ordem"; // { [eventId]: [fotoId] }
 const KEY_VOTOS = "meetflow.galeria.votos"; // { [fotoId]: [userId] } curtidas por foto
 
@@ -34,17 +36,23 @@ function salvar(chave, valor) {
 }
 
 export function isDonoFoto(foto) {
-  return Boolean(foto && foto.ownerId === getUsuarioAtualId());
+  const idUsuarioLogado = getUsuarioLogado()?.id_usuario;
+  const idsUsuario = [idUsuarioLogado, getUsuarioAtualId()]
+    .filter(Boolean)
+    .map(String);
+
+  return Boolean(foto?.ownerId && idsUsuario.includes(String(foto.ownerId)));
 }
 
 // Fotos originais do evento (vêm do campo images do evento)
 function fotosSeed(evento) {
   if (!evento) return [];
+  const permanentes = ler(KEY_PERMANENTES, []);
   return (evento.images || []).map((url, i) => ({
     id: `${evento.id}-seed-${i}`,
     url,
     ownerId: evento.ownerId || "outro",
-  }));
+  })).filter((foto) => !permanentes.includes(foto.id));
 }
 
 // Lista as fotos visíveis para o usuário atual, na ordem definida
@@ -138,6 +146,13 @@ export function removerParaMim(fotoId) {
   }
 }
 
+function removerOcultacao(fotoId) {
+  const ocultas = ler(KEY_OCULTAS, []);
+  if (ocultas.includes(fotoId)) {
+    salvar(KEY_OCULTAS, ocultas.filter((id) => id !== fotoId));
+  }
+}
+
 
 export async function listarFotosOcultas(eventId) {
   let todas;
@@ -158,8 +173,8 @@ export async function listarFotosOcultas(eventId) {
 // Exclui a foto para todos — só o dono da foto pode.
 // Não apaga de vez: vai para a lixeira (pode ser restaurada).
 export function excluirParaTodos(foto) {
-  if (USE_API.galeria) return galeriaApi.excluirParaTodos(foto);
   if (!isDonoFoto(foto)) return false;
+  if (USE_API.galeria) return galeriaApi.excluirParaTodos(foto);
   const excluidas = ler(KEY_EXCLUIDAS, []);
   if (!excluidas.includes(foto.id)) {
     salvar(KEY_EXCLUIDAS, [...excluidas, foto.id]);
@@ -173,9 +188,13 @@ export function excluirParaTodos(foto) {
 
 export async function listarLixeira(eventId) {
   let todas;
+  let excluidasNoBackend = [];
 
   if (USE_API.galeria) {
-    todas = await galeriaApi.listarFotos(eventId);
+    [todas, excluidasNoBackend] = await Promise.all([
+      galeriaApi.listarFotos(eventId),
+      galeriaApi.listarLixeira(eventId),
+    ]);
   } else {
     const evento = buscarEventoPorId(eventId);
     const adicionadas = ler(KEY_ADD, {})[eventId] || [];
@@ -185,31 +204,39 @@ export async function listarLixeira(eventId) {
   const excluidas = ler(KEY_EXCLUIDAS, []);
   const ocultas = ler(KEY_OCULTAS, []);
 
-  return todas
+  const removidasParaMim = todas
     .map((foto) => {
-      if (excluidas.includes(foto.id) && isDonoFoto(foto)) {
-        return { ...foto, motivo: "todos" };
-      }
-
       if (ocultas.includes(foto.id)) {
         return { ...foto, motivo: "mim" };
       }
-
       return null;
     })
     .filter(Boolean);
+
+  const removidasParaTodos = USE_API.galeria
+    ? excluidasNoBackend.map((foto) => ({ ...foto, motivo: "todos" }))
+    : todas
+        .filter((foto) => excluidas.includes(foto.id) && isDonoFoto(foto))
+        .map((foto) => ({ ...foto, motivo: "todos" }));
+  const idsRemovidasParaTodos = new Set(
+    removidasParaTodos.map((foto) => foto.id),
+  );
+
+  return [
+    ...removidasParaTodos,
+    ...removidasParaMim.filter((foto) => !idsRemovidasParaTodos.has(foto.id)),
+  ];
 }
 
 
 // Restaura uma foto da lixeira (volta a aparecer)
-export function restaurar(foto) {
-  const ocultas = ler(KEY_OCULTAS, []);
-  if (ocultas.includes(foto.id)) {
-    salvar(
-      KEY_OCULTAS,
-      ocultas.filter((x) => x !== foto.id),
-    );
+export async function restaurar(foto) {
+  if (foto.motivo === "todos" && USE_API.galeria) {
+    await galeriaApi.restaurar(foto);
+    return;
   }
+
+  removerOcultacao(foto.id);
   const excluidas = ler(KEY_EXCLUIDAS, []);
   if (excluidas.includes(foto.id)) {
     salvar(
@@ -217,6 +244,29 @@ export function restaurar(foto) {
       excluidas.filter((x) => x !== foto.id),
     );
   }
+}
+
+export async function excluirPermanentemente(foto) {
+  if (foto.motivo === "todos" && USE_API.galeria) {
+    if (!isDonoFoto(foto)) {
+      throw new Error("Apenas quem enviou a foto pode excluí-la permanentemente.");
+    }
+    await galeriaApi.excluirPermanentemente(foto);
+  } else if (foto.motivo === "todos") {
+    const excluidas = ler(KEY_EXCLUIDAS, []);
+    salvar(KEY_EXCLUIDAS, excluidas.filter((id) => id !== foto.id));
+    salvar(KEY_PERMANENTES, [...ler(KEY_PERMANENTES, []), foto.id]);
+
+    const adicionadas = ler(KEY_ADD, {});
+    Object.keys(adicionadas).forEach((eventId) => {
+      adicionadas[eventId] = adicionadas[eventId].filter(
+        (adicionada) => adicionada.id !== foto.id,
+      );
+    });
+    salvar(KEY_ADD, adicionadas);
+  }
+
+  removerOcultacao(foto.id);
 }
 
 // Salva a nova ordem das fotos do evento

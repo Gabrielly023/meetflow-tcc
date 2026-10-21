@@ -124,8 +124,8 @@ const menuItems = [
     ),
   },
   {
-    title: "Lixeira",
-    href: "#",
+    title: "Lixeira geral",
+    to: "/lixeira",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"

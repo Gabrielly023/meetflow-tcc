@@ -114,6 +114,7 @@ model Galeria {
   id_foto    String   @id @default(uuid()) @db.Char(36)
   url_foto   String?  @db.VarChar(500)
   postado_em DateTime @default(now())
+  excluido_em DateTime?
 
   id_evento  String
   id_usuario String

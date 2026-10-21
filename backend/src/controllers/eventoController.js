@@ -1,6 +1,36 @@
 import { prisma } from "../config/db.js";
 import validator from "validator";
 import { sanitizarTexto } from "../utils/sanitize.js";
+import { unlink } from "fs/promises";
+import path from "path";
+
+async function removerArquivoCapa(arquivo) {
+  if (!arquivo?.path) return;
+  try {
+    await unlink(arquivo.path);
+  } catch (error) {
+    if (error.code !== "ENOENT") {
+      console.error("Não foi possível remover o arquivo de capa:", error);
+    }
+  }
+}
+
+async function removerCapaAnterior(url) {
+  const prefixo = "/uploads/eventos/";
+  if (typeof url !== "string" || !url.startsWith(prefixo)) return;
+
+  const pastaUploads = path.resolve("uploads/eventos");
+  const caminho = path.resolve(pastaUploads, path.basename(url));
+  if (!caminho.startsWith(`${pastaUploads}${path.sep}`)) return;
+
+  try {
+    await unlink(caminho);
+  } catch (error) {
+    if (error.code !== "ENOENT") {
+      console.error("Não foi possível remover a capa anterior:", error);
+    }
+  }
+}
 
 // Organizador OU participante do evento
 async function temAcesso(evento, id_usuario) {
@@ -117,8 +147,10 @@ const eventoController = {
         senha_acesso,
         descricao
       } = req.body;
+      if (req.file) capa_url = `/uploads/eventos/${req.file.filename}`;
 
       if (!titulo || !data_hora) {
+        await removerArquivoCapa(req.file);
         return res.status(400).json({
           mensagem: "Preencha os campos obrigatórios: título e data."
         });
@@ -129,6 +161,7 @@ const eventoController = {
 
       // Valida se a data enviada é válida de verdade
       if (isNaN(new Date(data_hora).getTime())) {
+        await removerArquivoCapa(req.file);
         return res.status(400).json({ mensagem: "data_hora inválida." });
       }
 
@@ -139,7 +172,7 @@ const eventoController = {
       if (tipo) tipo = sanitizarTexto(tipo);
 
       // Valida URLs
-      if (capa_url && !validator.isURL(capa_url)) {
+      if (capa_url && !req.file && !validator.isURL(capa_url)) {
         return res
           .status(400)
           .json({ mensagem: "capa_url deve ser uma URL válida." });
@@ -170,6 +203,7 @@ const eventoController = {
 
       res.status(201).json(evento);
     } catch (error) {
+      await removerArquivoCapa(req.file);
       console.error(error);
       res.status(500).json({ mensagem: "Erro ao criar evento." });
     }
@@ -186,10 +220,12 @@ const eventoController = {
       });
 
       if (!evento) {
+        await removerArquivoCapa(req.file);
         return res.status(404).json({ mensagem: "Evento não encontrado." });
       }
 
       if (evento.id_usuario !== id_usuario) {
+        await removerArquivoCapa(req.file);
         return res.status(403).json({
           mensagem: "Apenas o organizador pode editar este evento."
         });
@@ -205,6 +241,7 @@ const eventoController = {
         tipo,
         capa_url
       } = req.body;
+      if (req.file) capa_url = `/uploads/eventos/${req.file.filename}`;
 
       // Sanitizar
       if (titulo) titulo = sanitizarTexto(titulo);
@@ -213,12 +250,13 @@ const eventoController = {
       if (tipo) tipo = sanitizarTexto(tipo);
 
       // Valida URL da capa, se for enviada
-      if (capa_url && !validator.isURL(capa_url)) {
+      if (capa_url && !req.file && !validator.isURL(capa_url)) {
         return res
           .status(400)
           .json({ mensagem: "capa_url deve ser uma URL válida." });
       }
 
+      const capaAnterior = evento.capa_url;
       const eventoAtualizado = await prisma.evento.update({
         where: { id_evento: id },
         data: {
@@ -233,8 +271,10 @@ const eventoController = {
         }
       });
 
+      if (req.file) await removerCapaAnterior(capaAnterior);
       res.json(eventoAtualizado);
     } catch (error) {
+      await removerArquivoCapa(req.file);
       console.error(error);
       res.status(500).json({ mensagem: "Erro ao atualizar evento." });
     }
