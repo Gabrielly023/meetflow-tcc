@@ -46,6 +46,8 @@ const Login = () => {
   };
 
   const handleGoogle = useGoogleLogin({
+    prompt: "select_account",
+
     onSuccess: async (tokenResponse) => {
       setLoading(true);
       setError("");
