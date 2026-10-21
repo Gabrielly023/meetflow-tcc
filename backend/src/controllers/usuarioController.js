@@ -145,17 +145,32 @@ const usuarioController = {
       }
 
       // Verifica se e-mail ou username já existem
-      const usuarioExistente = await prisma.usuario.findFirst({
-        where: {
-          OR: [{ email }, { username }]
-        }
+      const emailNormalizado = email.trim().toLowerCase();
+
+      const emailExistente = await prisma.usuario.findUnique({
+        where: { email: emailNormalizado },
       });
 
-      if (usuarioExistente) {
+      if (emailExistente) {
         return res.status(409).json({
-          mensagem: "Email ou nome de usuário já cadastrado."
+          mensagem: "Este e-mail já está cadastrado no MeetFlow.",
         });
       }
+
+      // Verifica se o username já está cadastrado
+      const usernameExistente = await prisma.usuario.findUnique({
+        where: { username },
+      });
+
+      if (usernameExistente) {
+        return res.status(409).json({
+          mensagem:
+            "Este nome de usuário já está cadastrado. Escolha outro.",
+        });
+      }
+
+      // Mantém o e-mail normalizado para salvar no banco
+      email = emailNormalizado;
 
       const senhaCriptografada = await bcrypt.hash(senha, 10);
 
@@ -489,6 +504,45 @@ if (telefone && (telefoneLimpo.length < 10 || telefoneLimpo.length > 11)) {
       return res.status(500).json({ mensagem: "Erro ao atualizar usuário." });
     }
   },
+
+  
+  // VERIFICAR E-MAIL DO GOOGLE NO CADASTRO
+  async verificarEmailGoogle(req, res) {
+    try {
+      const email = String(req.body.email || "")
+        .trim()
+        .toLowerCase();
+
+      if (!email || !validator.isEmail(email)) {
+        return res.status(400).json({
+          mensagem: "Informe um e-mail válido.",
+        });
+      }
+
+      const usuario = await prisma.usuario.findUnique({
+        where: { email },
+        select: { id_usuario: true },
+      });
+
+      if (usuario) {
+        return res.status(409).json({
+          mensagem:
+            "Este e-mail já possui cadastro no MeetFlow. Faça login.",
+        });
+      }
+
+      return res.status(200).json({
+        mensagem: "E-mail disponível para cadastro.",
+      });
+    } catch (error) {
+      console.error("Erro ao verificar e-mail Google:", error);
+
+      return res.status(500).json({
+        mensagem: "Erro ao verificar o e-mail. Tente novamente.",
+      });
+    }
+  },
+
   
   // GOOGLE LOGIN
   async googleLogin(req, res) {
