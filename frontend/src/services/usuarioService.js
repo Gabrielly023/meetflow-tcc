@@ -1,7 +1,8 @@
-import { api, REFRESH_TOKEN_KEY, TOKEN_KEY } from "./config";
+import { api, TOKEN_KEY } from "./config";
 
 // Chaves usadas no localStorage
 const USUARIO_KEY = "meetflow.usuario";
+const REFRESH_TOKEN_KEY = "meetflow.refreshToken"; // ➕ NOVA CHAVE ADICIONADA
 export const EVENTO_SESSAO_ATUALIZADA = "meetflow:sessao-atualizada";
 
 // Extrai a mensagem de erro que o backend envia
@@ -91,25 +92,6 @@ export const login = async (loginOuEmail, senha) => {
   // ➕ Passa o refreshToken para a função salvarSessao
   salvarSessao(data.usuario, data.token, data.refreshToken);
   return data; // { mensagem, usuario, token, refreshToken }
-};
-
-// POST /usuarios/esqueci-senha — solicita código por e-mail
-export const solicitarRecuperacaoSenha = async (loginOuEmail) => {
-  const { data } = await api.post("/usuarios/esqueci-senha", {
-    login: loginOuEmail,
-    email: loginOuEmail,
-  });
-  return data;
-};
-
-// POST /usuarios/redefinir-senha — confirma código e altera a senha
-export const redefinirSenha = async (email, codigo, novaSenha) => {
-  const { data } = await api.post("/usuarios/redefinir-senha", {
-    email,
-    codigo,
-    novaSenha,
-  });
-  return data;
 };
 
 // ➕ NOVA FUNÇÃO: Renova o Access Token expirado usando o Refresh Token

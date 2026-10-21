@@ -62,10 +62,6 @@ const inputClass =
 
 const labelClass = "mb-2 block text-sm font-medium text-slate-200";
 
-// Formulário compartilhado para criar e editar eventos.
-// - valorInicial: preenche os campos (usado na edição)
-// - onSubmit(dados): recebe os dados já validados
-// - textoBotao / cancelarHref: variam entre criar e editar
 export default function EventoForm({
   valorInicial = {},
   onSubmit,
@@ -85,23 +81,19 @@ export default function EventoForm({
     local: valorInicial.local || "",
     senhaAcesso: valorInicial.senhaAcesso || "",
     descricao: valorInicial.descricao || "",
-    // Extras opcionais (aplicados na criação/edição; não ficam no objeto evento).
-    // Na edição, vêm preenchidos com o que o evento já tiver (ver EditarEvento).
     mapaLink: valorInicial.mapaLink || "",
     playlistLink: valorInicial.playlistLink || "",
   });
   const [capa, setCapa] = useState(valorInicial.capa || "");
-  const [capaOrig, setCapaOrig] = useState(valorInicial.capaOrig || ""); // original p/ reajustar
+  const [capaOrig, setCapaOrig] = useState(valorInicial.capaOrig || "");
   const [capaErro, setCapaErro] = useState(false);
-  const [ajusteCapa, setAjusteCapa] = useState(null); // imagem em ajuste ou null
-  const [escolhaCapa, setEscolhaCapa] = useState(false); // modal "ajustar/outra"
-  const [arrastando, setArrastando] = useState(false); // feedback de drag-and-drop
+  const [ajusteCapa, setAjusteCapa] = useState(null);
+  const [escolhaCapa, setEscolhaCapa] = useState(false);
+  const [arrastando, setArrastando] = useState(false);
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
   const inputCapaRef = useRef(null);
 
-  // A capa atual só é ajustável se for uma imagem enviada (data URL); links
-  // externos não podem ser recortados (bloqueio de segurança/CORS do canvas).
   const capaAjustavel = capa.startsWith("data:") && !capaErro;
 
   function aoClicarEnviar() {
@@ -109,8 +101,6 @@ export default function EventoForm({
     else inputCapaRef.current?.click();
   }
 
-  // Sempre que a capa muda, zera o erro para tentar carregar de novo
-  // (padrão de ajuste de estado durante o render, ao mudar o valor anterior)
   const [capaAnterior, setCapaAnterior] = useState(capa);
   if (capa !== capaAnterior) {
     setCapaAnterior(capa);
@@ -122,7 +112,6 @@ export default function EventoForm({
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  // Participantes/convidados adicionados já na criação do evento.
   function adicionarParticipanteLocal() {
     const nome = novoParticipante.trim();
     if (!nome) return;
@@ -138,8 +127,6 @@ export default function EventoForm({
     setParticipantes((prev) => prev.filter((p) => p !== nome));
   }
 
-  // Processa uma imagem (vinda do seletor OU de arrastar-e-soltar): valida,
-  // reduz e abre o ajustador (crop) antes de aplicar a capa.
   async function processarArquivo(arquivo) {
     if (!arquivo) return;
     if (!arquivo.type.startsWith("image/")) {
@@ -157,11 +144,10 @@ export default function EventoForm({
 
   function handleArquivo(event) {
     const arquivo = event.target.files?.[0];
-    event.target.value = ""; // permite reescolher o mesmo arquivo
+    event.target.value = "";
     processarArquivo(arquivo);
   }
 
-  // Arrastar e soltar uma imagem na área da capa
   function handleDrop(event) {
     event.preventDefault();
     setArrastando(false);
@@ -175,6 +161,37 @@ export default function EventoForm({
     event.preventDefault();
     setArrastando(false);
   }
+
+  // Função para enviar os dados para a API (trata a confirmação de evento duplicado)
+  // Função para enviar os dados para a API
+async function executarEnvio(dadosPayload, confirmarDuplicado = false) {
+  try {
+    // Garante que a flag confirmarDuplicado vá junto com os dados para a API/onSubmit
+    await onSubmit({ 
+      ...dadosPayload, 
+      confirmarDuplicado 
+    });
+  } catch (err) {
+    // Verifica se a API retornou erro 409 (Evento Duplicado)
+    if (err?.response?.status === 409 && err?.response?.data?.existeDuplicado) {
+      const mensagemAviso = err.response.data.mensagem || "Você deseja criar um evento que ja existe";
+      const querCriarMesmoAssim = window.confirm(`${mensagemAviso}?`);
+
+      if (querCriarMesmoAssim) {
+        // Reenvia chamando a função com confirmarDuplicado = true
+        await executarEnvio(dadosPayload, true);
+      }
+      return;
+    }
+
+    console.error("Erro ao salvar evento:", err);
+    setErro(
+      err?.response?.data?.mensagem ||
+        err?.message ||
+        "Não foi possível salvar o evento. Tente novamente."
+    );
+  }
+}
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -199,7 +216,7 @@ export default function EventoForm({
 
     setSalvando(true);
     try {
-      await onSubmit({
+      const payload = {
         titulo: form.titulo.trim(),
         tipo: form.tipo,
         dataHora: form.dataHora,
@@ -212,18 +229,15 @@ export default function EventoForm({
         mapaLink: form.mapaLink.trim(),
         playlistLink: form.playlistLink.trim(),
         participantes,
-      });
-    } catch (err) {
-      console.error("Erro ao salvar evento:", err);
-      setErro(
-        err?.response?.data?.mensagem ||
-          err?.message ||
-          "Não foi possível salvar o evento. Tente novamente.",
-      );
+      };
+
+      await executarEnvio(payload, false);
     } finally {
       setSalvando(false);
     }
   }
+
+  // ... (o restante do retorno JSX do componente permanece igual)
 
   return (
     <>
