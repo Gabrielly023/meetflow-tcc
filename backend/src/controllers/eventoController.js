@@ -105,74 +105,95 @@ const eventoController = {
 
   // CRIAR EVENTO (logado vira organizador)
   async criar(req, res) {
-    try {
-      const { id_usuario } = req.usuario;
-      let {
-        capa_url,
+  try {
+    const { id_usuario } = req.usuario;
+    let {
+      capa_url,
+      titulo,
+      tipo,
+      data_hora,
+      data_hora_fim,
+      localizacao,
+      senha_acesso,
+      descricao,
+      confirmarDuplicado // Recebe a flag de confirmação do frontend
+    } = req.body;
+
+    if (!titulo || !data_hora) {
+      return res.status(400).json({
+        mensagem: "Preencha os campos obrigatórios: título e data."
+      });
+    }
+
+    senha_acesso =
+      typeof senha_acesso === "string" ? senha_acesso.trim() : "";
+
+    // Valida se a data enviada é válida de verdade
+    if (isNaN(new Date(data_hora).getTime())) {
+      return res.status(400).json({ mensagem: "data_hora inválida." });
+    }
+
+    // Sanitiza campos de texto livre
+    titulo = sanitizarTexto(titulo);
+    if (descricao) descricao = sanitizarTexto(descricao);
+    if (localizacao) localizacao = sanitizarTexto(localizacao);
+    if (tipo) tipo = sanitizarTexto(tipo);
+
+    // Valida URLs
+    if (capa_url && !validator.isURL(capa_url)) {
+      return res
+        .status(400)
+        .json({ mensagem: "capa_url deve ser uma URL válida." });
+    }
+
+    // --- VERIFICAÇÃO DE DUPLICIDADE ---
+if (!confirmarDuplicado) {
+  const eventoExistente = await prisma.evento.findFirst({
+    where: {
+      titulo: {
+        equals: titulo.trim() // Removido o mode: "insensitive"
+      }
+    }
+  });
+
+  if (eventoExistente) {
+    return res.status(409).json({
+      existeDuplicado: true,
+      mensagem: "Você deseja criar um evento que ja existe"
+    });
+  }
+}
+// ----------------------------------
+    // --------------------------------------------------
+
+    const evento = await prisma.evento.create({
+      data: {
         titulo,
-        tipo,
-        data_hora,
-        data_hora_fim,
+        descricao,
+        data_hora: new Date(data_hora),
+        data_hora_fim: data_hora_fim ? new Date(data_hora_fim) : null,
         localizacao,
         senha_acesso,
-        descricao
-      } = req.body;
-
-      if (!titulo || !data_hora) {
-        return res.status(400).json({
-          mensagem: "Preencha os campos obrigatórios: título e data."
-        });
-      }
-
-      senha_acesso =
-        typeof senha_acesso === "string" ? senha_acesso.trim() : "";
-
-      // Valida se a data enviada é válida de verdade
-      if (isNaN(new Date(data_hora).getTime())) {
-        return res.status(400).json({ mensagem: "data_hora inválida." });
-      }
-
-      // Sanitiza campos de texto livre
-      titulo = sanitizarTexto(titulo);
-      if (descricao) descricao = sanitizarTexto(descricao);
-      if (localizacao) localizacao = sanitizarTexto(localizacao);
-      if (tipo) tipo = sanitizarTexto(tipo);
-
-      // Valida URLs
-      if (capa_url && !validator.isURL(capa_url)) {
-        return res
-          .status(400)
-          .json({ mensagem: "capa_url deve ser uma URL válida." });
-      }
-
-      const evento = await prisma.evento.create({
-        data: {
-          titulo,
-          descricao,
-          data_hora: new Date(data_hora),
-          data_hora_fim: data_hora_fim ? new Date(data_hora_fim) : null,
-          localizacao,
-          senha_acesso,
-          tipo,
-          capa_url,
-          id_usuario,
-          // O criador já entra como participante, papel organizador
-          participantes: {
-            create: {
-              id_usuario,
-              papel: "organizador",
-              status: "confirmado",
-              admin: true
-            }
+        tipo,
+        capa_url,
+        id_usuario,
+        // O criador já entra como participante, papel organizador
+        participantes: {
+          create: {
+            id_usuario,
+            papel: "organizador",
+            status: "confirmado",
+            admin: true
           }
         }
-      });
+      }
+    });
 
-      res.status(201).json(evento);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ mensagem: "Erro ao criar evento." });
-    }
+    res.status(201).json(evento);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensagem: "Erro ao criar evento." });
+  }
   },
 
   // ATUALIZAR EVENTO (só organizador)
