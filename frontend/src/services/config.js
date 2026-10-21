@@ -22,7 +22,7 @@ export const USE_API = {
   playlists: false, // playlist do evento + lista colaborativa de músicas
   galeria: true, // fotos do evento
   chat: false, // mensagens do evento
-  mapas: false, // locais (Google Maps) do evento
+  mapas: true, // locais (Google Maps) do evento
 };
 
 // URL base do backend Express (a mesma usada em usuarioService.js).

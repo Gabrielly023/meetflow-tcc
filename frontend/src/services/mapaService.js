@@ -1,5 +1,5 @@
 import { buscarEventoPorId, getUsuarioAtualId, isDono } from "./eventoService";
-
+import { api, USE_API } from "./config";
 // "Backend falso" dos mapas de cada evento (persistido em localStorage).
 // Qualquer participante pode adicionar um local (link do Google Maps OU do Waze)
 // para os outros saberem onde o evento será. Espelha a lógica da galeria: cada
@@ -244,36 +244,120 @@ export function mapaDoTexto(texto) {
 }
 
 // Lista os locais adicionados a um evento.
-export function listarLocais(eventId) {
+
+/**
+ * Converte o link salvo no backend para o formato que as telas utilizam.
+ * O backend guarda somente um google_maps por evento.
+ */
+async function localDaApi(eventId, googleMaps) {
+  if (!googleMaps) return [];
+
+  const evento = await buscarEventoPorId(eventId);
+  const norm = normalizarMapa(googleMaps, "google");
+
+  if (!norm) return [];
+
+  return [
+    {
+      id: `mapa-${eventId}`,
+      label: evento?.local || "Local do evento",
+      embedUrl: norm.embedUrl,
+      linkUrl: norm.linkUrl || googleMaps,
+      provedor: "google",
+      ownerId: evento?.ownerId,
+    },
+  ];
+}
+
+// Lista os locais adicionados a um evento.
+export async function listarLocais(eventId) {
+  if (USE_API.mapas) {
+    const { data } = await api.get(`/eventos/${eventId}/local`);
+    return localDaApi(eventId, data?.google_maps);
+  }
+
   return ler()[eventId] || [];
 }
 
-// O primeiro local (usado como "principal" na prévia do evento e, no futuro,
-// na página geral de mapas).
-export function getLocalPrincipal(eventId) {
-  return listarLocais(eventId)[0] || null;
+// Retorna o primeiro local do evento.
+export async function getLocalPrincipal(eventId) {
+  const locais = await listarLocais(eventId);
+  return locais[0] || null;
 }
 
-// Diz se o local foi adicionado pelo usuário atual.
+// Indica se o mapa pertence ao usuário atual.
 export function isDonoLocal(local) {
   return Boolean(local && local.ownerId === getUsuarioAtualId());
 }
 
-// Pode remover quem adicionou o local OU o organizador do evento (moderação).
+// No backend atual, somente o organizador pode remover o mapa.
 export function podeRemoverLocal(eventId, local) {
+  if (USE_API.mapas) {
+    return isDonoLocal(local);
+  }
+
   if (isDonoLocal(local)) return true;
   return isDono(buscarEventoPorId(eventId));
 }
 
-// Adiciona um local a partir de um link/consulta do Google Maps ou do Waze.
-// `provedor` ("google" | "waze") é o app escolhido no formulário.
-// É assíncrona porque, no Waze sem coordenadas, geocodifica o endereço para
-// montar a prévia (ver geocodificar()).
-// Retorna { local } em sucesso, ou { erro: "invalido" | "duplicado" }.
-export async function adicionarLocal(eventId, entrada, label, provedor = "google") {
+// Adiciona ou salva o mapa do evento.
+export async function adicionarLocal(
+  eventId,
+  entrada,
+  label,
+  provedor = "google",
+) {
   const norm = normalizarMapa(entrada, provedor);
-  if (!norm || (!norm.embedUrl && !norm.linkUrl)) return { erro: "invalido" };
 
+  if (!norm || (!norm.embedUrl && !norm.linkUrl)) {
+    return { erro: "invalido" };
+  }
+
+  if (USE_API.mapas) {
+    let googleMaps = norm.linkUrl;
+
+    // O backend atual guarda um link do Google Maps.
+    // Se o usuário escolher Waze, convertemos para uma busca no Google Maps.
+    if (norm.provedor === "waze") {
+      const coords = coordsDeTexto(String(entrada));
+      const evento = await buscarEventoPorId(eventId);
+      const consulta =
+        coords?.join(",") ||
+        norm.consulta ||
+        label?.trim() ||
+        evento?.local;
+
+      if (!consulta) return { erro: "invalido" };
+
+      googleMaps = linkDeConsulta(consulta);
+    }
+
+    if (!googleMaps) return { erro: "invalido" };
+
+    try {
+      const { data } = await api.post(`/eventos/${eventId}/local`, {
+        google_maps: googleMaps,
+      });
+
+      const locais = await localDaApi(
+        eventId,
+        data?.google_maps || googleMaps,
+      );
+
+      return { local: locais[0] };
+    } catch (erro) {
+      console.error("Erro ao salvar mapa:", erro);
+      console.error("Resposta do backend:", erro.response?.data);
+
+      if (erro.response?.status === 403) {
+        return { erro: "sem_permissao" };
+      }
+
+      return { erro: "falha_api" };
+    }
+  }
+
+  // Comportamento antigo, usando localStorage.
   const todos = ler();
   const lista = todos[eventId] || [];
 
@@ -285,12 +369,9 @@ export async function adicionarLocal(eventId, entrada, label, provedor = "google
     return { erro: "duplicado" };
   }
 
-  const rotulo = (label || "").trim() || "Local do evento";
-
-  // Se o link não gera prévia, tentamos montar o mapa a partir de um texto:
-  // o endereço embutido no link, senão o NOME do local digitado, senão o
-  // endereço cadastrado do evento. O linkUrl continua sendo o link exato.
+  const rotulo = label?.trim() || "Local do evento";
   let embedUrl = norm.embedUrl;
+
   if (!embedUrl) {
     const alvo =
       norm.consulta ||
@@ -298,14 +379,10 @@ export async function adicionarLocal(eventId, entrada, label, provedor = "google
       buscarEventoPorId(eventId)?.local ||
       null;
 
-    if (norm.provedor === "waze") {
-      // O embed do Waze só aceita coordenadas: geocodificamos o endereço.
-      if (alvo) {
-        const coords = await geocodificar(alvo);
-        if (coords) embedUrl = embedWazeDeCoords(coords.lat, coords.lng);
-      }
+    if (norm.provedor === "waze" && alvo) {
+      const coords = await geocodificar(alvo);
+      if (coords) embedUrl = embedWazeDeCoords(coords.lat, coords.lng);
     } else if (alvo) {
-      // O Google geocodifica sozinho no embed (?q=endereço).
       embedUrl = embedDeConsulta(alvo);
     }
   }
@@ -323,17 +400,31 @@ export async function adicionarLocal(eventId, entrada, label, provedor = "google
 
   todos[eventId] = [...lista, local];
   salvar(todos);
+
   return { local };
 }
 
-// Remove um local (só o dono do local ou o organizador do evento).
-export function removerLocal(eventId, localId) {
+// Remove o mapa do evento.
+export async function removerLocal(eventId, localId) {
+  if (USE_API.mapas) {
+    try {
+      await api.delete(`/eventos/${eventId}/local`);
+      return true;
+    } catch (erro) {
+      console.error("Erro ao remover mapa:", erro);
+      console.error("Resposta do backend:", erro.response?.data);
+      return false;
+    }
+  }
+
   const todos = ler();
   const lista = todos[eventId] || [];
   const alvo = lista.find((l) => l.id === localId);
+
   if (!alvo || !podeRemoverLocal(eventId, alvo)) return false;
 
   todos[eventId] = lista.filter((l) => l.id !== localId);
   salvar(todos);
+
   return true;
 }
