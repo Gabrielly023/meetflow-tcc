@@ -33,7 +33,7 @@ export default function MapasGerais() {
               return {
                 id: evento.id,
                 principal,
-                quantidade: locais.length,
+                quantidade: Array.isArray(locais) ? locais.length : 0,
               };
             } catch (erro) {
               console.error(
@@ -82,8 +82,12 @@ export default function MapasGerais() {
     };
   }, []);
 
-  const totalLocais = Object.values(mapas).reduce(
-    (soma, mapa) => soma + mapa.quantidade,
+  const totalMapas = Object.values(mapas).reduce(
+    (soma, mapa) =>
+      soma +
+      (Number.isFinite(mapa?.quantidade) && mapa.quantidade > 0
+        ? mapa.quantidade
+        : 0),
     0,
   );
 
@@ -107,10 +111,10 @@ export default function MapasGerais() {
           <div className="rounded-2xl bg-gradient-to-br from-violet-500 to-sky-500 p-[1.5px] shadow-lg shadow-violet-500/25">
             <div className="rounded-2xl bg-slate-900 px-5 py-3 text-center">
               <p className="texto-gradiente-2 text-2xl font-semibold">
-                {totalLocais}
+                {totalMapas}
               </p>
               <p className="text-xs text-slate-400">
-                {totalLocais === 1 ? "local marcado" : "locais marcados"}
+                {totalMapas === 1 ? "mapa" : "mapas"}
               </p>
             </div>
           </div>

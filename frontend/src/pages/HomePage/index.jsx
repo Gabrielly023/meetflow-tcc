@@ -9,12 +9,13 @@ import {
   carregarPlaylist,
   getCapaPlaylist,
 } from "../../services/playlistService";
-import { getLocalPrincipal, listarLocais } from "../../services/mapaService";
+import { listarLocais } from "../../services/mapaService";
 import { contarNaoLidas } from "../../services/chatService";
 import { listarLixeira } from "../../services/galeriaService";
 
 export default function HomePage() {
   const [eventos, setEventos] = useState([]);
+  const [mapasHome, setMapasHome] = useState([]);
   const [eventosExcluidosHome, setEventosExcluidosHome] = useState([]);
   const [playlistsHome, setPlaylistsHome] = useState([]);
   const [fotosExcluidasHome, setFotosExcluidasHome] = useState([]);
@@ -80,6 +81,43 @@ useEffect(() => {
   };
 }, [eventos]);
 
+useEffect(() => {
+  let ativo = true;
+
+  async function carregarMapasHome() {
+    const resultados = await Promise.allSettled(
+      eventos.map(async (evento) => ({
+        evento,
+        locais: await listarLocais(evento.id),
+      })),
+    );
+    const mapas = resultados.flatMap((resultado, indice) => {
+      if (resultado.status === "fulfilled") {
+        const locais = Array.isArray(resultado.value.locais)
+          ? resultado.value.locais
+          : [];
+        return locais.length > 0
+          ? [{ ...resultado.value, locais }]
+          : [];
+      }
+
+      console.error(
+        `Não foi possível carregar os locais do evento ${eventos[indice].id}:`,
+        resultado.reason,
+      );
+      return [];
+    });
+
+    if (ativo) setMapasHome(mapas);
+  }
+
+  carregarMapasHome();
+
+  return () => {
+    ativo = false;
+  };
+}, [eventos]);
+
 const capas = eventos
   .map((ev) => ev.capa || ev.images?.[0])
   .filter(Boolean)
@@ -138,13 +176,14 @@ const eventosPreviewGalerias = eventos.slice(0, 4);
   const capaProximo = proximo?.capa || proximo?.images?.[0];
 
   // Mapas: eventos com um local marcado (para as miniaturas) e total de locais
-  const eventosComLocal = eventos.filter((ev) => getLocalPrincipal(ev.id));
-  const tilesMapa = eventosComLocal
+  const tilesMapa = mapasHome
+    .map(({ evento }) => evento)
     .map((ev) => ev.capa || ev.images?.[0])
     .filter(Boolean)
     .slice(0, 4);
-  const totalLocais = eventos.reduce(
-    (soma, ev) => soma + listarLocais(ev.id).length,
+  const totalMapas = mapasHome.reduce(
+    (soma, mapa) =>
+      soma + (Array.isArray(mapa.locais) ? mapa.locais.length : 0),
     0,
   );
   // Chats: total de mensagens não lidas em todos os eventos
@@ -420,7 +459,7 @@ const eventosPreviewGalerias = eventos.slice(0, 4);
                   </p>
                 </div>
 
-                {tilesMapa.length > 0 && (
+                {totalMapas > 0 && (
                   <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
                     {tilesMapa.map((url, i) => (
                       <div
@@ -431,16 +470,17 @@ const eventosPreviewGalerias = eventos.slice(0, 4);
                       </div>
                     ))}
                     <div className="flex h-16 items-center rounded-xl px-3 text-sm text-slate-400">
-                      {totalLocais} {totalLocais === 1 ? "local" : "locais"}
+                      {totalMapas} {totalMapas === 1 ? "mapa" : "mapas"}
                     </div>
                   </div>
                 )}
               </Link>
 
+              <div className="order-5 grid content-start gap-6 self-start">
               {/* Bloco: Meus chats */}
               <Link
                 to="/chats"
-                className="home-dashboard-card group relative order-5 rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="home-dashboard-card group relative self-start rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
                 <span className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
                   →
@@ -479,10 +519,36 @@ const eventosPreviewGalerias = eventos.slice(0, 4);
                 )}
               </Link>
 
+              {/* Bloco: Configurações */}
+              <Link
+                to="/configuracoes"
+                className="home-dashboard-card group relative self-start rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+              >
+                <span className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
+                  →
+                </span>
+                <div className="text-center">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 shadow-lg shadow-fuchsia-500/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-6 w-6 text-white">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-semibold text-white">
+                    Configurações
+                  </h2>
+                  <p className="mt-2 text-sm text-slate-400">
+                    Personalize sua conta, privacidade, notificações e aparência.
+                  </p>
+                </div>
+              </Link>
+              </div>
+
               {/* Bloco: Meus contatos */}
+              <div className="order-6 grid content-start gap-6 self-start">
               <Link
                 to="/contatos"
-                className="home-dashboard-card group relative order-6 self-start rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="home-dashboard-card group relative self-start rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
                 <span className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
                   →
@@ -506,7 +572,7 @@ const eventosPreviewGalerias = eventos.slice(0, 4);
               <Link
                 to="/lixeira"
                 aria-label="Abrir lixeira geral"
-                className="home-dashboard-card group relative order-8 self-start rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+                className="home-dashboard-card group relative self-start rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
               >
                 <span aria-hidden="true" className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
                   →
@@ -524,76 +590,54 @@ const eventosPreviewGalerias = eventos.slice(0, 4);
                     Acesse as lixeiras de eventos e das fotos das galerias.
                   </p>
                 </div>
-                {fotosExcluidasHome.length > 0 && (
-                  <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-                    {fotosExcluidasHome.slice(0, 4).map((foto) => (
-                      <div
-                        key={`${foto.eventoId}-${foto.id}`}
-                        className="h-16 w-16 overflow-hidden rounded-xl border border-slate-800/60"
-                      >
-                        <img
-                          src={foto.url}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
+                <div className="mt-5 flex items-center justify-center gap-3">
+                  <div
+                    className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-slate-800/60"
+                    aria-label={`${eventosExcluidosHome.length} eventos excluídos`}
+                  >
+                    {eventosExcluidosHome.length > 0 ? (
+                      <EventCover
+                        capa={eventosExcluidosHome[0].capa || eventosExcluidosHome[0].images?.[0]}
+                        tipo={eventosExcluidosHome[0].tipo}
+                        titulo={eventosExcluidosHome[0].titulo}
+                        heightClass="h-full"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center bg-slate-950/50 text-xs text-slate-400">
+                        0
                       </div>
-                    ))}
-                    <div className="flex h-16 items-center rounded-xl px-3 text-sm text-slate-400">
-                      {fotosExcluidasHome.length}{" "}
-                      {fotosExcluidasHome.length === 1
-                        ? "foto excluída"
-                        : "fotos excluídas"}
-                    </div>
+                    )}
+                    <span className="absolute bottom-1 right-1 rounded-md bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                      {eventosExcluidosHome.length}
+                    </span>
                   </div>
-                )}
-                {eventosExcluidosHome.length > 0 && (
-                  <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-                    {eventosExcluidosHome.slice(0, 4).map((evento) => (
-                      <div
-                        key={evento.id}
-                        className="h-16 w-16 overflow-hidden rounded-xl border border-slate-800/60 opacity-75"
-                      >
-                        <EventCover
-                          capa={evento.capa || evento.images?.[0]}
-                          tipo={evento.tipo}
-                          titulo={evento.titulo}
-                          heightClass="h-full"
-                        />
-                      </div>
-                    ))}
-                    <div className="flex h-16 items-center rounded-xl px-3 text-sm text-slate-400">
-                      {eventosExcluidosHome.length}{" "}
-                      {eventosExcluidosHome.length === 1
-                        ? "evento excluído"
-                        : "eventos excluídos"}
-                    </div>
+                  <div
+                    className="flex h-16 w-48 shrink-0 items-center gap-1.5 overflow-x-auto rounded-xl border border-slate-800/60 bg-slate-950/30 p-1.5"
+                    aria-label={`${fotosExcluidasHome.length} fotos excluídas das galerias`}
+                  >
+                    {fotosExcluidasHome.length > 0 ? (
+                      fotosExcluidasHome.map((foto) => (
+                        <div
+                          key={`${foto.eventoId}-${foto.id}`}
+                          className="h-12 w-12 shrink-0 overflow-hidden rounded-lg"
+                        >
+                          <img
+                            src={foto.url}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      ))
+                    ) : (
+                      <span className="w-full text-center text-xs text-slate-500">
+                        Sem fotos excluídas
+                      </span>
+                    )}
                   </div>
-                )}
-              </Link>
-
-              {/* Bloco: Configurações */}
-              <Link
-                to="/configuracoes"
-                className="home-dashboard-card group relative order-7 self-start rounded-3xl border border-slate-800/70 bg-gradient-to-b from-violet-500/15 to-sky-500/15 p-6 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
-              >
-                <span className="absolute right-6 top-6 text-fuchsia-400 transition group-hover:translate-x-1">
-                  →
-                </span>
-                <div className="text-center">
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 via-fuchsia-500 to-sky-500 shadow-lg shadow-fuchsia-500/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.7" stroke="currentColor" className="h-6 w-6 text-white">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </div>
-                  <h2 className="text-xl font-semibold text-white">
-                    Configurações
-                  </h2>
-                  <p className="mt-2 text-sm text-slate-400">
-                    Personalize sua conta, privacidade, notificações e aparência.
-                  </p>
                 </div>
               </Link>
+
+              </div>
             </div>
           </div>
     </main>

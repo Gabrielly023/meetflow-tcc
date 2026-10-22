@@ -1,35 +1,57 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import EventCover from "../../components/EventCover";
-import { listarEventos, ordenarPorData } from "../../services/eventoService";
+import {
+  listarEventos,
+  listarLixeiraEventos,
+  ordenarPorData,
+} from "../../services/eventoService";
 
 export default function LixeiraGeral() {
   const [eventos, setEventos] = useState([]);
+  const [eventosExcluidos, setEventosExcluidos] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
 
   useEffect(() => {
     let ativo = true;
 
-    Promise.resolve()
-      .then(() => listarEventos())
-      .then((dados) => {
-        if (ativo) setEventos(ordenarPorData(dados));
-      })
-      .catch((erroEventos) => {
-        console.error("Erro ao carregar eventos para a lixeira geral:", erroEventos);
-        if (ativo) {
-          setErro("Não foi possível carregar os eventos.");
+    Promise.allSettled([
+      Promise.resolve().then(() => listarEventos()),
+      Promise.resolve().then(() => listarLixeiraEventos()),
+    ]).then(([resultadoEventos, resultadoLixeira]) => {
+        if (!ativo) return;
+
+        const mensagensErro = [];
+        if (resultadoEventos.status === "fulfilled") {
+          setEventos(ordenarPorData(resultadoEventos.value));
+        } else {
+          console.error(
+            "Erro ao carregar eventos para a lixeira geral:",
+            resultadoEventos.reason,
+          );
+          mensagensErro.push("Não foi possível carregar os eventos.");
         }
-      })
-      .finally(() => {
-        if (ativo) setCarregando(false);
-      });
+
+        if (resultadoLixeira.status === "fulfilled") {
+          setEventosExcluidos(ordenarPorData(resultadoLixeira.value));
+        } else {
+          console.error(
+            "Erro ao carregar eventos excluídos para a lixeira geral:",
+            resultadoLixeira.reason,
+          );
+          mensagensErro.push("Não foi possível carregar os eventos excluídos.");
+        }
+        setErro(mensagensErro.join(" "));
+        setCarregando(false);
+    });
 
     return () => {
       ativo = false;
     };
   }, []);
+
+  const eventoExcluidoComCapa = eventosExcluidos.find((evento) => evento.capa);
 
   return (
     <main className="flex-1 px-6 py-8 lg:px-10">
@@ -58,9 +80,22 @@ export default function LixeiraGeral() {
         <div className="grid gap-6 lg:grid-cols-2">
           <Link
             to="/eventos/lixeira"
-            className="group flex min-h-56 flex-col justify-between rounded-3xl border border-slate-800/70 bg-slate-900/70 p-7 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
+            className="group relative flex min-h-56 flex-col justify-between overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-900/70 p-7 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20"
           >
-            <div className="flex items-start justify-between gap-4">
+            {eventoExcluidoComCapa && (
+              <>
+                <div className="pointer-events-none absolute inset-0 opacity-45 transition-opacity duration-300 group-hover:opacity-55">
+                  <EventCover
+                    capa={eventoExcluidoComCapa.capa}
+                    tipo={eventoExcluidoComCapa.tipo}
+                    titulo={eventoExcluidoComCapa.titulo}
+                    heightClass="h-full"
+                  />
+                </div>
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-900/85 via-slate-900/65 to-slate-900/30" />
+              </>
+            )}
+            <div className="relative z-10 flex items-start justify-between gap-4">
               <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/20 to-sky-500/20 text-fuchsia-300">
                 <svg
                   className="h-6 w-6"
@@ -81,7 +116,7 @@ export default function LixeiraGeral() {
                 Eventos
               </span>
             </div>
-            <div className="mt-8 flex items-end justify-between gap-4">
+            <div className="relative z-10 mt-8 flex items-end justify-between gap-4">
               <div>
                 <h2 className="text-xl font-semibold text-white">
                   Eventos excluídos
@@ -96,8 +131,8 @@ export default function LixeiraGeral() {
             </div>
           </Link>
 
-          <section className="rounded-3xl border border-slate-800/70 bg-slate-900/70 p-7 shadow-xl shadow-black/20">
-            <div className="flex items-start justify-between gap-4">
+          <section className="group relative overflow-hidden rounded-3xl border border-slate-800/70 bg-slate-900/70 p-7 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-fuchsia-500/50 hover:shadow-2xl hover:shadow-fuchsia-500/20">
+            <div className="relative z-10 flex items-start justify-between gap-4">
               <div>
                 <p className="texto-gradiente-2 text-xs font-semibold uppercase tracking-[0.25em]">
                   Galerias
@@ -127,45 +162,47 @@ export default function LixeiraGeral() {
               </span>
             </div>
 
-            {carregando ? (
-              <p role="status" className="mt-6 text-sm text-slate-400">
-                Carregando eventos…
-              </p>
-            ) : eventos.length === 0 ? (
-              <div className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-950/40 p-6 text-center text-sm text-slate-400">
-                Você ainda não tem eventos com galerias.
-              </div>
-            ) : (
-              <div className="mt-6 max-h-[34rem] space-y-3 overflow-y-auto pr-1">
-                {eventos.map((evento) => (
-                  <Link
-                    key={evento.id}
-                    to={`/eventos/${evento.id}/galeria/lixeira`}
-                    className="group flex items-center gap-4 rounded-2xl border border-slate-800 bg-slate-950/50 p-3 transition duration-300 hover:-translate-y-0.5 hover:border-fuchsia-500/40 hover:bg-slate-900"
-                  >
-                    <div className="h-16 w-20 shrink-0 overflow-hidden rounded-xl">
-                      <EventCover
-                        capa={evento.capa}
-                        tipo={evento.tipo}
-                        titulo={evento.titulo}
-                        heightClass="h-full"
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="truncate font-semibold text-white">
-                        {evento.titulo}
-                      </h3>
-                      <p className="mt-1 truncate text-sm text-slate-400">
-                        {evento.data || "Abrir lixeira da galeria"}
-                      </p>
-                    </div>
-                    <span className="text-xl text-fuchsia-400 transition-transform duration-300 group-hover:translate-x-1">
-                      →
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            )}
+            <div className="relative z-10">
+              {carregando ? (
+                <p role="status" className="mt-6 text-sm text-slate-400">
+                  Carregando eventos…
+                </p>
+              ) : eventos.length === 0 ? (
+                <div className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-950/40 p-6 text-center text-sm text-slate-400">
+                  Você ainda não tem eventos com galerias.
+                </div>
+              ) : (
+                <div className="mt-6 max-h-[34rem] space-y-3 overflow-y-auto pr-1">
+                  {eventos.map((evento) => (
+                    <Link
+                      key={evento.id}
+                      to={`/eventos/${evento.id}/galeria/lixeira`}
+                      className="group flex items-center gap-4 rounded-2xl border border-slate-800 bg-slate-950/50 p-3 transition duration-300 hover:-translate-y-0.5 hover:border-fuchsia-500/40 hover:bg-slate-900"
+                    >
+                      <div className="h-16 w-20 shrink-0 overflow-hidden rounded-xl">
+                        <EventCover
+                          capa={evento.capa}
+                          tipo={evento.tipo}
+                          titulo={evento.titulo}
+                          heightClass="h-full"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate font-semibold text-white">
+                          {evento.titulo}
+                        </h3>
+                        <p className="mt-1 truncate text-sm text-slate-400">
+                          {evento.data || "Abrir lixeira da galeria"}
+                        </p>
+                      </div>
+                      <span className="text-xl text-fuchsia-400 transition-transform duration-300 group-hover:translate-x-1">
+                        →
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </section>
         </div>
       </div>
