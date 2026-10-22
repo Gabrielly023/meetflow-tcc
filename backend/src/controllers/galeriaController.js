@@ -135,28 +135,21 @@ async adicionar(req, res) {
     const { id } = req.params;
     const { id_usuario } = req.usuario;
 
-    // O arquivo é recebido pelo Multer
-    if (!req.file) {
+    // Se o upload falhar ou o arquivo não vier, retorna erro
+    if (!req.file || !req.file.path) {
       return res.status(400).json({ mensagem: "Envie uma imagem." });
     }
 
-    // Salva somente o caminho da imagem no banco
-    const url_foto = `/uploads/galeria/${req.file.filename}`;
-
-    const apagarArquivo = async () => {
-      const fs = await import("fs/promises");
-      await fs.unlink(req.file.path).catch(() => {});
-    };
+    // O Cloudinary devolve a URL remota hospedada em req.file.path
+    const url_foto = req.file.path;
 
     const { evento, permitido } = await temAcessoEvento(id, id_usuario);
 
     if (!evento) {
-      await apagarArquivo();
       return res.status(404).json({ mensagem: "Evento não encontrado." });
     }
 
     if (!permitido) {
-      await apagarArquivo();
       return res.status(403).json({
         mensagem: "Você não tem acesso a este evento.",
       });
@@ -173,11 +166,6 @@ async adicionar(req, res) {
     return res.status(201).json(foto);
   } catch (error) {
     console.error(error);
-
-    if (req.file?.path) {
-      const fs = await import("fs/promises");
-      await fs.unlink(req.file.path).catch(() => {});
-    }
 
     return res.status(500).json({
       mensagem: "Erro ao adicionar foto.",
