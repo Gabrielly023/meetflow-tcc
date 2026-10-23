@@ -64,36 +64,54 @@ const participanteController = {
       if (!evento) {
         return res.status(404).json({ mensagem: "Evento não encontrado." });
       }
-
-      // Um admin pode adicionar outra pessoa pelo username.
+      
       if (username) {
         const souAdmin = await ehAdmin(id, id_usuario);
+        
         if (!souAdmin) {
-          return res.status(403).json({ mensagem: "Apenas admins podem adicionar participantes." });
+          return res.status(403).json({
+            mensagem: "Apenas admins podem adicionar participantes.",
+          });
         }
-
-        const usuarioAlvo = await prisma.usuario.findUnique({ where: { username } });
-        if (!usuarioAlvo) {
-          return res.status(404).json({ mensagem: "Usuário não encontrado." });
-        }
-
-        const jaParticipa = await prisma.participantes.findUnique({
-          where: { id_evento_id_usuario: { id_evento: id, id_usuario: usuarioAlvo.id_usuario } },
+        
+        const usuarioAlvo = await prisma.usuario.findUnique({
+          where: { username },
         });
-        if (jaParticipa) {
-          return res.status(409).json({ mensagem: "Esse usuário já participa deste evento." });
+        
+        if (!usuarioAlvo) {
+          return res.status(404).json({
+            mensagem: "Usuário não encontrado.",
+          });
         }
-
+        
+        const jaParticipa = await prisma.participantes.findUnique({
+          where: {
+            id_evento_id_usuario: {
+              id_evento: id,
+              id_usuario: usuarioAlvo.id_usuario,
+            },
+          },
+        });
+        
+        if (jaParticipa) {
+          return res.status(409).json({
+            mensagem: "Esse usuário já participa deste evento.",
+          });
+        }
+        
         const novoParticipante = await prisma.participantes.create({
           data: {
             id_evento: id,
             id_usuario: usuarioAlvo.id_usuario,
             papel: "convidado",
-            status: "confirmado",
+            status: "pendente",
           },
         });
-
-        return res.status(201).json(novoParticipante);
+        
+        return res.status(201).json({
+          mensagem: "Convite enviado com sucesso.",
+          convite: novoParticipante,
+        });
       }
 
       // Eventos sem senha são abertos; os demais exigem a senha correta.
@@ -118,6 +136,97 @@ const participanteController = {
       res.status(500).json({ mensagem: "Erro ao adicionar participante." });
     }
   },
+
+  
+async aceitarConvite(req, res) {
+  try {
+    const { id } = req.params;
+    const { id_usuario } = req.usuario;
+
+    const participacao = await prisma.participantes.findUnique({
+      where: {
+        id_evento_id_usuario: {
+          id_evento: id,
+          id_usuario,
+        },
+      },
+    });
+
+    if (!participacao || participacao.status !== "pendente") {
+      return res.status(404).json({
+        mensagem: "Convite pendente não encontrado.",
+      });
+    }
+
+    const atualizada = await prisma.participantes.update({
+      where: {
+        id_evento_id_usuario: {
+          id_evento: id,
+          id_usuario,
+        },
+      },
+      data: {
+        status: "confirmado",
+      },
+    });
+
+    return res.status(200).json({
+      mensagem: "Convite aceito com sucesso!",
+      participacao: atualizada,
+    });
+  } catch (error) {
+    console.error("Erro ao aceitar convite:", error);
+    return res.status(500).json({
+      mensagem: "Erro ao aceitar o convite.",
+    });
+  }
+},
+
+
+async recusarConvite(req, res) {
+  try {
+    const { id } = req.params;
+    const { id_usuario } = req.usuario;
+
+    const participacao = await prisma.participantes.findUnique({
+      where: {
+        id_evento_id_usuario: {
+          id_evento: id,
+          id_usuario,
+        },
+      },
+    });
+
+    if (!participacao || participacao.status !== "pendente") {
+      return res.status(404).json({
+        mensagem: "Convite pendente não encontrado.",
+      });
+    }
+
+    const atualizada = await prisma.participantes.update({
+      where: {
+        id_evento_id_usuario: {
+          id_evento: id,
+          id_usuario,
+        },
+      },
+      data: {
+        status: "recusado",
+      },
+    });
+
+    return res.status(200).json({
+      mensagem: "Convite recusado.",
+      participacao: atualizada,
+    });
+  } catch (error) {
+    console.error("Erro ao recusar convite:", error);
+    return res.status(500).json({
+      mensagem: "Erro ao recusar o convite.",
+    });
+  }
+},
+
 
   // O PRÓPRIO LOGADO SAI DO EVENTO
   async sair(req, res) {
@@ -146,6 +255,39 @@ const participanteController = {
       res.status(500).json({ mensagem: "Erro ao sair do evento." });
     }
   },
+  
+  async listarConvites(req, res) {
+    try {
+      const { id_usuario } = req.usuario;
+      
+      const convites = await prisma.participantes.findMany({
+        where: {
+          id_usuario,
+          status: "pendente",
+        },
+        include: {
+          evento: true,
+          usuario: {
+            select: {
+              id_usuario: true,
+              nome: true,
+            },
+          },
+        },
+        orderBy: {
+          id_evento: "asc",
+        },
+      });
+      
+      return res.json(convites);
+    } catch (error) {
+      console.error("Erro ao listar convites:", error);
+      return res.status(500).json({
+        mensagem: "Erro ao listar convites pendentes.",
+      });
+    }
+  },
+
 
   // ADMIN REMOVE UM PARTICIPANTE (não deleta o Usuario, só a participação)
   async remover(req, res) {
