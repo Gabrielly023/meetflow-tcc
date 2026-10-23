@@ -1,37 +1,50 @@
 import { prisma } from "../config/db.js";
 import validator from "validator";
 import { sanitizarTexto } from "../utils/sanitize.js";
-import { unlink } from "fs/promises";
-import path from "path";
+import { v2 as cloudinary } from "cloudinary";
 
-async function removerArquivoCapa(arquivo) {
-  if (!arquivo?.path) return;
-  try {
-    await unlink(arquivo.path);
-  } catch (error) {
-    if (error.code !== "ENOENT") {
-      console.error("Não foi possível remover o arquivo de capa:", error);
-    }
+
+// Substitua as funções antigas:
+// removerArquivoCapa
+// removerCapaAnterior
+
+function obterPublicIdCloudinary(url) {
+  if (typeof url !== "string" || !url.includes("res.cloudinary.com")) {
+    return null;
   }
+
+  const partes = url.split("/upload/");
+
+  if (partes.length !== 2) {
+    return null;
+  }
+
+  const caminho = partes[1]
+    .replace(/^v\d+\//, "")
+    .split("?")[0];
+
+  return caminho.replace(/\.[^/.]+$/, "");
 }
 
-async function removerCapaAnterior(url) {
-  const prefixo = "/uploads/eventos/";
-  if (typeof url !== "string" || !url.startsWith(prefixo)) return;
+async function removerImagemCloudinary(url) {
+  const publicId = obterPublicIdCloudinary(url);
 
-  const pastaUploads = path.resolve("uploads/eventos");
-  const caminho = path.resolve(pastaUploads, path.basename(url));
-  if (!caminho.startsWith(`${pastaUploads}${path.sep}`)) return;
+  if (!publicId) {
+    return;
+  }
 
-  try {
-    await unlink(caminho);
-  } catch (error) {
-    if (error.code !== "ENOENT") {
-      console.error("Não foi possível remover a capa anterior:", error);
-    }
+  const resultado = await cloudinary.uploader.destroy(publicId, {
+    resource_type: "image",
+    type: "upload",
+    invalidate: true,
+  });
+
+  if (!["ok", "not found"].includes(resultado.result)) {
+    throw new Error(
+      `Não foi possível remover a imagem do Cloudinary: ${resultado.result}`,
+    );
   }
 }
-
 // Organizador OU participante do evento
 async function temAcesso(evento, id_usuario) {
   if (evento.id_usuario === id_usuario) return true;
@@ -134,151 +147,268 @@ const eventoController = {
   },
 
   // CRIAR EVENTO (logado vira organizador)
-  async criar(req, res) {
-    try {
-      const { id_usuario } = req.usuario;
-      let {
-        capa_url,
-        titulo,
-        tipo,
-        data_hora,
-        data_hora_fim,
-        localizacao,
-        senha_acesso,
-        descricao
-      } = req.body;
-      if (req.file) capa_url = `/uploads/eventos/${req.file.filename}`;
+  // Substitua o método criar do eventoController
 
-      if (!titulo || !data_hora) {
-        await removerArquivoCapa(req.file);
-        return res.status(400).json({
-          mensagem: "Preencha os campos obrigatórios: título e data."
-        });
+async criar(req, res) {
+  try {
+    const { id_usuario } = req.usuario;
+
+    let {
+      capa_url,
+      titulo,
+      tipo,
+      data_hora,
+      data_hora_fim,
+      localizacao,
+      senha_acesso,
+      descricao,
+    } = req.body;
+
+    if (req.file?.path) {
+      capa_url = req.file.path;
+    }
+
+    if (!titulo || !data_hora) {
+      if (req.file?.path) {
+        await removerImagemCloudinary(req.file.path);
       }
+
+      return res.status(400).json({
+        mensagem: "Preencha os campos obrigatórios: título e data.",
+      });
+    }
 
     senha_acesso =
       typeof senha_acesso === "string" ? senha_acesso.trim() : "";
 
-      // Valida se a data enviada é válida de verdade
-      if (isNaN(new Date(data_hora).getTime())) {
-        await removerArquivoCapa(req.file);
-        return res.status(400).json({ mensagem: "data_hora inválida." });
+    if (Number.isNaN(new Date(data_hora).getTime())) {
+      if (req.file?.path) {
+        await removerImagemCloudinary(req.file.path);
       }
 
-    // Sanitiza campos de texto livre
+      return res.status(400).json({
+        mensagem: "data_hora inválida.",
+      });
+    }
+
+    if (data_hora_fim && Number.isNaN(new Date(data_hora_fim).getTime())) {
+      if (req.file?.path) {
+        await removerImagemCloudinary(req.file.path);
+      }
+
+      return res.status(400).json({
+        mensagem: "data_hora_fim inválida.",
+      });
+    }
+
     titulo = sanitizarTexto(titulo);
-    if (descricao) descricao = sanitizarTexto(descricao);
-    if (localizacao) localizacao = sanitizarTexto(localizacao);
-    if (tipo) tipo = sanitizarTexto(tipo);
 
-      // Valida URLs
-      if (capa_url && !req.file && !validator.isURL(capa_url)) {
-        return res
-          .status(400)
-          .json({ mensagem: "capa_url deve ser uma URL válida." });
-      }
+    if (descricao) {
+      descricao = sanitizarTexto(descricao);
+    }
+
+    if (localizacao) {
+      localizacao = sanitizarTexto(localizacao);
+    }
+
+    if (tipo) {
+      tipo = sanitizarTexto(tipo);
+    }
+
+    if (capa_url && !req.file && !validator.isURL(capa_url)) {
+      return res.status(400).json({
+        mensagem: "capa_url deve ser uma URL válida.",
+      });
+    }
 
     const evento = await prisma.evento.create({
       data: {
         titulo,
         descricao,
         data_hora: new Date(data_hora),
-        data_hora_fim: data_hora_fim ? new Date(data_hora_fim) : null,
+        data_hora_fim: data_hora_fim
+          ? new Date(data_hora_fim)
+          : null,
         localizacao,
         senha_acesso,
         tipo,
         capa_url,
         id_usuario,
-        // O criador já entra como participante, papel organizador
         participantes: {
           create: {
             id_usuario,
             papel: "organizador",
             status: "confirmado",
-            admin: true
-          }
-        }
-      }
+            admin: true,
+          },
+        },
+      },
     });
 
-      res.status(201).json(evento);
-    } catch (error) {
-      await removerArquivoCapa(req.file);
-      console.error(error);
-      res.status(500).json({ mensagem: "Erro ao criar evento." });
+    return res.status(201).json(evento);
+  } catch (error) {
+    if (req.file?.path) {
+      try {
+        await removerImagemCloudinary(req.file.path);
+      } catch (cleanupError) {
+        console.error(
+          "Erro ao remover capa após falha na criação:",
+          cleanupError,
+        );
+      }
     }
-  },
 
+    console.error("Erro ao criar evento:", error);
+
+    return res.status(500).json({
+      mensagem: "Erro ao criar evento.",
+    });
+  }
+},
   // ATUALIZAR EVENTO (só organizador)
-  async atualizar(req, res) {
-    try {
-      const { id } = req.params;
-      const { id_usuario } = req.usuario;
+  // Substitua o método atualizar do eventoController
 
-      const evento = await prisma.evento.findUnique({
-        where: { id_evento: id }
+async atualizar(req, res) {
+  try {
+    const { id } = req.params;
+    const { id_usuario } = req.usuario;
+
+    const evento = await prisma.evento.findUnique({
+      where: {
+        id_evento: id,
+      },
+    });
+
+    if (!evento) {
+      if (req.file?.path) {
+        await removerImagemCloudinary(req.file.path);
+      }
+
+      return res.status(404).json({
+        mensagem: "Evento não encontrado.",
       });
+    }
 
-      if (!evento) {
-        await removerArquivoCapa(req.file);
-        return res.status(404).json({ mensagem: "Evento não encontrado." });
+    if (evento.id_usuario !== id_usuario) {
+      if (req.file?.path) {
+        await removerImagemCloudinary(req.file.path);
       }
 
-      if (evento.id_usuario !== id_usuario) {
-        await removerArquivoCapa(req.file);
-        return res.status(403).json({
-          mensagem: "Apenas o organizador pode editar este evento."
-        });
+      return res.status(403).json({
+        mensagem: "Apenas o organizador pode editar este evento.",
+      });
+    }
+
+    let {
+      titulo,
+      descricao,
+      data_hora,
+      data_hora_fim,
+      localizacao,
+      senha_acesso,
+      tipo,
+      capa_url,
+    } = req.body;
+
+    if (req.file?.path) {
+      capa_url = req.file.path;
+    }
+
+    if (titulo) {
+      titulo = sanitizarTexto(titulo);
+    }
+
+    if (descricao) {
+      descricao = sanitizarTexto(descricao);
+    }
+
+    if (localizacao) {
+      localizacao = sanitizarTexto(localizacao);
+    }
+
+    if (tipo) {
+      tipo = sanitizarTexto(tipo);
+    }
+
+    if (data_hora && Number.isNaN(new Date(data_hora).getTime())) {
+      if (req.file?.path) {
+        await removerImagemCloudinary(req.file.path);
       }
 
-      let {
+      return res.status(400).json({
+        mensagem: "data_hora inválida.",
+      });
+    }
+
+    if (
+      data_hora_fim &&
+      Number.isNaN(new Date(data_hora_fim).getTime())
+    ) {
+      if (req.file?.path) {
+        await removerImagemCloudinary(req.file.path);
+      }
+
+      return res.status(400).json({
+        mensagem: "data_hora_fim inválida.",
+      });
+    }
+
+    if (capa_url && !req.file && !validator.isURL(capa_url)) {
+      return res.status(400).json({
+        mensagem: "capa_url deve ser uma URL válida.",
+      });
+    }
+
+    const capaAnterior = evento.capa_url;
+
+    const eventoAtualizado = await prisma.evento.update({
+      where: {
+        id_evento: id,
+      },
+      data: {
         titulo,
         descricao,
-        data_hora,
-        data_hora_fim,
+        data_hora: data_hora
+          ? new Date(data_hora)
+          : undefined,
+        data_hora_fim: data_hora_fim
+          ? new Date(data_hora_fim)
+          : undefined,
         localizacao,
         senha_acesso,
         tipo,
-        capa_url
-      } = req.body;
-      if (req.file) capa_url = `/uploads/eventos/${req.file.filename}`;
+        capa_url,
+      },
+    });
 
-      // Sanitizar
-      if (titulo) titulo = sanitizarTexto(titulo);
-      if (descricao) descricao = sanitizarTexto(descricao);
-      if (localizacao) localizacao = sanitizarTexto(localizacao);
-      if (tipo) tipo = sanitizarTexto(tipo);
-
-      // Valida URL da capa, se for enviada
-      if (capa_url && !req.file && !validator.isURL(capa_url)) {
-        return res
-          .status(400)
-          .json({ mensagem: "capa_url deve ser uma URL válida." });
-      }
-
-      const capaAnterior = evento.capa_url;
-      const eventoAtualizado = await prisma.evento.update({
-        where: { id_evento: id },
-        data: {
-          titulo,
-          descricao,
-          data_hora: data_hora ? new Date(data_hora) : undefined,
-          data_hora_fim: data_hora_fim ? new Date(data_hora_fim) : undefined,
-          localizacao,
-          senha_acesso,
-          tipo,
-          capa_url
-        }
-      });
-
-      if (req.file) await removerCapaAnterior(capaAnterior);
-      res.json(eventoAtualizado);
-    } catch (error) {
-      await removerArquivoCapa(req.file);
-      console.error(error);
-      res.status(500).json({ mensagem: "Erro ao atualizar evento." });
+    if (
+      req.file?.path &&
+      capaAnterior &&
+      capaAnterior !== req.file.path
+    ) {
+      await removerImagemCloudinary(capaAnterior);
     }
-  },
+
+    return res.json(eventoAtualizado);
+  } catch (error) {
+    if (req.file?.path) {
+      try {
+        await removerImagemCloudinary(req.file.path);
+      } catch (cleanupError) {
+        console.error(
+          "Erro ao remover nova capa após falha na atualização:",
+          cleanupError,
+        );
+      }
+    }
+
+    console.error("Erro ao atualizar evento:", error);
+
+    return res.status(500).json({
+      mensagem: "Erro ao atualizar evento.",
+    });
+  }
+},
 
   // DELETAR EVENTO (só organizador)
   async deletar(req, res) {
@@ -343,30 +473,56 @@ const eventoController = {
   },
 
   // EXCLUIR EVENTO PERMANENTEMENTE (só organizador e se estiver na lixeira)
-  async excluirPermanentemente(req, res) {
-    try {
-      const { id } = req.params;
-      const { id_usuario } = req.usuario;
-      const evento = await prisma.evento.findUnique({
-        where: { id_evento: id }
+  // Substitua o método excluirPermanentemente do eventoController
+
+async excluirPermanentemente(req, res) {
+  try {
+    const { id } = req.params;
+    const { id_usuario } = req.usuario;
+
+    const evento = await prisma.evento.findUnique({
+      where: {
+        id_evento: id,
+      },
+    });
+
+    if (!evento || !evento.excluido_em) {
+      return res.status(404).json({
+        mensagem: "Evento não encontrado na lixeira.",
       });
-
-      if (!evento || !evento.excluido_em) {
-        return res.status(404).json({ mensagem: "Evento não encontrado na lixeira." });
-      }
-      if (evento.id_usuario !== id_usuario) {
-        return res.status(403).json({
-          mensagem: "Apenas o organizador pode excluir permanentemente este evento."
-        });
-      }
-
-      await prisma.evento.delete({ where: { id_evento: id } });
-      res.json({ mensagem: "Evento excluído permanentemente." });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ mensagem: "Erro ao excluir evento permanentemente." });
     }
-  },
+
+    if (evento.id_usuario !== id_usuario) {
+      return res.status(403).json({
+        mensagem:
+          "Apenas o organizador pode excluir permanentemente este evento.",
+      });
+    }
+
+    await prisma.evento.delete({
+      where: {
+        id_evento: id,
+      },
+    });
+
+    if (evento.capa_url) {
+      await removerImagemCloudinary(evento.capa_url);
+    }
+
+    return res.json({
+      mensagem: "Evento excluído permanentemente.",
+    });
+  } catch (error) {
+    console.error(
+      "Erro ao excluir evento permanentemente:",
+      error,
+    );
+
+    return res.status(500).json({
+      mensagem: "Erro ao excluir evento permanentemente.",
+    });
+  }
+},
 
   // VER O LINK DE MAPA DO EVENTO
   async verLocal(req, res) {
