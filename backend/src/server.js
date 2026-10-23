@@ -71,6 +71,7 @@ app.use(express.json({ limit: "10mb" }));
 app.use("/uploads", express.static(path.resolve("uploads")));
 app.set("io", io);
 app.use("/galeria", galeriaRouter);
+app.use("/eventos", eventoRouter);
 app.use("/usuarios", usuarioRouter);
 app.use("/eventos", eventoRouter);
 app.use("/chat", chatRouter);

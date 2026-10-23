@@ -1,13 +1,64 @@
 import { prisma } from "../config/db.js";
-import { unlink } from "fs/promises";
-import path from "path";
+import { v2 as cloudinary } from "cloudinary";
 
-async function temAcessoEvento(eventoId, usuarioId) {
-  const evento = await prisma.evento.findUnique({
-    where: { id_evento: eventoId },
+function obterPublicIdCloudinary(url) {
+  if (typeof url !== "string" || !url.includes("res.cloudinary.com")) {
+    return null;
+  }
+
+  const partes = url.split("/upload/");
+
+  if (partes.length !== 2) {
+    return null;
+  }
+
+  const caminho = partes[1]
+    .replace(/^v\d+\//, "")
+    .split("?")[0];
+
+  return caminho.replace(/\.[^/.]+$/, "");
+}
+
+async function removerImagemCloudinary(url) {
+  const publicId = obterPublicIdCloudinary(url);
+
+  if (!publicId) {
+    return;
+  }
+
+  const resultado = await cloudinary.uploader.destroy(publicId, {
+    resource_type: "image",
+    type: "upload",
+    invalidate: true,
   });
-  if (!evento) return { evento: null, permitido: false };
-  if (evento.id_usuario === usuarioId) return { evento, permitido: true };
+
+  if (!["ok", "not found"].includes(resultado.result)) {
+    throw new Error(
+      `Erro ao remover imagem do Cloudinary: ${resultado.result}`,
+    );
+  }
+}
+
+async function buscarAcessoEvento(eventoId, usuarioId) {
+  const evento = await prisma.evento.findUnique({
+    where: {
+      id_evento: eventoId,
+    },
+  });
+
+  if (!evento) {
+    return {
+      evento: null,
+      permitido: false,
+    };
+  }
+
+  if (evento.id_usuario === usuarioId) {
+    return {
+      evento,
+      permitido: true,
+    };
+  }
 
   const participacao = await prisma.participantes.findUnique({
     where: {
@@ -17,37 +68,23 @@ async function temAcessoEvento(eventoId, usuarioId) {
       },
     },
   });
-  return { evento, permitido: Boolean(participacao) };
-}
 
-async function removerArquivoFoto(url) {
-  const prefixo = "/uploads/galeria/";
-  if (typeof url !== "string" || !url.startsWith(prefixo)) return;
-
-  const pastaUploads = path.resolve("uploads/galeria");
-  const caminho = path.resolve(pastaUploads, path.basename(url));
-  if (!caminho.startsWith(`${pastaUploads}${path.sep}`)) return;
-
-  try {
-    await unlink(caminho);
-  } catch (error) {
-    if (error.code !== "ENOENT") {
-      console.error("Não foi possível remover o arquivo da galeria:", error);
-    }
-  }
+  return {
+    evento,
+    permitido: Boolean(participacao),
+  };
 }
 
 const galeriaController = {
-
-  // LISTAR FOTOS DE UM EVENTO
- 
-  // LISTAR FOTOS DE UM EVENTO
   async listar(req, res) {
     try {
       const { id } = req.params;
       const { id_usuario } = req.usuario;
 
-      const { evento, permitido } = await temAcessoEvento(id, id_usuario);
+      const { evento, permitido } = await buscarAcessoEvento(
+        id,
+        id_usuario,
+      );
 
       if (!evento) {
         return res.status(404).json({
@@ -62,9 +99,16 @@ const galeriaController = {
       }
 
       const fotos = await prisma.galeria.findMany({
-        where: { id_evento: id, excluido_em: null },
-        orderBy: { postado_em: "desc" },
-        include: { curtidas: true },
+        where: {
+          id_evento: id,
+          excluido_em: null,
+        },
+        orderBy: {
+          postado_em: "desc",
+        },
+        include: {
+          curtidas: true,
+        },
       });
 
       const resposta = fotos.map((foto) => ({
@@ -72,12 +116,15 @@ const galeriaController = {
         url_foto: foto.url_foto,
         postado_em: foto.postado_em,
         id_usuario: foto.id_usuario,
-        curtidas: foto.curtidas.map((curtida) => curtida.id_usuario),
+        curtidas: foto.curtidas.map(
+          (curtida) => curtida.id_usuario,
+        ),
       }));
 
       return res.json(resposta);
     } catch (error) {
-      console.error(error);
+      console.error("Erro ao listar fotos da galeria:", error);
+
       return res.status(500).json({
         mensagem: "Erro ao listar fotos da galeria.",
       });
@@ -88,11 +135,18 @@ const galeriaController = {
     try {
       const { id } = req.params;
       const { id_usuario } = req.usuario;
-      const { evento, permitido } = await temAcessoEvento(id, id_usuario);
+
+      const { evento, permitido } = await buscarAcessoEvento(
+        id,
+        id_usuario,
+      );
 
       if (!evento) {
-        return res.status(404).json({ mensagem: "Evento não encontrado." });
+        return res.status(404).json({
+          mensagem: "Evento não encontrado.",
+        });
       }
+
       if (!permitido) {
         return res.status(403).json({
           mensagem: "Você não tem acesso a este evento.",
@@ -103,107 +157,139 @@ const galeriaController = {
         where: {
           id_evento: id,
           id_usuario,
-          excluido_em: { not: null },
+          excluido_em: {
+            not: null,
+          },
         },
-        orderBy: { excluido_em: "desc" },
-        include: { curtidas: true },
+        orderBy: {
+          excluido_em: "desc",
+        },
+        include: {
+          curtidas: true,
+        },
       });
 
-      return res.json(
-        fotos.map((foto) => ({
-          id_foto: foto.id_foto,
-          url_foto: foto.url_foto,
-          postado_em: foto.postado_em,
-          id_usuario: foto.id_usuario,
-          excluido_em: foto.excluido_em,
-          curtidas: foto.curtidas.map((curtida) => curtida.id_usuario),
-        })),
-      );
+      const resposta = fotos.map((foto) => ({
+        id_foto: foto.id_foto,
+        url_foto: foto.url_foto,
+        postado_em: foto.postado_em,
+        id_usuario: foto.id_usuario,
+        excluido_em: foto.excluido_em,
+        curtidas: foto.curtidas.map(
+          (curtida) => curtida.id_usuario,
+        ),
+      }));
+
+      return res.json(resposta);
     } catch (error) {
-      console.error(error);
+      console.error("Erro ao listar lixeira da galeria:", error);
+
       return res.status(500).json({
         mensagem: "Erro ao listar a lixeira da galeria.",
       });
     }
   },
 
+  async adicionar(req, res) {
+    try {
+      const { id } = req.params;
+      const { id_usuario } = req.usuario;
 
-  // ADICIONAR FOTO (dono = logado)
-  
-async adicionar(req, res) {
-  try {
-    const { id } = req.params;
-    const { id_usuario } = req.usuario;
+      if (!req.file || !req.file.path) {
+        return res.status(400).json({
+          mensagem: "Envie uma imagem.",
+        });
+      }
 
-    // Se o upload falhar ou o arquivo não vier, retorna erro
-    if (!req.file || !req.file.path) {
-      return res.status(400).json({ mensagem: "Envie uma imagem." });
-    }
+      const { evento, permitido } = await buscarAcessoEvento(
+        id,
+        id_usuario,
+      );
 
-    // O Cloudinary devolve a URL remota hospedada em req.file.path
-    const url_foto = req.file.path;
+      if (!evento) {
+        return res.status(404).json({
+          mensagem: "Evento não encontrado.",
+        });
+      }
 
-    const { evento, permitido } = await temAcessoEvento(id, id_usuario);
+      if (!permitido) {
+        return res.status(403).json({
+          mensagem: "Você não tem acesso a este evento.",
+        });
+      }
 
-    if (!evento) {
-      return res.status(404).json({ mensagem: "Evento não encontrado." });
-    }
+      const foto = await prisma.galeria.create({
+        data: {
+          url_foto: req.file.path,
+          id_evento: id,
+          id_usuario,
+        },
+      });
 
-    if (!permitido) {
-      return res.status(403).json({
-        mensagem: "Você não tem acesso a este evento.",
+      return res.status(201).json({
+        id_foto: foto.id_foto,
+        url_foto: foto.url_foto,
+        postado_em: foto.postado_em,
+        id_evento: foto.id_evento,
+        id_usuario: foto.id_usuario,
+        excluido_em: foto.excluido_em,
+      });
+    } catch (error) {
+      console.error("Erro ao adicionar foto na galeria:", error);
+
+      return res.status(500).json({
+        mensagem: "Erro ao adicionar foto.",
       });
     }
+  },
 
-    const foto = await prisma.galeria.create({
-      data: {
-        url_foto,
-        id_evento: id,
-        id_usuario,
-      },
-    });
-
-    return res.status(201).json(foto);
-  } catch (error) {
-    console.error(error);
-
-    return res.status(500).json({
-      mensagem: "Erro ao adicionar foto.",
-    });
-  }
-},
-
-  // Mover a foto para a lixeira (só o dono da foto)
   async remover(req, res) {
     try {
       const { idFoto } = req.params;
       const { id_usuario } = req.usuario;
 
       const foto = await prisma.galeria.findUnique({
-        where: { id_foto: idFoto },
+        where: {
+          id_foto: idFoto,
+        },
       });
 
       if (!foto) {
-        return res.status(404).json({ mensagem: "Foto não encontrada." });
+        return res.status(404).json({
+          mensagem: "Foto não encontrada.",
+        });
       }
 
       if (foto.id_usuario !== id_usuario) {
-        return res.status(403).json({ mensagem: "Você só pode remover suas próprias fotos." });
+        return res.status(403).json({
+          mensagem: "Você só pode remover suas próprias fotos.",
+        });
       }
 
       if (foto.excluido_em) {
-        return res.status(400).json({ mensagem: "A foto já está na lixeira." });
+        return res.status(400).json({
+          mensagem: "A foto já está na lixeira.",
+        });
       }
 
       await prisma.galeria.update({
-        where: { id_foto: idFoto },
-        data: { excluido_em: new Date() },
+        where: {
+          id_foto: idFoto,
+        },
+        data: {
+          excluido_em: new Date(),
+        },
       });
 
-      res.json({ mensagem: "Foto movida para a lixeira." });
+      return res.json({
+        mensagem: "Foto movida para a lixeira.",
+      });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ mensagem: "Erro ao mover a foto para a lixeira." });
+      console.error("Erro ao mover foto para a lixeira:", error);
+
+      return res.status(500).json({
+        mensagem: "Erro ao mover a foto para a lixeira.",
+      });
     }
   },
 
@@ -211,13 +297,19 @@ async adicionar(req, res) {
     try {
       const { idFoto } = req.params;
       const { id_usuario } = req.usuario;
+
       const foto = await prisma.galeria.findUnique({
-        where: { id_foto: idFoto },
+        where: {
+          id_foto: idFoto,
+        },
       });
 
       if (!foto || !foto.excluido_em) {
-        return res.status(404).json({ mensagem: "Foto não encontrada na lixeira." });
+        return res.status(404).json({
+          mensagem: "Foto não encontrada na lixeira.",
+        });
       }
+
       if (foto.id_usuario !== id_usuario) {
         return res.status(403).json({
           mensagem: "Apenas quem enviou a foto pode restaurá-la.",
@@ -225,13 +317,23 @@ async adicionar(req, res) {
       }
 
       await prisma.galeria.update({
-        where: { id_foto: idFoto },
-        data: { excluido_em: null },
+        where: {
+          id_foto: idFoto,
+        },
+        data: {
+          excluido_em: null,
+        },
       });
-      return res.json({ mensagem: "Foto restaurada com sucesso." });
+
+      return res.json({
+        mensagem: "Foto restaurada com sucesso.",
+      });
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ mensagem: "Erro ao restaurar a foto." });
+      console.error("Erro ao restaurar foto:", error);
+
+      return res.status(500).json({
+        mensagem: "Erro ao restaurar a foto.",
+      });
     }
   },
 
@@ -239,67 +341,122 @@ async adicionar(req, res) {
     try {
       const { idFoto } = req.params;
       const { id_usuario } = req.usuario;
+
       const foto = await prisma.galeria.findUnique({
-        where: { id_foto: idFoto },
+        where: {
+          id_foto: idFoto,
+        },
       });
 
       if (!foto || !foto.excluido_em) {
-        return res.status(404).json({ mensagem: "Foto não encontrada na lixeira." });
-      }
-      if (foto.id_usuario !== id_usuario) {
-        return res.status(403).json({
-          mensagem: "Apenas quem enviou a foto pode excluí-la permanentemente.",
+        return res.status(404).json({
+          mensagem: "Foto não encontrada na lixeira.",
         });
       }
 
-      await prisma.galeria.delete({ where: { id_foto: idFoto } });
-      await removerArquivoFoto(foto.url_foto);
-      return res.json({ mensagem: "Foto excluída permanentemente." });
+      if (foto.id_usuario !== id_usuario) {
+        return res.status(403).json({
+          mensagem:
+            "Apenas quem enviou a foto pode excluí-la permanentemente.",
+        });
+      }
+
+      await removerImagemCloudinary(foto.url_foto);
+
+      await prisma.galeria.delete({
+        where: {
+          id_foto: idFoto,
+        },
+      });
+
+      return res.json({
+        mensagem: "Foto excluída permanentemente.",
+      });
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Erro ao excluir foto permanentemente:",
+        error,
+      );
+
       return res.status(500).json({
         mensagem: "Erro ao excluir a foto permanentemente.",
       });
     }
   },
-  // ALTERNAR CURTIDA (curtir/descurtir)
-async curtir(req, res) {
-  try {
-    const { idFoto } = req.params;
-    const { id_usuario } = req.usuario;
 
-    const foto = await prisma.galeria.findUnique({ where: { id_foto: idFoto } });
-    if (!foto) {
-      return res.status(404).json({ mensagem: "Foto não encontrada." });
-    }
-    if (foto.excluido_em) {
-      return res.status(404).json({ mensagem: "Foto não encontrada." });
-    }
+  async curtir(req, res) {
+    try {
+      const { idFoto } = req.params;
+      const { id_usuario } = req.usuario;
 
-    const curtidaExistente = await prisma.galeriaCurtida.findUnique({
-      where: { id_foto_id_usuario: { id_foto: idFoto, id_usuario } },
-    });
-
-    if (curtidaExistente) {
-      // Descurtir
-      await prisma.galeriaCurtida.delete({
-        where: { id_foto_id_usuario: { id_foto: idFoto, id_usuario } },
+      const foto = await prisma.galeria.findUnique({
+        where: {
+          id_foto: idFoto,
+        },
       });
-      res.json({ mensagem: "Foto descurtida.", curtida: false });
-    } else {
-      // Curtir
+
+      if (!foto || foto.excluido_em) {
+        return res.status(404).json({
+          mensagem: "Foto não encontrada.",
+        });
+      }
+
+      const { permitido } = await buscarAcessoEvento(
+        foto.id_evento,
+        id_usuario,
+      );
+
+      if (!permitido) {
+        return res.status(403).json({
+          mensagem: "Você não tem acesso a este evento.",
+        });
+      }
+
+      const curtidaExistente =
+        await prisma.galeriaCurtida.findUnique({
+          where: {
+            id_foto_id_usuario: {
+              id_foto: idFoto,
+              id_usuario,
+            },
+          },
+        });
+
+      if (curtidaExistente) {
+        await prisma.galeriaCurtida.delete({
+          where: {
+            id_foto_id_usuario: {
+              id_foto: idFoto,
+              id_usuario,
+            },
+          },
+        });
+
+        return res.json({
+          mensagem: "Foto descurtida.",
+          curtida: false,
+        });
+      }
+
       await prisma.galeriaCurtida.create({
-        data: { id_foto: idFoto, id_usuario },
+        data: {
+          id_foto: idFoto,
+          id_usuario,
+        },
       });
-      res.status(201).json({ mensagem: "Foto curtida.", curtida: true });
+
+      return res.status(201).json({
+        mensagem: "Foto curtida.",
+        curtida: true,
+      });
+    } catch (error) {
+      console.error("Erro ao curtir foto:", error);
+
+      return res.status(500).json({
+        mensagem: "Erro ao curtir foto.",
+      });
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ mensagem: "Erro ao curtir foto." });
-  }
-}
+  },
 };
-
-
 
 export default galeriaController;
