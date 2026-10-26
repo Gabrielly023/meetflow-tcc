@@ -1,4 +1,6 @@
 import express from "express";
+import jwt from "jsonwebtoken";
+import { frontendOrigin } from "./config/env.js";
 import dotenv from "dotenv";
 import cors from "cors";
 import { createServer } from "http"; // 1. Importa o módulo HTTP
@@ -25,45 +27,57 @@ const httpServer = createServer(app);
 
 // CONFIGURAR CORS
 const corsOptions = {
-  origin: "http://localhost:5173", // URL do frontend
+  origin: frontendOrigin(),
   credentials: true,
 };
 
+app.disable("x-powered-by");
 app.use(cors(corsOptions));
+app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
 // 4. Inicializa o Socket.io acoplado ao servidor HTTP
 const io = new Server(httpServer, {
   cors: corsOptions,
 });
 
-// 🔔 Torna o Socket.io acessível dentro dos controllers através de req.app.get("io")
+// CORS nao substitui autenticacao, inclusive em conexoes WebSocket.
+io.use((socket, next) => {
+  try {
+    socket.data.usuario = jwt.verify(socket.handshake.auth?.token, process.env.JWT_SECRET);
+    next();
+  } catch {
+    next(new Error("Nao autorizado."));
+  }
+});
 
+async function podeAcessarEvento(socket, id) {
+  if (typeof id !== "string" || !id) return false;
+  const uid = socket.data.usuario.id_usuario;
+  const evento = await prisma.evento.findFirst({
+    where: { id_evento: id, excluido_em: null, OR: [
+      { id_usuario: uid },
+      { participantes: { some: { id_usuario: uid, status: "confirmado" } } },
+    ] },
+    select: { id_evento: true },
+  });
+  return Boolean(evento);
+}
 
-// 5. Configuração dos eventos em tempo real do Socket.io
 io.on("connection", (socket) => {
-  console.log(`⚡ Usuário conectado via Socket: ${socket.id}`);
-
-  // Entrar na sala do chat do evento específico
-  socket.on("juntar_evento", (id_evento) => {
-    socket.join(id_evento);
-    console.log(`📌 Socket ${socket.id} entrou no evento: ${id_evento}`);
+  const uid = socket.data.usuario.id_usuario;
+  socket.on("juntar_usuario", (id) => {
+    if (id === uid) socket.join(`user_${uid}`);
   });
-
-  // 🔔 Entrar na sala pessoal do usuário para receber notificações em tempo real
-  socket.on("juntar_usuario", (id_usuario) => {
-    const salaUsuario = `user_${id_usuario}`;
-    socket.join(salaUsuario);
-    console.log(`🔔 Socket ${socket.id} escutando notificações na sala: ${salaUsuario}`);
+  socket.on("juntar_evento", async (id) => {
+    try {
+      if (await podeAcessarEvento(socket, id)) await socket.join(id);
+    } catch { socket.emit("erro", { mensagem: "Nao foi possivel acessar o evento." }); }
   });
-
-  // Receber mensagem do chat e retransmitir para a sala
-  socket.on("enviar_mensagem", (dadosMensagem) => {
-    // dadosMensagem: { id_evento, id_usuario, nome, texto, hora }
-    io.to(dadosMensagem.id_evento).emit("receber_mensagem", dadosMensagem);
-  });
-
-  socket.on("disconnect", () => {
-    console.log(`🔌 Usuário desconectado do Socket: ${socket.id}`);
+  socket.on("enviar_mensagem", async (dados) => {
+    try {
+      if (!dados || !(await podeAcessarEvento(socket, dados.id_evento))) return;
+      io.to(dados.id_evento).emit("receber_mensagem", { ...dados, id_usuario: uid, ownerId: uid });
+    } catch { socket.emit("erro", { mensagem: "Nao foi possivel enviar a mensagem." }); }
   });
 });
 
@@ -73,7 +87,6 @@ app.set("io", io);
 app.use("/galeria", galeriaRouter);
 app.use("/eventos", eventoRouter);
 app.use("/usuarios", usuarioRouter);
-app.use("/eventos", eventoRouter);
 app.use("/chat", chatRouter);
 app.use("/eventos/:id/grupo", grupoRoutes);
 app.use("/notificacoes", notificacaoRoutes);
@@ -81,15 +94,17 @@ app.use("/notificacoes", notificacaoRoutes);
 const PORT = process.env.PORT || 3000;
 
 // 6. Substitui app.listen por httpServer.listen
-httpServer.listen(PORT, async () => {
+httpServer.listen(PORT, "0.0.0.0", async () => {
   console.log(`🚀 Servidor e WebSockets rodando na porta ${PORT}`);
 
   try {
     await prisma.$connect();
+    await prisma.$queryRaw`SELECT 1`;
     console.log("✅ Banco de dados conectado com sucesso!");
   } catch (error) {
-    console.error("❌ Erro ao conectar ao banco de dados:", error);
-    return;
+    console.error("Falha na conexao com MySQL:", error.code || error.name);
+    // Nao anunciar um servico saudavel sem banco na inicializacao.
+    process.exit(1);
   }
 
   async function limparEventosExpirados() {

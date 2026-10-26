@@ -1,2 +1,6 @@
 import { io } from "socket.io-client";
-export const socket = io("http://localhost:3000", { autoConnect: false });
+import { API_URL, TOKEN_KEY } from "./config";
+export const socket = io(API_URL, {
+  autoConnect: false,
+  auth: (callback) => callback({ token: localStorage.getItem(TOKEN_KEY) }),
+});

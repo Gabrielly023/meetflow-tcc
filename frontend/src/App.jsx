@@ -63,7 +63,7 @@ function App() {
   }, []);
 
   return (
-    <Router>
+    <Router basename={import.meta.env.BASE_URL}>
       <ScrollToTop />
       <PlayerProvider>
         <Suspense fallback={<main role="status" className="flex min-h-64 flex-1 items-center justify-center text-sm text-slate-400">Carregando página…</main>}>

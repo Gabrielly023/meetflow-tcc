@@ -17,13 +17,10 @@ async function enviarCodigoRecuperacaoPorEmail(email, codigo) {
   const port = Number(process.env.SMTP_PORT || 587);
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
-  const from = process.env.SMTP_FROM || 'MeetFlow <noreply@meetflow.com>';
+  const from = process.env.SMTP_FROM || user;
 
   if (!host || !user || !pass) {
-    console.warn(
-      `[RECUPERACAO SENHA] SMTP não configurado. Código para ${email}: ${codigo}`
-    );
-    return;
+    throw new Error("SMTP nao configurado para recuperacao de senha.");
   }
 
   const transporte = nodemailer.createTransport({
@@ -246,6 +243,7 @@ const usuarioController = {
 
       recuperacoesPendentes.set(usuario.email, {
         codigo,
+        tentativas: 0,
         expiraEm,
         id_usuario: usuario.id_usuario,
       });
@@ -276,6 +274,12 @@ const usuarioController = {
 
       if (!registro) {
         return res.status(400).json({ mensagem: "Código de recuperação inválido ou expirado." });
+      }
+
+      registro.tentativas += 1;
+      if (registro.tentativas > 5) {
+        recuperacoesPendentes.delete(email);
+        return res.status(429).json({ mensagem: "Solicite um novo codigo de recuperacao." });
       }
 
       if (!validarCodigoRecuperacao(registro, codigo)) {

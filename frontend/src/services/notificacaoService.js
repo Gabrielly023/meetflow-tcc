@@ -1,10 +1,9 @@
-const API_URL = "http://localhost:3000/notificacoes"; // Ajuste a URL/porta da sua API se necessário
+import { api } from "./config";
 
 export async function buscarNotificacoesDoUsuario(usuarioId) {
   try {
-    const resposta = await fetch(`${API_URL}/${usuarioId}`);
-    if (!resposta.ok) throw new Error("Erro ao buscar notificações");
-    return await resposta.json();
+    const { data } = await api.get(`/notificacoes/${usuarioId}`);
+    return data;
   } catch (error) {
     console.error("Erro no notificacaoService:", error);
     return [];
@@ -13,14 +12,10 @@ export async function buscarNotificacoesDoUsuario(usuarioId) {
 
 export async function responderSolicitacaoApi(notificacaoId, aprovado) {
   try {
-    const resposta = await fetch(`${API_URL}/${notificacaoId}/responder`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ aprovado }),
-    });
-    return resposta.ok;
+    await api.patch(`/notificacoes/${notificacaoId}/responder`, { aprovado });
+    return true;
   } catch (error) {
-    console.error("Erro ao responder notificação:", error);
+    console.error("Erro ao responder notificacao:", error);
     return false;
   }
 }

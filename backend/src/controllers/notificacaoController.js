@@ -3,7 +3,7 @@ import { prisma } from "../config/db.js";
 // 1. Criar e enviar notificação (Salva na tabela Chat)
 export async function criarNotificacao(req, res) {
   try {
-    const { id_usuario_destino, tipo, mensagem, id_evento, id_criador } = req.body || {};
+    const { id_usuario_destino, tipo, mensagem, id_evento } = req.body || {};
 
     if (!id_usuario_destino || !tipo || !mensagem || !id_evento) {
       return res.status(400).json({
@@ -22,7 +22,7 @@ export async function criarNotificacao(req, res) {
       }),
       prisma.evento.findUnique({
         where: { id_evento: eventoIdStr },
-        select: { id_evento: true },
+        select: { id_evento: true, id_usuario: true },
       }),
     ]);
 
@@ -38,6 +38,10 @@ export async function criarNotificacao(req, res) {
         erro: "Evento não encontrado.",
         id_evento: eventoIdStr,
       });
+    }
+
+    if (evento.id_usuario !== req.usuario.id_usuario) {
+      return res.status(403).json({ erro: "Somente o organizador pode enviar notificacoes." });
     }
 
     // Salva na tabela Chat
@@ -60,7 +64,7 @@ export async function criarNotificacao(req, res) {
       mensagem: mensagem,
       usuario: novaNotificacaoChat.usuario?.nome || "Usuário",
       nomeEvento: novaNotificacaoChat.evento?.titulo || "",
-      adminId: id_criador || novaNotificacaoChat.evento?.id_usuario || null,
+      adminId: req.usuario.id_usuario,
       apenasAdmin: tipo === "pedido_entrada",
       tempo: "Agora",
       lida: false,
@@ -75,7 +79,7 @@ export async function criarNotificacao(req, res) {
     return res.status(201).json(notificacaoFormatada);
   } catch (error) {
     console.error("Erro ao registrar notificação:", error);
-    return res.status(500).json({ erro: "Erro ao registrar notificação.", detalhe: error.message });
+    return res.status(500).json({ erro: "Erro ao registrar notificação." });
   }
 }
 
@@ -84,6 +88,9 @@ export async function listarNotificacoes(req, res) {
   try {
     const { usuarioId } = req.params;
     const userIdStr = String(usuarioId);
+    if (userIdStr !== req.usuario.id_usuario) {
+      return res.status(403).json({ erro: "Acesso negado." });
+    }
 
     const registrosChat = await prisma.chat.findMany({
       where: {
@@ -132,6 +139,9 @@ export async function responderSolicitacao(req, res) {
     });
     if (!notificacao?.conteudo?.startsWith("[NOTIFICACAO:")) {
       return res.status(404).json({ erro: "Notificação não encontrada." });
+    }
+    if (notificacao.id_usuario !== req.usuario.id_usuario) {
+      return res.status(403).json({ erro: "Acesso negado." });
     }
     await prisma.chat.delete({
       where: { id_chat: id },

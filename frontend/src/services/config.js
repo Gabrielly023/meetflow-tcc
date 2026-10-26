@@ -26,7 +26,8 @@ export const USE_API = {
 };
 
 // URL base do backend Express (a mesma usada em usuarioService.js).
-export const API_URL = "http://localhost:3000";
+export const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+if (!API_URL) throw new Error("Configure VITE_API_URL no ambiente do frontend.");
 
 // Onde guardamos o token JWT devolvido pelo login (POST /usuarios/login).
 export const TOKEN_KEY = "meetflow.token";

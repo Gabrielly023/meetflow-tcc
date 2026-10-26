@@ -1,3 +1,4 @@
+import { API_URL } from "../../services/config";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
@@ -115,7 +116,7 @@ const Signup = () => {
 
         // Verifica se o e-mail já possui cadastro
         const respostaEmail = await fetch(
-          "http://localhost:3000/usuarios/verificar-email-google",
+          `${API_URL}/usuarios/verificar-email-google`,
           {
             method: "POST",
             headers: {

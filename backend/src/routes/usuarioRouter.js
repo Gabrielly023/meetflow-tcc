@@ -30,8 +30,8 @@ router.get("/perfil", authMiddleware, (req, res) => {
 });
 
 // Usuários
-router.get("/", usuarioController.listar);
-router.get("/:id", usuarioController.buscarPorId);
+router.get("/", authMiddleware, usuarioController.listar);
+router.get("/:id", authMiddleware, usuarioController.buscarPorId);
 router.put("/:id", authMiddleware, usuarioController.atualizar);
 router.delete("/:id", authMiddleware, usuarioController.deletar);
 

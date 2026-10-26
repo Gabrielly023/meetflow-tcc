@@ -1,5 +1,7 @@
+import { randomInt } from "node:crypto";
+
 export function gerarCodigoRecuperacao() {
-  return String(Math.floor(100000 + Math.random() * 900000));
+  return String(randomInt(100000, 1000000));
 }
 
 export function validarCodigoRecuperacao(registro, codigoInformado) {

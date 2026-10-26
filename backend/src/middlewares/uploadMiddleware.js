@@ -2,7 +2,7 @@
 
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
+import { createCloudinaryStorage } from "../config/cloudinaryStorage.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -14,9 +14,7 @@ cloudinary.config({
 });
 
 function criarStorageCloudinary(folder) {
-  return new CloudinaryStorage({
-    cloudinary,
-    params: {
+  return createCloudinaryStorage(cloudinary, {
       folder,
       resource_type: "image",
       allowed_formats: ["jpg", "jpeg", "png", "webp"],
@@ -26,7 +24,6 @@ function criarStorageCloudinary(folder) {
           fetch_format: "auto",
         },
       ],
-    },
   });
 }
 

@@ -6,7 +6,7 @@ import "./index.css";
 import "./style.css";
 
 // Substitua pela sua chave obtida no Google Cloud Console:
-const GOOGLE_CLIENT_ID = "465456649076-gka8861ob8ba4isfd4ti777elphiea8u.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

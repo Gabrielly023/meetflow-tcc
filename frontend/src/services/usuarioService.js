@@ -140,3 +140,13 @@ export const deletarUsuario = async (id) => {
 };
 
 export default api;
+// Recuperacao de senha pelas rotas existentes do backend.
+export async function solicitarRecuperacaoSenha(login) {
+  const { data } = await api.post("/usuarios/esqueci-senha", { login });
+  return data;
+}
+
+export async function redefinirSenha(email, codigo, novaSenha) {
+  const { data } = await api.post("/usuarios/redefinir-senha", { email, codigo, novaSenha });
+  return data;
+}
