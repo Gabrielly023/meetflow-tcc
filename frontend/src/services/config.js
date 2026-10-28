@@ -62,7 +62,8 @@ api.interceptors.response.use(
       error.response?.status !== 401 ||
       !request ||
       request._retry ||
-      request.url?.includes("/usuarios/refresh-token")
+      request.url?.includes("/usuarios/refresh-token") ||
+      request.url?.includes("/usuarios/google")
     ) {
       return Promise.reject(error);
     }

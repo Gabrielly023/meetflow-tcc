@@ -4,7 +4,7 @@
 
 **PRONTO COM PENDÊNCIAS.** Código preparado para Apache na subpasta informada e Render Web Service. A publicação depende de URL real da API, origem Hostinger, credenciais, MySQL externo, migrations aplicadas manualmente e teste integrado. Nenhuma infraestrutura foi modificada. Nenhum commit/push/FTP/deploy/migration/reset foi feito.
 
-**Não publique a dist da auditoria**: usou origem reservada `https://api.invalid` e Client ID fictício exclusivamente para compilação. Gere novamente com `.env.production` real.
+**A dist inicial da auditoria foi gerada com valores fictícios.** Builds posteriores usam o ambiente local disponível. Antes de publicar, confira as variáveis de produção e gere novamente a dist.
 
 ## B. Problemas encontrados
 
@@ -211,3 +211,11 @@ Fazer backup. No backend com configuração segura de produção: `npm ci --incl
 7. Conferir chat com contas autorizadas e rejeição de acesso alheio; observar limites existentes de localStorage.
 8. Testar lixeira/restauração e, somente em dados descartáveis, exclusão intencional.
 9. Verificar mapas/playlists, Console, Network (CORS/WebSocket) e logs Render.
+
+## Atualização — login Google em 28/10/2026
+
+O login Google completo foi implementado após a auditoria inicial. Agora existe `POST /usuarios/google`, validação criptográfica com `google-auth-library`, vínculo persistido por `sub` e criação da sessão do MeetFlow. Cadastro prévio continua obrigatório; endereços externos sem Workspace exigem senha no primeiro vínculo. O cadastro por seleção Google mantém seu comportamento de preenchimento de dados.
+
+Nova variável backend: `GOOGLE_CLIENT_ID`, igual a `VITE_GOOGLE_CLIENT_ID` do frontend. Nova migration: `20261028000000_usuario_google_identity` (campo opcional único). O total agora é cinco migrations. A nova migration **não foi aplicada**. O Google Cloud não foi alterado. Instruções e validações em [README — Login com Google](README.md#login-com-google).
+
+Validação do login Google: 22 testes backend, geração/validação Prisma e build frontend passaram. Migration e autenticação real permanecem pendentes.

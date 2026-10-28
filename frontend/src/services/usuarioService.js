@@ -150,3 +150,10 @@ export async function redefinirSenha(email, codigo, novaSenha) {
   const { data } = await api.post("/usuarios/redefinir-senha", { email, codigo, novaSenha });
   return data;
 }
+
+// O backend verifica o ID token Google antes de emitir a sessao MeetFlow.
+export async function loginGoogle(credential, senha) {
+  const { data } = await api.post("/usuarios/google", { credential, ...(senha ? { senha } : {}) });
+  salvarSessao(data.usuario, data.token, data.refreshToken);
+  return data;
+}

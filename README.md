@@ -3,7 +3,7 @@
 Monorepositório com projetos npm independentes; não execute npm na raiz.
 
 - `frontend/`: React 19, Vite 8, React Router 7 (`BrowserRouter`), Tailwind 4, Axios e Socket.IO Client. Entrada `src/main.jsx`; rotas em `src/App.jsx`; serviços em `src/services/`.
-- `backend/`: JavaScript ESM, Express 5, Socket.IO, Prisma 7.10.1 com `@prisma/adapter-mariadb` e MySQL. Entrada `src/server.js`; controllers/routes em `src/`; schema e quatro migrations em `prisma/`. `mysql2` está declarado, mas o acesso ativo usa Prisma.
+- `backend/`: JavaScript ESM, Express 5, Socket.IO, Prisma 7.10.1 com `@prisma/adapter-mariadb` e MySQL. Entrada `src/server.js`; controllers/routes em `src/`; schema e cinco migrations em `prisma/`. `mysql2` está declarado, mas o acesso ativo usa Prisma.
 - Node: **24.x, mínimo 24.11.1**, configurado em ambos os `package.json`. Validação local com 24.11.1. Use um patch atualizado da linha 24 no Render.
 - Frontend: `npm run dev`, `npm run build`, `npm run preview`, `npm run lint`.
 - Backend: `npm run dev`, `npm start`, `npm test`, `npm run db:generate`, `npm run db:status`, `npm run db:deploy`.
@@ -20,7 +20,7 @@ VITE_API_URL=http://localhost:3000
 VITE_GOOGLE_CLIENT_ID=
 ```
 
-Preencha o Client ID público do aplicativo Google. O botão atual seleciona/preenche a conta Google; o login do MeetFlow continua exigindo senha. Autorize no Google Cloud a origem local e a origem HTTPS real da Hostinger, sem subpasta.
+Preencha o Client ID público do aplicativo Google. O botão de login autentica pelo Google uma conta já cadastrada no MeetFlow. No cadastro, a seleção Google continua preenchendo nome/e-mail, exigindo completar os demais campos. Autorize no Google Cloud a origem local e a origem HTTPS real da Hostinger, sem subpasta.
 
 3. Copie `.env.example` para `.env.production`. Preencha `VITE_API_URL` com a **origem HTTPS real da API publicada no Render**, sem `/usuarios`, `/api`, subpasta ou credenciais, e `VITE_GOOGLE_CLIENT_ID` com o ID público autorizado. Nenhuma URL do Render foi inventada.
 4. O caminho público informado é **`/tecti/2026/gpec12/`**. Está em `vite.config.js` (`base`) e `public/.htaccess` (`RewriteBase`). `BrowserRouter` usa `import.meta.env.BASE_URL`, resultando no basename `/tecti/2026/gpec12/`. Se o caminho mudar, altere Vite e `.htaccess` e gere nova build.
@@ -66,7 +66,7 @@ DirectoryIndex index.html
 
 O Apache precisa permitir `.htaccess`/rewrite (`AllowOverride` adequado e `mod_rewrite`). Não há regras de domínio ou HTTPS. Se ocorrer 500, consulte o log/permissões de `Options` na hospedagem; se houver 404 ao atualizar `/login`, verifique rewrite e envio do arquivo oculto.
 
-**A dist gerada na auditoria usou `https://api.invalid` e Client ID de teste apenas para validar compilação. Não a publique. Gere novamente com as duas variáveis reais.**
+**A build inicial da auditoria usou valores de teste. Para publicar, confirme VITE_API_URL e VITE_GOOGLE_CLIENT_ID do ambiente de produção e gere uma nova dist; uma compilação bem-sucedida não valida a configuração externa.**
 
 ### Backend — Render
 
@@ -94,6 +94,7 @@ DATABASE_URL=
 DB_SSL=true
 DB_SSL_CA=
 JWT_SECRET=
+GOOGLE_CLIENT_ID=
 FRONTEND_URL=
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
@@ -128,8 +129,9 @@ Migrations existentes, preservadas sem alterações:
 2. `20260820143846_tabela_curtidas`: perfil e curtidas.
 3. `20261014100000_evento_soft_delete`: lixeira de eventos.
 4. `20261021110000_galeria_soft_delete`: lixeira da galeria.
+5. `20261028000000_usuario_google_identity`: identificador Google opcional e único, preservando usuários existentes.
 
-Não há seed configurado. O schema foi validado e o Client gerado. SQL das quatro migrations foi revisado, mas elas **não foram aplicadas a um banco** nesta tarefa.
+Não há seed configurado. O schema foi validado e o Client gerado. SQL das cinco migrations foi revisado, mas elas **não foram aplicadas a um banco** nesta tarefa.
 
 Antes do primeiro start de produção, em ambiente confiável com o checkout exato da versão e `DATABASE_URL` de produção (ou Render Shell/one-off job quando disponível):
 
@@ -184,7 +186,7 @@ Ordem operacional de dependências: **banco/migrations → Render → build com 
 1. Confirme `/health` na URL pública real do Render e logs de conexão MySQL.
 2. Abra a origem real Hostinger + `/tecti/2026/gpec12/`; verifique CSS, JS e imagens sem 404.
 3. Abra diretamente `/tecti/2026/gpec12/login` e atualize. Repita em `/eventos` autenticado.
-4. Teste cadastro, login/senha, seleção de conta Google, refresh de token e recuperação via e-mail.
+4. Teste cadastro, login/senha, login Google, refresh de token e recuperação via e-mail.
 5. Crie um evento de teste; liste, abra e atualize. Teste capa/galeria/curtidas no Cloudinary e inclusão de participantes.
 6. Teste notificações e chat com duas contas autorizadas. Conta alheia/sem token não deve acessar notificações nem salas privadas.
 7. Teste lixeira e restauração usando somente registros de teste; exclusão definitiva apenas quando intencional.
@@ -203,3 +205,40 @@ Não foram identificados segredos reais pelos padrões examinados nos arquivos e
 O relatório detalhado de evidências, arquivos e pendências está em [AUDITORIA_DEPLOY.md](AUDITORIA_DEPLOY.md). Não houve deploy, FTP, commit, push, migration aplicada ou alteração da infraestrutura.
 
 Referências: [Node no Render](https://render.com/docs/node-version), [Express no Render](https://render.com/docs/deploy-node-express-app), [Prisma/MySQL](https://www.prisma.io/docs/orm/v7/core-concepts/supported-databases/mysql).
+
+## Login com Google
+
+Implementado em 28/10/2026. O frontend usa `GoogleLogin` de `@react-oauth/google` para obter um **ID token**, enviado como JSON `{ credential }` para `POST /usuarios/google`. O backend usa `google-auth-library` para verificar assinatura Google, audiência, emissor e validade, e exige e-mail verificado. E-mail enviado isoladamente não autentica.
+
+Configure `GOOGLE_CLIENT_ID` no backend com o **mesmo valor público** de `VITE_GOOGLE_CLIENT_ID` no frontend. Não é um Client Secret. Sem essa variável, somente a rota Google retorna 503; login por senha continua disponível. O ID público existente foi copiado para o `.env` local do backend quando a variável ainda não existia. No Render, configure-a manualmente.
+
+Antes de iniciar a nova versão contra um banco, aplique a migration aditiva que cria `usuario.google_sub`:
+
+```sh
+cd backend
+npm install
+npm run db:generate
+npx prisma migrate status
+npx prisma migrate deploy
+npm test
+npm start
+```
+
+A migration foi criada e o Client gerado nesta tarefa, mas **nenhuma migration foi aplicada ao banco**. Siga a orientação de backup/baseline da seção Banco. O campo opcional permite manter contas existentes.
+
+Comportamento:
+
+- Conta ainda não cadastrada: solicita cadastro; não cria usuário automaticamente.
+- Primeiro acesso Gmail ou Workspace com e-mail verificado: vincula a conta existente pelo e-mail confirmado pelo Google.
+- Primeiro acesso com endereço externo sem Workspace (por exemplo, Outlook): exige também a senha atual do MeetFlow. Preencha a senha na tela e clique novamente no botão Google para autorizar o vínculo.
+- Acessos seguintes: identificam a conta pelo `sub` Google persistido, mesmo se o e-mail Google mudar.
+- Uma identidade não pode sobrescrever o vínculo de outra; o índice único impede duplicação.
+- Login bem-sucedido salva a sessão existente do MeetFlow e redireciona para `/usuarios`.
+
+O fluxo usa callback JavaScript e JSON, não recebe POST de formulário do Google. Não utiliza cookies para criar a sessão. Não configure um redirect URI inventado no painel.
+
+Configuração do Google Cloud pendente, a ser feita separadamente: cliente Web com origens JavaScript do desenvolvimento (`http://localhost:5173`), preview se utilizado (`http://localhost:4173`) e domínio HTTPS real da Hostinger, todos sem subpasta. Confirmar também audiência/publicação e usuários de teste quando aplicável. Nenhuma configuração do Google Cloud foi alterada.
+
+Testes automatizados exercitam a rota HTTP com tokens RSA assinados localmente e verificação real da biblioteca Google; somente certificados e banco são substituídos por dados de teste. Cobrem assinatura inválida, audiência/emissor incorretos, expiração, e-mail não verificado, cadastro inexistente, vínculo, senha adicional, sessão e conflito de identidade. O teste real com Google e MySQL continua pendente de migration e configuração externa.
+
+Validação desta implementação: 22 testes backend passaram; `prisma generate`, `prisma validate` e build frontend passaram. Testes não aplicam migrations nem acessam uma conta Google real.

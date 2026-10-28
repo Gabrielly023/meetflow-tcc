@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import { useGoogleLogin } from "@react-oauth/google";
+import { GoogleLogin } from "@react-oauth/google";
 import AuthLayout from "../../components/AuthLayout";
 import AuthField from "../../components/AuthField";
-import GoogleButton from "../../components/GoogleButton";
 import {
   login as fazerLogin,
-  salvarSessao,
+  loginGoogle,
   mensagemDoErro,
 } from "../../services/usuarioService";
 
@@ -54,61 +53,20 @@ const Login = () => {
 
   
 
-const handleGoogle = useGoogleLogin({
-  prompt: "select_account",
-
-  onSuccess: async (tokenResponse) => {
+  async function handleGoogle({ credential }) {
+    if (loading) return;
     setLoading(true);
     setError("");
-
     try {
-      const resposta = await fetch(
-        "https://www.googleapis.com/oauth2/v3/userinfo",
-        {
-          headers: {
-            Authorization: `Bearer ${tokenResponse.access_token}`,
-          },
-        }
-      );
-
-      if (!resposta.ok) {
-        throw new Error(
-          "Não foi possível obter os dados da conta Google."
-        );
-      }
-
-      const contaGoogle = await resposta.json();
-
-      if (!contaGoogle.email) {
-        throw new Error(
-          "Não foi possível identificar o e-mail da conta."
-        );
-      }
-
-      // Preenche o e-mail, mas não autentica no MeetFlow.
-      setLogin(contaGoogle.email);
-      setPassword("");
-
-      sessionStorage.setItem(
-        RECUPERACAO_LOGIN_KEY,
-        contaGoogle.email
-      );
+      if (!credential) throw new Error("O Google não retornou a credencial.");
+      await loginGoogle(credential, password);
+      navigate("/usuarios", { replace: true });
     } catch (erro) {
-      console.error("Erro ao selecionar conta Google:", erro);
-
-      setError(
-        erro.message ||
-          "Não foi possível selecionar a conta Google."
-      );
+      setError(mensagemDoErro(erro, "Não foi possível entrar com o Google. Tente novamente."));
     } finally {
       setLoading(false);
     }
-  },
-
-  onError: () => {
-    setError("Não foi possível selecionar a conta Google.");
-  },
-});
+  }
 
 
   return (
@@ -190,7 +148,21 @@ const handleGoogle = useGoogleLogin({
             <span className="h-px flex-1 bg-slate-700/60" />
           </div>
 
-          <GoogleButton onClick={() => handleGoogle()} texto="Entrar com o Google" />
+          {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
+            <div className="flex justify-center" aria-busy={loading}>
+              {!loading && <GoogleLogin
+                onSuccess={handleGoogle}
+                onError={() => setError("Não foi possível entrar com o Google. Tente novamente.")}
+                onScriptLoadError={() => setError("Não foi possível carregar o login Google.")}
+                auto_select={false}
+                text="signin_with"
+                shape="pill"
+                theme="filled_black"
+                locale="pt-BR"
+              />}
+              {loading && <span role="status">Entrando...</span>}
+            </div>
+          ) : <p className="text-sm text-slate-400">Login Google indisponível neste ambiente.</p>}
 
           <p className="mt-6 text-center text-sm text-slate-400">
             Não tem conta?{" "}

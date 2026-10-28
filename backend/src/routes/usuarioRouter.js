@@ -14,6 +14,12 @@ router.post(
   usuarioController.verificarEmailGoogle
 );
 
+// Credencial ID token enviada pelo callback JavaScript, nunca apenas e-mail.
+router.post("/google", (req, res, next) => {
+  if (!req.is("application/json")) return res.status(415).json({ mensagem: "Envie JSON." });
+  next();
+}, usuarioController.googleLogin);
+
 // Login normal com usuário/e-mail e senha
 router.post("/login", usuarioController.login);
 

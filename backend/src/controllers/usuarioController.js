@@ -1,3 +1,4 @@
+import { verifyGoogleCredential, GoogleAuthError } from "../services/googleAuth.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import validator from "validator";
@@ -551,25 +552,36 @@ if (telefone && (telefoneLimpo.length < 10 || telefoneLimpo.length > 11)) {
   // GOOGLE LOGIN
   async googleLogin(req, res) {
     try {
-      const email = String(req.body.email || "").trim().toLowerCase();
-
-      if (!email) {
-        return res.status(400).json({
-          mensagem: "E-mail é obrigatório.",
-        });
-      }
-
-      // Procura uma conta que já existe.
-      // O login NÃO pode criar usuários.
-      const usuario = await prisma.usuario.findUnique({
-        where: { email },
-      });
-
+      const identity = await verifyGoogleCredential(req.body?.credential);
+      let usuario = await prisma.usuario.findUnique({ where: { google_sub: identity.sub } });
       if (!usuario) {
-        return res.status(404).json({
-          mensagem:
-            "Você ainda não possui cadastro no MeetFlow. Cadastre-se primeiro.",
+        usuario = await prisma.usuario.findUnique({ where: { email: identity.email } });
+        if (!usuario) {
+          return res.status(404).json({ mensagem: "Você ainda não possui cadastro no MeetFlow. Cadastre-se primeiro." });
+        }
+        if (usuario.google_sub && usuario.google_sub !== identity.sub) {
+          return res.status(409).json({ mensagem: "Esta conta já está vinculada a outra identidade Google. Entre com sua senha." });
+        }
+        if (!identity.authoritativeEmail) {
+          const senha = req.body?.senha;
+          if (typeof senha !== "string" || !senha || !(await bcrypt.compare(senha, usuario.senha))) {
+            return res.status(401).json({
+              code: "GOOGLE_PASSWORD_REQUIRED",
+              mensagem: "Para vincular este e-mail ao Google, preencha sua senha atual do MeetFlow e clique novamente em Entrar com o Google.",
+            });
+          }
+        }
+        // Atualizacao condicional impede sobrescrever um vinculo criado por outra requisicao.
+        const linked = await prisma.usuario.updateMany({
+          where: { id_usuario: usuario.id_usuario, google_sub: null },
+          data: { google_sub: identity.sub },
         });
+        if (linked.count !== 1) {
+          const current = await prisma.usuario.findUnique({ where: { google_sub: identity.sub } });
+          if (current?.id_usuario !== usuario.id_usuario) {
+            return res.status(409).json({ mensagem: "Não foi possível vincular a conta. Tente novamente." });
+          }
+        }
       }
 
       // Usa o username que já está salvo no banco.
@@ -601,6 +613,7 @@ if (telefone && (telefoneLimpo.length < 10 || telefoneLimpo.length > 11)) {
       // Retorna os dados existentes, sem expor a senha.
       const {
         senha: _,
+        google_sub: _googleSub,
         ...usuarioSemSenha
       } = usuario;
 
@@ -611,8 +624,13 @@ if (telefone && (telefoneLimpo.length < 10 || telefoneLimpo.length > 11)) {
         refreshToken,
       });
     } catch (error) {
-      console.error("Erro no Google Login:", error);
-
+      if (error instanceof GoogleAuthError) {
+        return res.status(error.status).json({ code: error.code, mensagem: error.message });
+      }
+      if (error.code === "P2002") {
+        return res.status(409).json({ mensagem: "A identidade Google já está vinculada. Tente entrar novamente." });
+      }
+      console.error("Erro no Google Login:", error.code || error.name);
       return res.status(500).json({
         mensagem: "Erro ao autenticar com o Google.",
       });
