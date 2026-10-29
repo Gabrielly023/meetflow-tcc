@@ -5,7 +5,7 @@ async function ehAdmin(id_evento, id_usuario) {
   const participacao = await prisma.participantes.findUnique({
     where: { id_evento_id_usuario: { id_evento, id_usuario } },
   });
-  return !!participacao?.admin;
+  return participacao?.status === "confirmado" && !!participacao.admin;
 }
 
 const participanteController = {
@@ -24,9 +24,14 @@ const participanteController = {
       const souParticipante = await prisma.participantes.findUnique({
         where: { id_evento_id_usuario: { id_evento: id, id_usuario } },
       });
-
-      if (!souParticipante) {
-        return res.status(403).json({ mensagem: "Você não tem acesso a este evento." });
+      
+      if (
+        !souParticipante ||
+        souParticipante.status !== "confirmado"
+      ) {
+        return res.status(403).json({
+          mensagem: "Você precisa aceitar o convite para acessar este evento."
+        });
       }
 
       const participantes = await prisma.participantes.findMany({

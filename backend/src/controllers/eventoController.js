@@ -48,10 +48,17 @@ async function removerImagemCloudinary(url) {
 // Organizador OU participante do evento
 async function temAcesso(evento, id_usuario) {
   if (evento.id_usuario === id_usuario) return true;
+  
   const participacao = await prisma.participantes.findUnique({
-    where: { id_evento_id_usuario: { id_evento: evento.id_evento, id_usuario } },
+    where: {
+      id_evento_id_usuario: {
+        id_evento: evento.id_evento,
+        id_usuario
+      }
+    }
   });
-  return !!participacao;
+  
+  return participacao?.status === "confirmado";
 }
 
 // Lê o campo playlist_spotify (JSON) e sempre devolve um array,
@@ -77,7 +84,17 @@ const eventoController = {
       const eventos = await prisma.evento.findMany({
         where: {
           excluido_em: null,
-          OR: [{ id_usuario }, { participantes: { some: { id_usuario } } }]
+          OR: [
+            { id_usuario },
+            {
+              participantes: {
+                some: {
+                  id_usuario,
+                  status: "confirmado"
+                }
+              }
+            }
+          ]
         },
         orderBy: { data_hora: "asc" }
       });
@@ -130,7 +147,7 @@ const eventoController = {
             id_evento_id_usuario: { id_evento: id, id_usuario }
           }
         });
-        souParticipante = !!participacao;
+        souParticipante = participacao?.status === "confirmado";
       }
 
       if (!souOrganizador && !souParticipante) {

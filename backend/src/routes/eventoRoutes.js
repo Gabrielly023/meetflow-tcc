@@ -42,9 +42,15 @@ function receberFotoGaleria(req, res, next) {
 
 router.use(authMiddleware);
 
+
 router.get("/lixeira", eventoController.listarLixeira);
+
+// Convites pendentes do usuário logado
+router.get("/convites", participanteController.listarConvites);
+
 router.get("/", eventoController.listar);
 router.get("/:id", eventoController.buscarPorId);
+
 
 router.post("/", receberCapa, eventoController.criar);
 router.put("/:id", receberCapa, eventoController.atualizar);
@@ -55,6 +61,17 @@ router.delete("/:id", eventoController.deletar);
 
 router.get("/:id/participantes", participanteController.listar);
 router.post("/:id/participantes", participanteController.adicionar);
+
+router.patch(
+  "/:id/participantes/aceitar",
+  participanteController.aceitarConvite
+);
+
+router.patch(
+  "/:id/participantes/recusar",
+  participanteController.recusarConvite
+);
+
 router.delete("/:id/participantes/me", participanteController.sair);
 router.delete("/:id/participantes/:idUsuario", participanteController.remover);
 
