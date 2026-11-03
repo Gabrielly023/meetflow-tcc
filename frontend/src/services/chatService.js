@@ -5,7 +5,7 @@ import {
   organizadorDoEvento,
 } from "./eventoService";
 import { getUsuarioLogado } from "./usuarioService";
-import { USE_API } from "./config";
+import { USE_API, api } from "./config";
 import * as chatApi from "./chatApi";
 
 // "Backend falso" do chat de cada evento (persistido em localStorage).
@@ -324,40 +324,116 @@ export function lidaPorOutros(msg) {
 
 // ─────────────────────────── participantes ───────────────────────────
 
-export function listarParticipantes(eventId) {
+// ─────────────────────────── participantes ───────────────────────────
+
+export async function listarParticipantes(eventId) {
+  if (USE_API.participantes) {
+    const { data } = await api.get(`/eventos/${eventId}/participantes`);
+
+    return (Array.isArray(data) ? data : []).map((p) => ({
+      id: p.id_usuario,
+      name: p.nome,
+      papel: p.papel,
+      status: p.status,
+      admin: Boolean(p.admin),
+    }));
+  }
+
   semear(eventId);
   return ler(KEY_PARTS, {})[eventId] || [];
 }
 
-// Só admins do grupo podem adicionar participantes.
-export function adicionarParticipante(eventId, nome) {
-  if (!souAdminGrupo(eventId)) return { erro: "semPermissao" };
-  const limpo = (nome || "").trim();
+// Envia convite pelo nome de usuário.
+export async function adicionarParticipante(eventId, username) {
+  const limpo = (username || "").trim();
+
   if (!limpo) return { erro: "vazio" };
+
+  if (USE_API.participantes) {
+    try {
+      const { data } = await api.post(
+        `/eventos/${eventId}/participantes`,
+        { username: limpo },
+      );
+
+      return {
+        convite: data?.convite,
+        mensagem: data?.mensagem,
+      };
+    } catch (error) {
+      const status = error.response?.status;
+
+      if (status === 400 || status === 409) {
+        return { erro: "duplicado" };
+      }
+
+      if (status === 403) {
+        return { erro: "semPermissao" };
+      }
+
+      if (status === 404) {
+        return { erro: "naoEncontrado" };
+      }
+
+      console.error("Erro ao enviar convite:", error);
+
+      return {
+        erro: "falha",
+        mensagem: error.response?.data?.mensagem,
+      };
+    }
+  }
+
+  if (!souAdminGrupo(eventId)) {
+    return { erro: "semPermissao" };
+  }
+  
   const todas = ler(KEY_PARTS, {});
   const lista = todas[eventId] || [];
+
   if (lista.some((p) => p.name.toLowerCase() === limpo.toLowerCase())) {
     return { erro: "duplicado" };
   }
-  const participante = { id: novoId("part"), name: limpo };
+
+  const participante = {
+    id: novoId("part"),
+    name: limpo,
+  };
+
   todas[eventId] = [...lista, participante];
   salvar(KEY_PARTS, todas);
+
   registrarSistema(eventId, `${limpo} entrou no grupo.`);
+
   return { participante };
 }
 
-// Só admins do grupo podem remover participantes.
-export function removerParticipante(eventId, pid) {
+// Remove participante.
+export async function removerParticipante(eventId, pid) {
+  if (USE_API.participantes) {
+    try {
+      await api.delete(`/eventos/${eventId}/participantes/${pid}`);
+      return true;
+    } catch (error) {
+      console.error("Erro ao remover participante:", error);
+      return false;
+    }
+  }
+
   if (!souAdminGrupo(eventId)) return false;
+
   const todas = ler(KEY_PARTS, {});
   const lista = todas[eventId] || [];
   const alvo = lista.find((p) => p.id === pid);
+
   if (!alvo) return false;
+
   todas[eventId] = lista.filter((p) => p.id !== pid);
   salvar(KEY_PARTS, todas);
-  // Ao sair, deixa de ser admin também.
+
   rebaixarAdminInterno(eventId, pid);
   registrarSistema(eventId, `${alvo.name} saiu do grupo.`);
+
   return true;
 }
 

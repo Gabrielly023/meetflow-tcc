@@ -83,8 +83,12 @@ export default function GrupoEvento() {
   const navigate = useNavigate();
   const [evento, setEvento] = useState(null);
   const usuario = getUsuarioLogado();
-
+  
+  const [participantes, setParticipantes] = useState([]);
+  const [carregandoParticipantes, setCarregandoParticipantes] = useState(true);
+  
   const fotoRef = useRef(null);
+
   const [, setVersao] = useState(0);
   const recarregar = () => setVersao((n) => n + 1);
 
@@ -113,6 +117,31 @@ export default function GrupoEvento() {
     };
   }, [id]);
 
+  useEffect(() => {
+  async function carregarParticipantes() {
+    try {
+      setCarregandoParticipantes(true);
+
+      const dados = await listarParticipantes(id);
+
+      setParticipantes(
+        dados.filter(
+          (p) =>
+            p.status === "confirmado" &&
+            p.id !== usuario?.id_usuario
+        )
+      );
+    } catch (erro) {
+      console.error("Erro ao carregar participantes:", erro);
+      setParticipantes([]);
+    } finally {
+      setCarregandoParticipantes(false);
+    }
+  }
+  
+  carregarParticipantes();
+}, [id, usuario?.id_usuario]);
+
   if (!evento) {
     return (
       <main className="flex flex-1 items-center justify-center px-6 py-10">
@@ -134,7 +163,6 @@ export default function GrupoEvento() {
   const nomeGrupo = getNomeGrupo(id, evento.titulo);
   const descricao = getDescricaoGrupo(id);
   const foto = getFotoGrupo(id);
-  const participantes = listarParticipantes(id);
 
   const meuPapel = souDono ? "Criador" : souAdmin ? "Admin" : "Membro";
 
@@ -164,22 +192,42 @@ export default function GrupoEvento() {
       console.error(erro);
     }
   }
-
-  function handleAdicionar() {
-    setErroPart("");
-    const res = adicionarParticipante(id, novoParticipante);
-    if (res?.erro === "duplicado") {
-      setErroPart("Esse participante já está no grupo.");
-      return;
-    }
-    if (res?.erro === "semPermissao") {
-      setErroPart("Só admins podem adicionar participantes.");
-      return;
-    }
-    if (res?.erro) return;
-    setNovoParticipante("");
-    recarregar();
+  
+  async function handleAdicionar() {
+  setErroPart("");
+  
+  const username = novoParticipante.trim();
+  
+  if (!username) {
+    setErroPart("Digite o nome de usuário.");
+    return;
   }
+
+  const res = await adicionarParticipante(id, username);
+
+  if (res?.erro === "duplicado") {
+    setErroPart("Esse usuário já participa ou possui um convite.");
+    return;
+  }
+
+  if (res?.erro === "semPermissao") {
+    setErroPart("Só administradores podem convidar participantes.");
+    return;
+  }
+
+  if (res?.erro === "naoEncontrado") {
+    setErroPart("Usuário não encontrado.");
+    return;
+  }
+
+  if (res?.erro) {
+    setErroPart(res.mensagem || "Não foi possível enviar o convite.");
+    return;
+  }
+  
+  setNovoParticipante("");
+  setErroPart("Convite enviado com sucesso!");
+}
 
   function confirmarRemocao() {
     if (aRemover) {
